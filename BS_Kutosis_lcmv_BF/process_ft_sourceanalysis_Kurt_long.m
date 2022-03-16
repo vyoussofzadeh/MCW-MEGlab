@@ -1,4 +1,4 @@
-function varargout = process_ft_sourceanalysis_Kurt_LCMVBF(varargin )
+function varargout = process_ft_sourceanalysis_Kurt_long(varargin )
 % PROCESS_FT_SOURCEANALYSIS Call FieldTrip function ft_sourceanalysis
 
 % @=============================================================================
@@ -29,7 +29,7 @@ end
 function sProcess = GetDescription() %#ok<DEFNU>
 % ===== PROCESS =====
 % Description the process
-sProcess.Comment     = 'FieldTrip: ft_sourceanalysis kurtosis LCMV v112020';
+sProcess.Comment     = 'FieldTrip: ft_sourceanalysis kurtosis (long-segments) v063021';
 sProcess.Category    = 'Custom';
 sProcess.SubGroup    = 'Sources';
 sProcess.Index       = 356;
@@ -87,9 +87,6 @@ for iChanFile = 1:1%length(AllChannelFiles)
     if isempty(sStudyChan.iHeadModel)
         bst_report('Error', sProcess, [], ['No head model available in folder: ' bst_fileparts(sStudyChan.FileName)]);
         continue;
-    elseif isempty(sStudyChan.NoiseCov) || isempty(sStudyChan.NoiseCov(1).FileName)
-        bst_report('Error', sProcess, [], ['No noise covariance matrix available in folder: ' bst_fileparts(sStudyChan.FileName)]);
-        continue;
     end
     % Load channel file
     ChannelMat = in_bst_channel(AllChannelFiles{iChanFile});
@@ -102,10 +99,6 @@ for iChanFile = 1:1%length(AllChannelFiles)
     % Load head model
     HeadModelFile = sStudyChan.HeadModel(sStudyChan.iHeadModel).FileName;
     HeadModelMat = in_bst_headmodel(HeadModelFile);
-    % Load data covariance matrix
-    NoiseCovFile = sStudyChan.NoiseCov(1).FileName;
-    NoiseCovMat = load(file_fullpath(NoiseCovFile));
-    %%% DATA OR NOISE COVARIANCE ????
     
     % ===== LOOP ON DATA FILES =====
     % Get data files for this channel file
@@ -129,7 +122,7 @@ for iChanFile = 1:1%length(AllChannelFiles)
         % Convert data file to FieldTrip format
         ftData = out_fieldtrip_data(DataMat, ChannelMat, iChannelsData, 1);
         % Add data covariance
-        ftData.cov = NoiseCovMat.NoiseCov(iChannelsData,iChannelsData);
+        %         ftData.cov = NoiseCovMat.NoiseCov(iChannelsData,iChannelsData);
         % Convert head model to FieldTrip format
         [ftHeadmodel, ftLeadfield] = out_fieldtrip_headmodel(HeadModelMat, ChannelMat, iChannelsData, 1);
         
@@ -149,14 +142,10 @@ for iChanFile = 1:1%length(AllChannelFiles)
         iChanInputs = find(ismember({sInputs.ChannelFile}, AllChannelFiles{iChanFile}));
         
         %% Step2, reading trials
-        % Loop on data files
         for iInput = 1:length(iChanInputs)
-            % === LOAD DATA ===
-            % Load data
             DataFile = sInputs(iChanInputs(iInput)).FileName;
             DataMat = in_bst_data(DataFile);
             iStudyData = sInputs(iChanInputs(iInput)).iStudy;
-            % Remove bad channels
             iBadChan = find(DataMat.ChannelFlag == -1);
             iChannelsData = setdiff(iChannels, iBadChan);
             
@@ -171,19 +160,14 @@ for iChanFile = 1:1%length(AllChannelFiles)
         ftData = out_fieldtrip_data(DataMat, ChannelMat, iChannelsData, 1);
         ftData1 = [];
         ftData1.label = ftData.label;
-        ftData1.grad = ftData.grad;
         ftData1.dimord = ftData.dimord;
         ftData1.trial = trl;
         ftData1.time = timee;
         
         %% step3, headmodel & leadfields ..
         [sStudyChan, ~] = bst_get('ChannelFile', AllChannelFiles{iChanFile});
-        % Load head model
         HeadModelFile = sStudyChan.HeadModel(sStudyChan.iHeadModel).FileName;
         HeadModelMat = in_bst_headmodel(HeadModelFile);
-        % Load data covariance matrix
-        NoiseCovFile = sStudyChan.NoiseCov(1).FileName;
-        NoiseCovMat = load(file_fullpath(NoiseCovFile));
         Index = strfind(HeadModelMat.SurfaceFile, '/');
         subj = HeadModelMat.SurfaceFile(1:Index(1)-1);
         
@@ -203,121 +187,200 @@ for iChanFile = 1:1%length(AllChannelFiles)
         
         %% Preprocessing
         datain = ftData1;
-        cfg = [];
-%         cfg.dataset = datafile;
+        
+        disp('hpfreq to lpfreq eg, [18,25] in Hz:');
+        foi = input('');
+        cfg        = [];
+        cfg.demean = 'yes';
+        cfg.dftfilter = 'yes';
         cfg.hpfilter = 'yes';
-        cfg.hpfreq = 10;
         cfg.lpfilter = 'yes';
-        cfg.lpfreq = 70;
-        cfg.channel = {'megmag', 'meggrad'};
-        cfg.coilaccuracy = 0;
-        datain = ft_preprocessing(cfg,datain);
+        cfg.hpfiltord = 3;
+        cfg.lpfreq = foi(2);
+        cfg.hpfreq = foi(1);
+        fcln_data        = ft_preprocessing(cfg, datain);
+        
+        %%
+        cfg = [];
+        cfg.resamplefs = 500;
+        data_resampled = ft_resampledata(cfg, fcln_data);
+        
+        %% ICA cleaning
+        cfg            = [];
+        cfg.method     = 'runica';
+        cfg.numcomponent = 20;       % specify the component(s) that should be plotted
+        comp           = ft_componentanalysis(cfg, data_resampled);
+        
+        %%
+        cfg = [];
+        cfg.layout = 'neuromag306mag.lay';
+        lay = ft_prepare_layout(cfg);
+        
+        cfg = [];
+        cfg.viewmode = 'component';
+        cfg.layout = lay;
+        ft_databrowser(cfg, comp);
+        
+        %%
+        disp('Select bad ICs for:');
+        bic = input('');
+        close all;
+        
+        if ~ isempty(bic)
+            
+            cfg = [];
+            cfg.component = comp.label(bic);
+            cfg.updatesens = 'no';
+            cln_data = ft_rejectcomponent(cfg, comp, data_resampled);
+            
+        else
+            disp('no correction was done')
+            cln_data = data_resampled;
+        end
+        
+        %% Cutting 10 sec from the end of data, to reduce artifacts (eg., button press).
+        ct = 1;
+        if ct==1
+            cfg = [];
+            cfg.toilim = [cln_data.time{:}(10*cln_data.fsample),cln_data.time{:}(end-10*cln_data.fsample)];
+            cln_data = ft_redefinetrial(cfg,cln_data);
+        end
         
         %%
         cfg = [];
         cfg.channel = 'MEG';
         cfg.covariance = 'yes';
-        cov_matrix = ft_timelockanalysis(cfg, datain);
-        %     save cov_matrix cov_matrix
+        cov_matrix = ft_timelockanalysis(cfg, cln_data);
+        cov_matrix.grad = ftData.grad;
         
         %% Step8: head (forward) model
-        %  sourcemodel = ft_read_headshape(fullfile(bsanatdir,HeadModelMat.SurfaceFile));
+        sourcemodel = ft_read_headshape(fullfile(bsanatdir,HeadModelMat.SurfaceFile));
         [ftHeadmodel, ftLeadfield] = out_fieldtrip_headmodel(HeadModelMat, ChannelMat, iChannelsData, 1);
         
-        %%
-        disp('Fast post-pre contrast: 1, slow cluster-based statistics: 2 ?');
-        %         st = input('');
-        st = 1;
-        if st == 2, Method = 'dics_stat'; end
-        
         %% step9: Surface-based source analysis
-        switch Method
-            case 'mne'
-                cfg.mne.prewhiten = 'yes';
-                cfg.mne.lambda    = 3;
-                cfg.mne.scalesourcecov = 'yes';
-                Time = DataMat.Time;
-                
-            case 'lcmv'
-                
-                cfg = [];
-                cfg.method = 'lcmv';
-                cfg.sourcemodel = ftLeadfield;
-                cfg.headmodel = ftHeadmodel;
-                cfg.lcmv.keepfilter = 'yes';
-                cfg.lcmv.fixedori = 'yes'; % project on axis of most variance using SVD
-                cfg.lcmv.lambda = '5%';
-%                  cfg.lcmv.lambda = '100%';
-                cfg.lcmv.kappa = 69;
-                cfg.lcmv.projectmom = 'yes'; % project dipole time series in direction of maximal power (see below)
-                cfg.lcmv.kurtosis = 'yes';
-                source = ft_sourceanalysis(cfg, cov_matrix);
-                
-                mask = 'kurtosis';
-                tmp = abs(source.avg.(mask));
-                tmp = (tmp - min(tmp(:))) ./ (max(tmp(:)) - min(tmp(:))); %
-                source.(mask) = tmp;
-                
-            case 'dics'
-                
-                cfg = [];
-                cfg.method = 'dics';
-                cfg.dics.lambda = '100%';
-                cfg.sourcemodel  = ftLeadfield;
-                cfg.frequency    = f_data.pst.freq;
-                cfg.headmodel = ftHeadmodel;
-                %                 cfg.dics.keepfilter = 'yes';
-                cfg.dics.fixedori    = 'yes'; % project on axis of most variance using SVD
-                %                 cfg.dics.projectnoise = 'yes';
-                s_data.bsl      = ft_sourceanalysis(cfg, f_data.bsl);
-                s_data.pst      = ft_sourceanalysis(cfg, f_data.pst);
-                
-                tmp = s_data.bsl.avg.pow; tmp(isnan(tmp))=0; tmp = tmp./max(tmp); s_data.bsl.avg.pow = tmp;
-                tmp = s_data.pst.avg.pow; tmp(isnan(tmp))=0; tmp = tmp./max(tmp); s_data.pst.avg.pow = tmp;
-                
-                
-                cfg = [];
-                cfg.parameter = 'avg.pow';
-                cfg.operation = '(x1-x2)';
-                source_diff_dics = ft_math(cfg,s_data.pst,s_data.bsl);
-                source_diff_dics.pow = (s_data.pst.avg.pow - s_data.bsl.avg.pow)./(s_data.pst.avg.pow + s_data.bsl.avg.pow);
-                source_diff_dics.pow(source_diff_dics.pow<0)=0;
-                
-            case 'dics_stat'
-                
-                cfg = [];
-                cfg.method = 'dics';
-                cfg.dics.lambda = '100%';
-                cfg.frequency    = f_data.app.freq;
-                cfg.headmodel = ftHeadmodel;
-                cfg.sourcemodel  = ftLeadfield;
-                cfg.dics.keepfilter = 'yes';
-                cfg.dics.fixedori    = 'yes'; % project on axis of most variance using SVD
-                sourceavg = ft_sourceanalysis(cfg, f_data.app);
-                
-                cfg = [];
-                cfg.method = 'dics';
-                cfg.sourcemodel        = ftLeadfield;
-                cfg.sourcemodel.filter = sourceavg.avg.filter;
-                cfg.dics.fixedori    = 'yes'; % project on axis of most variance using SVD
-                cfg.rawtrial = 'yes';
-                cfg.headmodel = ftHeadmodel;
-                s_data.bsl      = ft_sourceanalysis(cfg, f_data.bsl);
-                s_data.pst      = ft_sourceanalysis(cfg, f_data.pst);
-                
-                stat = vy_source_stat_montcarlo(s_data);
-                
-                tmp = stat.stat;
-                tmp2 = zeros(size(stat.pos,1),1);
-                tmp2(stat.inside) = tmp;
-                
-                stats1  = stat;
-                stats1.stat =  tmp2;
-                stats1.mask = stat.inside;
-                stats2 = stats1;
-                stats2.stat(stats2.stat>0)=0;
-                stats2.stat(isnan(stats2.stat))=0;
-                
+        cfg = [];
+        cfg.method = 'lcmv';
+        cfg.sourcemodel = ftLeadfield;
+        cfg.headmodel = ftHeadmodel;
+        cfg.lcmv.keepfilter = 'yes';
+        cfg.lcmv.fixedori = 'yes'; % project on axis of most variance using SVD
+        cfg.lcmv.lambda = '5%';
+        %                  cfg.lcmv.lambda = '100%';
+        cfg.lcmv.kappa = 69;
+        cfg.lcmv.projectmom = 'yes'; % project dipole time series in direction of maximal power (see below)
+        cfg.lcmv.kurtosis = 'yes';
+        source = ft_sourceanalysis(cfg, cov_matrix);
+        
+        array = source.avg.kurtosis;
+        array(isnan(array)) = 0;
+        ispeak = imregionalmax(array); % findpeaksn is an alternative that does not require the image toolbox
+        peakindex = find(ispeak(:));
+        [~, i] = sort(source.avg.kurtosis(peakindex), 'descend'); % sort on the basis of kurtosis value
+        peakindex = peakindex(i);
+        
+        npeaks = 3;
+        disp(source.pos(peakindex(1:npeaks),:)); % output the positions of the top peaks
+        
+        
+        %% Marking potential spikes in the source time series
+        dat = ft_fetch_data(cln_data);
+        hdr = ft_fetch_header(cln_data);
+        
+        for i=1:size(dat,1)
+            %             hdr.label{i}= ['S' num2str(i)];
+            hdr.chantype{i} = 'MEG';
+            hdr.chanunit{i} = 'T' ; % see note below about scaling
+        end
+        
+        % npeaks = 5;
+        for i = 1:npeaks
+            dat(end+1,:) = source.avg.mom{peakindex(i),:}; % see comment below about scaling
+            hdr.label{end+1}= ['S' num2str(i)];
+            hdr.chantype{end+1} = 'Source';
+            hdr.chanunit{end+1} = 'T' ; % see note below about scaling
+        end
+        hdr.nChans = hdr.nChans+npeaks;
+        % ft_write_data('Case3_timeseries', dat, 'header', hdr, 'dataformat', 'anywave_ades');
+        dat1 = dat;
+        
+        k = 1;
+        time_occur = [];
+        dat = source.avg.mom{peakindex(1),:};
+        sd = std(dat);
+        PKS = [];
+        tr = zeros(size(dat));
+        kk = 20;
+        while length(PKS) < 3
+            tr(dat>kk*sd)=1;
+            [PKS, peaksample] = findpeaks(tr, 'MinPeakDistance', 300); % peaks have to be separated by 300 sample points to be treated as separate
+            kk = kk-1;
+        end
+        for j = 1:length(peaksample)
+            time_occur(j) = source.time(peaksample(j));
+            k = k + 1;
+        end
+        % disp(time_occur)
+        
+        toccur = [];
+        for j=1:length(time_occur)
+            toccur{j} = [num2str(j), '=', num2str(time_occur(j))];
+        end
+        disp(toccur')
+        
+        %%
+        kk = 1;
+        un_time_occur = unique(time_occur);
+        L = length(un_time_occur);
+        dat(peaksample)
+        disp(toccur')
+        keep_matrix = 1:length(toccur);
+        un_time_occur_keep = un_time_occur(keep_matrix);
+        
+        %%
+        mask = 'kurtosis';
+        %- Spikes source time series plotting
+        data_dummy = [];
+        data_dummy.trial{1} = dat1;
+        data_dummy.time = cln_data.time;
+        data_dummy.hdr = hdr;
+        data_dummy.label = hdr.label;
+        
+        clc
+        tsel = [];
+        for j=1:length(un_time_occur_keep)
+            tsel{j} = [num2str(j), '=', num2str(un_time_occur_keep(j))];
+        end
+        disp(tsel')
+        
+        ETS_ask = 1;
+        
+        %     tselin = input('choose timing:');
+        for j=1:length(un_time_occur_keep)
+            disp([num2str(j), '/', num2str(length(un_time_occur_keep))])
+            %
+            cfg = [];
+            cfg.toilim = [un_time_occur_keep(j) - kk,un_time_occur_keep(j) + kk];
+            data_spk = ft_redefinetrial(cfg, cln_data);
+            
+            cfg = [];
+            cfg.channel = 'MEG';
+            cfg.covariance = 'yes';
+            cov_matrix1 = ft_timelockanalysis(cfg, data_spk);
+            cov_matrix1.grad = ftData.grad;
+            
+            cfg = [];
+            cfg.method = 'lcmv';
+            cfg.sourcemodel = ftLeadfield;
+            cfg.headmodel = ftHeadmodel;
+            cfg.lcmv.keepfilter = 'yes';
+            cfg.lcmv.fixedori = 'yes'; % project on axis of most variance using SVD
+            cfg.lcmv.lambda = '5%';
+            %                  cfg.lcmv.lambda = '100%';
+            cfg.lcmv.kappa = 69;
+            cfg.lcmv.projectmom = 'yes'; % project dipole time series in direction of maximal power (see below)
+            cfg.lcmv.kurtosis = 'yes';
+            source_sel = ft_sourceanalysis(cfg, cov_matrix1);
+            s_all(j,:) = source_sel.avg.(mask);
         end
         
         % === CREATE OUTPUT STRUCTURE ===
@@ -328,11 +391,8 @@ for iChanFile = 1:1%length(AllChannelFiles)
         ResultsMat.ImagingKernel = [];
         switch Method
             case 'lcmv'
-                ResultsMat.ImageGridAmp  = abs((source.(mask)));
+                ResultsMat.ImageGridAmp  = mean(s_all,1)';
                 ResultsMat.cfg           = source.cfg;
-            case 'dics_stat'
-                ResultsMat.ImageGridAmp  = abs((stats2.stat));
-                ResultsMat.cfg           = stat.cfg;
         end
         ResultsMat.nComponents   = 1;
         ResultsMat.Function      = Method;
@@ -345,7 +405,7 @@ for iChanFile = 1:1%length(AllChannelFiles)
         ResultsMat.SurfaceFile   = HeadModelMat.SurfaceFile;
         ResultsMat.nAvg          = DataMat.nAvg;
         ResultsMat.Leff          = DataMat.Leff;
-        ResultsMat.Comment       = ['ft_sourceanalysis: kurtosis_' Method, '_', datestr(now, 'dd/mm/yy-HH:MM')];
+        ResultsMat.Comment       = ['ft_sourceanalysis_kurtlcmv: ' Method, '_', datestr(now, 'dd/mm/yy-HH:MM')];
         %         ResultsMat.Comment       = ['ft_sourceanalysis: ' Method, '_',num2str(foi(1)),'_',num2str(foi(2)),'_Hz_', num2str(toi(2,1)),'_',num2str(toi(2,2)), 'sec ', datestr(now, 'dd/mm/yy-HH:MM')];
         switch lower(ResultsMat.HeadModelType)
             case 'volume'
