@@ -38,6 +38,14 @@ sProcess.OutputTypes = {'data'};
 sProcess.nInputs     = 1;
 sProcess.nMinFiles   = 1;
 
+% Label: Time
+sProcess.options.label1.Comment = '<BR><B>Time of interest:</B>';
+sProcess.options.label1.Type    = 'label';
+% Active time window
+sProcess.options.poststim.Comment = 'Time interval:';
+sProcess.options.poststim.Type    = 'poststim';
+sProcess.options.poststim.Value   = [];
+
 % Option: Sensors selection
 sProcess.options.sensortype.Comment = 'Sensor type:';
 sProcess.options.sensortype.Type    = 'combobox_label';
@@ -62,6 +70,7 @@ end
 
 % ===== GET OPTIONS =====
 % Inverse options
+PostStim = sProcess.options.poststim.Value{1};
 Modality = sProcess.options.sensortype.Value{1};
 TmpDir = bst_get('BrainstormTmpDir');
 % Progress bar
@@ -144,7 +153,14 @@ for i=1:length(TT)
     TT{i} = ftData.time{1};
 end
 ftData.time = TT;
-t_data = do_timelock(ftData);
+
+%%
+cfg = [];
+cfg.toilim = PostStim;
+ep_data = ft_redefinetrial(cfg, ftData);
+
+%%
+t_data = do_timelock(ep_data);
 
 %%
 cfg                  = [];
@@ -208,7 +224,7 @@ ResultsMat.GoodChannel   = iChannelsData;
 ResultsMat.SurfaceFile   = HeadModelMat.SurfaceFile;
 ResultsMat.nAvg          = DataMat.nAvg;
 ResultsMat.Leff          = DataMat.Leff;
-ResultsMat.Comment       = 'Conn_PLV';
+% ResultsMat.Comment       = 'Conn_PLV';
 ResultsMat.Comment       = ['ft_connanalysis: plv_' Method, '_', datestr(now, 'dd/mm/yy-HH:MM')];
 switch lower(ResultsMat.HeadModelType)
     case 'volume'
@@ -252,112 +268,6 @@ panel_protocols('SelectNode', [], newResult.FileName);
 db_save();
 % Hide progress bar
 bst_progress('stop');
-end
-
-
-%% ===== TIME-FREQUENCY =====
-function [time_of_interest,freq_of_interest] = do_tfr_plot(cfg_main, tfr)
-% First compute the average over trials:
-cfg = [];
-freq_avg = ft_freqdescriptives(cfg, tfr);
-
-% And baseline-correct the average:
-cfg = [];
-cfg.baseline = cfg_main.baselinetime;
-cfg.baselinetype = 'db'; % Use decibel contrast here
-freq_avg_bsl = ft_freqbaseline(cfg, freq_avg);
-
-freq_avg_bsl.powspctrm(isnan(freq_avg_bsl.powspctrm))=0;
-meanpow = squeeze(mean(freq_avg_bsl.powspctrm, 1));
-
-tim_interp = linspace(cfg_main.toi(1), cfg_main.toi(2), 512);
-freq_interp = linspace(1, cfg_main.fmax, 512);
-
-% We need to make a full time/frequency grid of both the original and
-% interpolated coordinates. Matlab's meshgrid() does this for us:
-[tim_grid_orig, freq_grid_orig] = meshgrid(tfr.time, tfr.freq);
-[tim_grid_interp, freq_grid_interp] = meshgrid(tim_interp, freq_interp);
-
-% And interpolate:
-pow_interp = interp2(tim_grid_orig, freq_grid_orig, meanpow, tim_grid_interp, freq_grid_interp, 'spline');
-
-% while n==1
-pow_interp1  = pow_interp(50:end,50:end);
-tim_interp1  = tim_interp(50:end);
-freq_interp1 = freq_interp(50:end);
-
-[~,idx] = min(pow_interp1(:));
-[row,col] = ind2sub(size(pow_interp1),idx);
-
-time_of_interest = tim_interp1(col);
-freq_of_interest = freq_interp1(row);
-
-timind = nearest(tim_interp, time_of_interest);
-freqind = nearest(freq_interp, freq_of_interest);
-pow_at_toi = pow_interp(:,timind);
-pow_at_foi = pow_interp(freqind,:);
-
-
-% Plot figure
-if cfg_main.plotflag
-    figure();
-    ax_main  = axes('Position', [0.1 0.2 0.55 0.55]);
-    ax_right = axes('Position', [0.7 0.2 0.1 0.55]);
-    ax_top   = axes('Position', [0.1 0.8 0.55 0.1]);
-    
-    axes(ax_main);
-    imagesc(tim_interp, freq_interp, pow_interp);
-    % note we're storing a handle to the image im_main, needed later on
-    xlim([cfg_main.toi(1), cfg_main.toi(2)]);
-    axis xy;
-    xlabel('Time (s)');
-    ylabel('Frequency (Hz)');
-    clim = max(abs(meanpow(:)));
-    caxis([-clim clim]);
-    % colormap(brewermap(256, '*RdYlBu'));
-    hold on;
-    plot(zeros(size(freq_interp)), freq_interp, 'k:');
-    
-    axes(ax_top);
-    area(tim_interp, pow_at_foi, ...
-        'EdgeColor', 'none', 'FaceColor', [0.5 0.5 0.5]);
-    xlim([cfg_main.toi(1), cfg_main.toi(2)]);
-    ylim([-clim clim]);
-    box off;
-    ax_top.XTickLabel = [];
-    ylabel('Power (dB)');
-    hold on;
-    plot([0 0], [-clim clim], 'k:');
-    
-    axes(ax_right);
-    area(freq_interp, pow_at_toi,...
-        'EdgeColor', 'none', 'FaceColor', [0.5 0.5 0.5]);
-    view([270 90]); % this rotates the plot
-    ax_right.YDir = 'reverse';
-    ylim([-clim clim]);
-    box off;
-    ax_right.XTickLabel = [];
-    ylabel('Power (dB)');
-    
-    h = colorbar(ax_main, 'manual', 'Position', [0.85 0.2 0.05 0.55]);
-    ylabel(h, 'Power vs baseline (dB)');
-    
-    % Main plot:
-    axes(ax_main);
-    plot(ones(size(freq_interp))*time_of_interest, freq_interp,...
-        'Color', [0 0 0 0.1], 'LineWidth', 3);
-    plot(tim_interp, ones(size(tim_interp))*freq_of_interest,...
-        'Color', [0 0 0 0.1], 'LineWidth', 3);
-    
-    % Marginals:
-    axes(ax_top);
-    plot([time_of_interest time_of_interest], [0 clim],...
-        'Color', [0 0 0 0.1], 'LineWidth', 3);
-    axes(ax_right);
-    hold on;
-    plot([freq_of_interest freq_of_interest], [0 clim],...
-        'Color', [0 0 0 0.1], 'LineWidth', 3);
-end
 end
 
 
@@ -447,8 +357,8 @@ for j = 1:siz(1)
 %     outcnt = outcnt + double(~isnan(tmp));
 end
 
-size(outsum)
-figure,imagesc(outsum), colorbar, title('crsspctrm');
+% size(outsum)
+figure,imagesc(outsum), colorbar, title('conn (across voxels)');
 
 end
 
