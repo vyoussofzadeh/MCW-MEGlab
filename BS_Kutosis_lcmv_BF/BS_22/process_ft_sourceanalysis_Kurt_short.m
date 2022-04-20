@@ -1,4 +1,4 @@
-function varargout = process_ft_sourceanalysis_conn(varargin )
+function varargout = process_ft_sourceanalysis_Kurt_short(varargin )
 % PROCESS_FT_SOURCEANALYSIS Call FieldTrip function ft_sourceanalysis (DICS)
 
 % @=============================================================================
@@ -27,7 +27,7 @@ end
 %% ===== GET DESCRIPTION =====
 function sProcess = GetDescription() %#ok<DEFNU>
 % Description the process
-sProcess.Comment     = 'FieldTrip: ft_connanalysis (PLV)';
+sProcess.Comment     = 'FieldTrip: ft_sourceanalysis kurtosis LCMV (short-segments) v112020';
 sProcess.Category    = 'Custom';
 sProcess.SubGroup    = 'Sources';
 sProcess.Index       = 357;
@@ -144,40 +144,35 @@ for i=1:length(TT)
     TT{i} = ftData.time{1};
 end
 ftData.time = TT;
-t_data = do_timelock(ftData);
+% t_data = do_timelock(ftData);
 
-%%
-cfg                  = [];
-cfg.method           = 'lcmv';
-cfg.sourcemodel  = ftLeadfield;
+Method = 'lcmv';
+
+cfg = [];
+cfg.channel = 'MEG';
+cfg.covariance = 'yes';
+cov_matrix = ft_timelockanalysis(cfg, ftData);
+
+cfg = [];
+cfg.method = 'lcmv';
+cfg.sourcemodel = ftLeadfield;
 cfg.headmodel = ftHeadmodel;
-cfg.keepfilter       = 'yes';
-cfg.lcmv.keepfilter  = 'yes';
-cfg.keeptrials       = 'yes';
-cfg.lcmv.fixedori    = 'yes'; % project on axis of most variance using SVD
-cfg.lcmv.lambda      = '0.1%';
-source = ft_sourceanalysis(cfg, t_data);
+cfg.lcmv.keepfilter = 'yes';
+cfg.lcmv.fixedori = 'yes'; % project on axis of most variance using SVD
+cfg.lcmv.lambda = '5%';
+%                  cfg.lcmv.lambda = '100%';
+cfg.lcmv.kappa = 69;
+cfg.lcmv.projectmom = 'yes'; % project dipole time series in direction of maximal power (see below)
+cfg.lcmv.kurtosis = 'yes';
+source = ft_sourceanalysis(cfg, cov_matrix);
 
-idx = round(linspace(1,length(source.avg.mom),2000));
-mom = []; k=1;
-for i=idx
-    clc
-    disp([num2str(i),'/', num2str(length(source.avg.mom))])
-    mom(k,:) = source.avg.mom{i};
-    k = k+1;
-end
+mask = 'kurtosis';
+tmp = abs(source.avg.(mask));
+tmp = (tmp - min(tmp(:))) ./ (max(tmp(:)) - min(tmp(:))); %
+source.(mask) = tmp;
 
-outsum = do_conn(mom);
-v = eigenvector_centrality_und(outsum);
-% figure,bar(v), title('eigenvector');
-
-ImageGridAmp = zeros(length(source.avg.mom),1);
-for i=1:length(idx)-1
-    ImageGridAmp(idx(i):idx(i+1)) = v(i);    
-end
-
-% ===== SAVE RESULTS =====
-% === CREATE OUTPUT STRUCTURE ===
+% % ===== SAVE RESULTS =====
+% % === CREATE OUTPUT STRUCTURE ===
 bst_progress('text', 'Saving source file...');
 bst_progress('inc', 1);
 % Output study
@@ -192,11 +187,8 @@ end
 ResultsMat = db_template('resultsmat');
 ResultsMat.ImagingKernel = [];
 
-% ImageGridAmp = zeros(length(source.avg.mom),1);
-% ImageGridAmp(idx) = v;
-
-Method = 'conn';
-ResultsMat.ImageGridAmp  = ImageGridAmp;
+ResultsMat.ImageGridAmp  = abs((source.(mask)));
+ResultsMat.cfg           = source.cfg;
 ResultsMat.nComponents   = 1;
 ResultsMat.Function      = Method;
 ResultsMat.Time          = 1;
@@ -208,8 +200,7 @@ ResultsMat.GoodChannel   = iChannelsData;
 ResultsMat.SurfaceFile   = HeadModelMat.SurfaceFile;
 ResultsMat.nAvg          = DataMat.nAvg;
 ResultsMat.Leff          = DataMat.Leff;
-ResultsMat.Comment       = 'Conn_PLV';
-ResultsMat.Comment       = ['ft_connanalysis: plv_' Method, '_', datestr(now, 'dd/mm/yy-HH:MM')];
+ResultsMat.Comment       = ['ft_sourceanalysis: kurtosis_' Method, '_', datestr(now, 'dd/mm/yy-HH:MM')];
 switch lower(ResultsMat.HeadModelType)
     case 'volume'
         ResultsMat.GridLoc    = HeadModelMat.GridLoc;
@@ -219,7 +210,7 @@ switch lower(ResultsMat.HeadModelType)
         ResultsMat.GridLoc    = HeadModelMat.GridLoc;
         ResultsMat.GridOrient = HeadModelMat.GridOrient;
 end
-ResultsMat = bst_history('add', ResultsMat, 'compute', ['ft_connanalysis: ' Method ' ' Modality ' ']);
+ResultsMat = bst_history('add', ResultsMat, 'compute', ['ft_sourceanalysis: ' Method ' ' Modality]);
 
 % === SAVE OUTPUT FILE ===
 % Output filename
@@ -253,7 +244,6 @@ db_save();
 % Hide progress bar
 bst_progress('stop');
 end
-
 
 %% ===== TIME-FREQUENCY =====
 function [time_of_interest,freq_of_interest] = do_tfr_plot(cfg_main, tfr)
@@ -360,7 +350,6 @@ if cfg_main.plotflag
 end
 end
 
-
 function [freq,ff, psd,tapsmofrq] = do_fft(cfg_mian, data)
 cfg              = [];
 cfg.method       = 'mtmfft';
@@ -411,83 +400,5 @@ cfg.covariance       = 'yes';
 cfg.covariancewindow = 'all';
 cfg.preproc.demean   = 'yes';    % enable demean to remove mean value from each single trial
 t_data            = ft_timelockanalysis(cfg, data);
-
-end
-
-function [outsum] = do_conn(mom)
-
-[nvox, nrpt] = size(mom);
-crsspctrm = (mom*mom')./nrpt;
-tmp = crsspctrm; crsspctrm = []; crsspctrm(1,:,:) = tmp;
-
-input = crsspctrm;
-pownorm = 1;
-
-siz = [size(input) 1];
-% crossterms are described by chan_chan_therest
-outsum = zeros(siz(2:end));
-outssq = zeros(siz(2:end));
-% outcnt = zeros(siz(2:end));
-for j = 1:siz(1)
-    if pownorm
-        p1  = zeros([siz(2) 1 siz(4:end)]);
-        p2  = zeros([1 siz(3) siz(4:end)]);
-        for k = 1:siz(2)
-            p1(k,1,:,:,:,:) = input(j,k,k,:,:,:,:);
-            p2(1,k,:,:,:,:) = input(j,k,k,:,:,:,:);
-        end
-        p1    = p1(:,ones(1,siz(3)),:,:,:,:);
-        p2    = p2(ones(1,siz(2)),:,:,:,:,:);
-        denom = sqrt(p1.*p2); clear p1 p2;
-    end
-    tmp    = abs(reshape(input(j,:,:,:,:,:,:), siz(2:end))./denom); % added this for nan support marvin
-    %tmp(isnan(tmp)) = 0; % added for nan support
-    outsum = outsum + tmp;
-    outssq = outssq + tmp.^2;
-%     outcnt = outcnt + double(~isnan(tmp));
-end
-
-size(outsum)
-figure,imagesc(outsum), colorbar, title('crsspctrm');
-
-end
-
-function   v = eigenvector_centrality_und(CIJ)
-%EIGENVECTOR_CENTRALITY_UND      Spectral measure of centrality
-%
-%   v = eigenvector_centrality_und(CIJ)
-%
-%   Eigenector centrality is a self-referential measure of centrality:
-%   nodes have high eigenvector centrality if they connect to other nodes
-%   that have high eigenvector centrality. The eigenvector centrality of
-%   node i is equivalent to the ith element in the eigenvector 
-%   corresponding to the largest eigenvalue of the adjacency matrix.
-%
-%   Inputs:     CIJ,        binary/weighted undirected adjacency matrix.
-%
-%   Outputs:      v,        eigenvector associated with the largest
-%                           eigenvalue of the adjacency matrix CIJ.
-%
-%   Reference: Newman, MEJ (2002). The mathematics of networks.
-%
-%   Contributors:
-%   Xi-Nian Zuo, Chinese Academy of Sciences, 2010
-%   Rick Betzel, Indiana University, 2012
-%   Mika Rubinov, University of Cambridge, 2015
-
-%   MODIFICATION HISTORY
-%   2010/2012: original (XNZ, RB)
-%   2015: ensure the use of leading eigenvector (MR)
-
-
-n = length(CIJ);
-if n < 1000
-    [V,D] = eig(CIJ);
-else
-    [V,D] = eigs(sparse(CIJ));
-end
-[~,idx] = max(diag(D));
-ec = abs(V(:,idx));
-v = reshape(ec, length(ec), 1);
 
 end
