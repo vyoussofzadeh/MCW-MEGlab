@@ -27,7 +27,7 @@ end
 %% ===== GET DESCRIPTION =====
 function sProcess = GetDescription() %#ok<DEFNU>
 % Description the process
-sProcess.Comment     = 'FieldTrip: ft_sourceanalysis MNE ICA v052521';
+sProcess.Comment     = 'FieldTrip: ft_sourceanalysis MNE ICA v042022';
 sProcess.Category    = 'Custom';
 sProcess.SubGroup    = 'Sources';
 sProcess.Index       = 357;
