@@ -51,6 +51,20 @@ sProcess.options.sensortype.Comment = 'Sensor type:';
 sProcess.options.sensortype.Type    = 'combobox_label';
 sProcess.options.sensortype.Value   = {'MEG', {'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'; ...
     'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'}};
+
+    % Label: Frequency
+    sProcess.options.label2.Comment = '<BR><B>Conn resolution:</B>';
+    sProcess.options.label2.Type    = 'label';
+    % Enter the FOI in the data in Hz, eg, 22:
+    sProcess.options.conn.Comment = 'Conn res:';
+    sProcess.options.conn.Type    = 'value';
+    sProcess.options.conn.Value   = {1500, 'voxels (sruf points)', 0};
+
+% Effects
+sProcess.options.fconn.Comment = 'full resolution';
+sProcess.options.fconn.Type    = 'checkbox';
+sProcess.options.fconn.Value   = 1;
+
 end
 
 %% ===== FORMAT COMMENT =====
@@ -72,6 +86,9 @@ end
 % Inverse options
 PostStim = sProcess.options.poststim.Value{1};
 Modality = sProcess.options.sensortype.Value{1};
+Connres = sProcess.options.conn.Value{1};
+fconn = sProcess.options.fconn.Value;
+
 TmpDir = bst_get('BrainstormTmpDir');
 % Progress bar
 bst_progress('start', 'ft_sourceanalysis', 'Loading input files...', 0, 2*length(sInputs));
@@ -174,7 +191,12 @@ cfg.lcmv.fixedori    = 'yes'; % project on axis of most variance using SVD
 cfg.lcmv.lambda      = '0.1%';
 source = ft_sourceanalysis(cfg, t_data);
 
-idx = round(linspace(1,length(source.avg.mom),2000));
+if fconn == 1
+    Connres  =length(source.avg.mom);
+end
+
+idx = round(linspace(1,length(source.avg.mom),Connres));
+% idx = round(linspace(1,length(source.avg.mom),length(source.avg.mom)));
 mom = []; k=1;
 for i=idx
     clc
@@ -208,8 +230,6 @@ end
 ResultsMat = db_template('resultsmat');
 ResultsMat.ImagingKernel = [];
 
-% ImageGridAmp = zeros(length(source.avg.mom),1);
-% ImageGridAmp(idx) = v;
 
 Method = 'conn';
 ResultsMat.ImageGridAmp  = ImageGridAmp;
@@ -270,7 +290,6 @@ db_save();
 bst_progress('stop');
 end
 
-
 function [freq,ff, psd,tapsmofrq] = do_fft(cfg_mian, data)
 cfg              = [];
 cfg.method       = 'mtmfft';
@@ -326,7 +345,7 @@ end
 
 function [outsum] = do_conn(mom)
 
-[nvox, nrpt] = size(mom);
+[~, nrpt] = size(mom);
 crsspctrm = (mom*mom')./nrpt;
 tmp = crsspctrm; crsspctrm = []; crsspctrm(1,:,:) = tmp;
 
