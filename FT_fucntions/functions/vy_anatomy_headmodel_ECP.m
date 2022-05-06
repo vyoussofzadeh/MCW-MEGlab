@@ -1,0 +1,47 @@
+function headmodel = vy_anatomy_headmodel_ECP(cfg, subject)
+
+% if ischar(subject)
+%   subject = streams_subjinfo(subject);
+% end
+
+subject_code                = subject;
+anatomy_savedir             = cfg.anatomy_savedir; %just for test, should be: '/home/language/jansch/projects/streams/data/anatomy'
+headmodel_filename          = fullfile(anatomy_savedir, ['_headmodel' '.mat']);
+
+% mni_resliced_filename       = fullfile(anatomy_savedir, [subject_code, '_mni_resliced' '.mgz']);
+% mni_resliced_filename       = fullfile(anatomy_savedir, ['r',subject_code, '_native' '.nii']);
+mni_resliced_filename       = 'mT1.nii';
+
+% transform                   = fullfile(anatomy_savedir, [subject_code, '_transform_vox2neuromag.mat']);
+transform                   = fullfile(anatomy_savedir, ['_transform_vox2spm.mat']);
+
+load(transform);
+
+
+mri                         = ft_read_mri(mni_resliced_filename);
+% mri.coordsys                = 'neuromag';
+% mri.transform               = transform_vox2neuromag;
+mri.coordsys                = 'spm';
+mri.transform               = transform_vox2spm;
+
+% cfg = [];
+% cfg.output = 'brain';
+% seg = ft_volumesegment(cfg, mri);
+a = load(['anat_',subject_code]);
+seg = a.brain;
+% seg.coordsys                = 'spm';
+% seg.transform               = transform_vox2spm;
+
+cfg = [];
+cfg.method = 'projectmesh';
+cfg.numvertices = 10000;
+bnd = ft_prepare_mesh(cfg, seg);
+
+cfg = [];
+cfg.method = 'singleshell';
+headmodel = ft_prepare_headmodel(cfg, bnd);
+
+save(headmodel_filename, 'headmodel');
+
+end
+
