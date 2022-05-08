@@ -202,6 +202,7 @@ bic = input(['']);
 close all;
 
 trl_sel = find(~ismember(1:length(sInputs),btrl));
+kk= 1;
 
 if bic == 1
     %-
@@ -218,7 +219,7 @@ if bic == 1
         FileName_new = [FileName, '_trl'];
         tkz = tokenize(D.Comment, ' ');
         D.Comment = [tkz{1} '_trl ',tkz{2}];
-        D.F(iChannelsData,:) = r_data.trial{iInput};
+        D.F(iChannelsData,:) = r_data.trial{kk}; kk = kk+1;
         save(FileName_new, '-struct', 'D');
     end
     disp('done, reload datafile!')    
