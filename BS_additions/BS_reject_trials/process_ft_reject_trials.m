@@ -190,37 +190,38 @@ switch mrej
             if cfg.rbadtrl == 1
                 disp('BAD TRIAL:')
                 disp(report.btrl')
+                btrl = report.btrl;
             end
         end
 end
 %%
 
-%%
 disp('no = 0, yes = 1');
 disp('apply the correction):')
 bic = input(['']);
 close all;
+
+trl_sel = find(~ismember(1:length(sInputs),btrl));
 
 if bic == 1
     %-
     ProtocolInfo = bst_get('ProtocolInfo');
     [datapath,~] = fileparts(DataFile);
     [~,srcPath] = fileparts(datapath);
-    srcDir  = bst_fullfile(ProtocolInfo.STUDIES, [srcPath,'_arj']);
+    srcDir  = bst_fullfile(ProtocolInfo.STUDIES, [srcPath,'_trl']);
     
     cd(fullfile(ProtocolInfo.STUDIES, datapath))
-    for iInput = 1:length(sInputs)
+    for iInput = trl_sel
         DataFile = sInputs(iInput).FileName;
         D = load(file_fullpath(DataFile));
-        [a,FileName] = fileparts(DataFile);
-        FileName_new = [FileName, '_arj'];
+        [~,FileName] = fileparts(DataFile);
+        FileName_new = [FileName, '_trl'];
         tkz = tokenize(D.Comment, ' ');
         D.Comment = [tkz{1} '_trl ',tkz{2}];
         D.F(iChannelsData,:) = r_data.trial{iInput};
         save(FileName_new, '-struct', 'D');
     end
-    disp('done, reload datafile!')
-    
+    disp('done, reload datafile!')    
 else
     disp('no correction was done')
 end
