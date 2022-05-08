@@ -44,9 +44,18 @@ sProcess.options.sensortype.Type    = 'combobox_label';
 sProcess.options.sensortype.Value   = {'MEG', {'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'; ...
     'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'}};
 
-sProcess.options.mnrej.Comment = 'Manual rejection';
-sProcess.options.mnrej.Type    = 'checkbox';
-sProcess.options.mnrej.Value   = 1;
+% Rejection method
+sProcess.options.label2.Comment = '<BR><B>Rejection method:</B>';
+sProcess.options.label2.Type    = 'label';
+
+sProcess.options.mrej.Comment = {'Automatic', 'Manual', 'Rejection method:'; ...
+    'Auto', 'Manual', ''};
+sProcess.options.mrej.Type    = 'radio_linelabel';
+sProcess.options.mrej.Value   = 'RejMethod';
+
+sProcess.options.arej.Comment = 'Automatic rejection';
+sProcess.options.arej.Type    = 'value';
+sProcess.options.arej.Value   = {0.9, 'threshold', 1};
 
 end
 
@@ -67,7 +76,8 @@ end
 
 % ===== GET OPTIONS =====
 Modality = sProcess.options.sensortype.Value{1};
-mnrej = sProcess.options.mnrej.Value;
+arej = sProcess.options.arej.Value;
+mrej = sProcess.options.mrej.Value;
 
 % Output folder (for figures and FieldTrip structures)
 TmpDir = bst_get('BrainstormTmpDir');
@@ -147,24 +157,37 @@ ftData1.grad.chantype = ftData1.grad.chantype';
 
 %%
 close all;
-switch mnrej
-    case 1
+switch mrej
+    case 'Manual'
         ftData2 = ftData1; ftData2.avg = [];       
         cfg = [];
-        cfg.metric = 'zvalue';  % use by default zvalue method
+        cfg.metric = 'kurtosis';  % use by default kurtosis method
         cfg.latency = [ftData1.time{1}(1),ftData1.time{1}(end)];
         r_data   = ft_rejectvisual(cfg, ftData2);
-    case 2
         
+        % Bad trial info
+        data = ft_checkdata(ftData2, 'datatype', {'raw+comp', 'raw'}, 'feedback', 'yes', 'hassampleinfo', 'yes');
+        btrlsample = r_data.cfg.artfctdef.summary.artifact;
+        for l=1:size(btrlsample,1)
+            btrl(l,:) = find(ismember(data.sampleinfo(:,1),btrlsample(l))==1);
+        end
+        disp('BAD TRIAL:')
+        disp(btrl)
+        
+    case 'Auto'
         cfg = [];
         cfg.pflag = 1; % Yes:1, No:2
         cfg.saveflag = 2; % Yes:1, No:2
         cfg.savepath = [];
         cfg.latency = [ftData1.time{1}(1),ftData1.time{1}(end)];
-        cfg.rejectpercentage = .98;
+        cfg.rejectpercentage = arej{1};
         cfg.rbadtrl = 1;
         cfg.rbadsen = 0;
-        r_data = do_artifactreject(cfg, ftData1);       
+        [r_data, report] = do_artifactreject(cfg, ftData1);
+        if cfg.rbadtrl == 1
+            disp('BAD TRIAL:')
+            disp(report.btrl')
+        end
 end
 %%
 
@@ -308,7 +331,7 @@ if cfg_main.plotflag
 end
 end
 
-function r_data = do_artifactreject(cfg_main, dat)
+function [r_data, report] = do_artifactreject(cfg_main, dat)
 
 % disp('Identifying bad channels/sensors and bad trials ...');
 % if exist(cfg_main.savepath, 'file') == 2
@@ -350,7 +373,7 @@ cfg.metric = 'var';
 cfg.channel = 'all';
 cfg.latency = cfg_main.latency;
 [level,info] = do_compute_metric(cfg,dat);
-%     metric.kurt = level;
+
 info.pflag = cfg_main.pflag;
 [maxperchan, maxpertrl, maxperchan_all, maxpertrl_all] = do_plot_chantrl(info,level);
 
@@ -390,7 +413,6 @@ if cfg_main.rbadsen == 1
     end
     report.bchan = bch_all_label_disp;
 end
-
 
 r_data = dat;
 if cfg_main.saveflag ==1
