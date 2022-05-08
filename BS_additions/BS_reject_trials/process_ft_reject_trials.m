@@ -197,7 +197,7 @@ disp('apply the correction):')
 bic = input(['']);
 close all;
 
-if ~ isempty(bic)    
+if bic == 1   
     %-
     ProtocolInfo = bst_get('ProtocolInfo');
     [datapath,~] = fileparts(DataFile);
