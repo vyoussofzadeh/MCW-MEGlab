@@ -159,7 +159,7 @@ ftData1.grad.chantype = ftData1.grad.chantype';
 close all;
 switch mrej
     case 'Manual'
-        ftData2 = ftData1; ftData2.avg = [];       
+        ftData2 = ftData1; ftData2.avg = [];
         cfg = [];
         cfg.metric = 'kurtosis';  % use by default kurtosis method
         cfg.latency = [ftData1.time{1}(1),ftData1.time{1}(end)];
@@ -168,11 +168,13 @@ switch mrej
         % Bad trial info
         data = ft_checkdata(ftData2, 'datatype', {'raw+comp', 'raw'}, 'feedback', 'yes', 'hassampleinfo', 'yes');
         btrlsample = r_data.cfg.artfctdef.summary.artifact;
-        for l=1:size(btrlsample,1)
-            btrl(l,:) = find(ismember(data.sampleinfo(:,1),btrlsample(l))==1);
+        if ~isempty(btrlsample)
+            for l=1:size(btrlsample,1)
+                btrl(l,:) = find(ismember(data.sampleinfo(:,1),btrlsample(l))==1);
+            end
+            disp('BAD TRIAL:')
+            disp(btrl)
         end
-        disp('BAD TRIAL:')
-        disp(btrl)
         
     case 'Auto'
         cfg = [];
@@ -184,20 +186,22 @@ switch mrej
         cfg.rbadtrl = 1;
         cfg.rbadsen = 0;
         [r_data, report] = do_artifactreject(cfg, ftData1);
-        if cfg.rbadtrl == 1
-            disp('BAD TRIAL:')
-            disp(report.btrl')
+        if ~isempty(report)
+            if cfg.rbadtrl == 1
+                disp('BAD TRIAL:')
+                disp(report.btrl')
+            end
         end
 end
 %%
 
 %%
-disp('np = 0, yes = 1');
+disp('no = 0, yes = 1');
 disp('apply the correction):')
 bic = input(['']);
 close all;
 
-if bic == 1   
+if bic == 1
     %-
     ProtocolInfo = bst_get('ProtocolInfo');
     [datapath,~] = fileparts(DataFile);
@@ -213,7 +217,7 @@ if bic == 1
         tkz = tokenize(D.Comment, ' ');
         D.Comment = [tkz{1} '_trl ',tkz{2}];
         D.F(iChannelsData,:) = r_data.trial{iInput};
-        save(FileName_new, '-struct', 'D');        
+        save(FileName_new, '-struct', 'D');
     end
     disp('done, reload datafile!')
     
