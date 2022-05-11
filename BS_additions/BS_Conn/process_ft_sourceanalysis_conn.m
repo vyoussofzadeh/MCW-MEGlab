@@ -1,5 +1,5 @@
 function varargout = process_ft_sourceanalysis_conn(varargin )
-% PROCESS_FT_SOURCEANALYSIS Call FieldTrip function ft_sourceanalysis (DICS)
+% process_ft_sourceanalysis_conn Call FieldTrip function ft_sourceanalysis (LCMV)
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
@@ -19,7 +19,7 @@ function varargout = process_ft_sourceanalysis_conn(varargin )
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors: Vahab YoussofZadeh, 2022
+% Author: Vahab YoussofZadeh, 2022
 
 eval(macro_method);
 end
