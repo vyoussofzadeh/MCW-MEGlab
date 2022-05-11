@@ -43,6 +43,13 @@ sProcess.options.sensortype.Comment = 'Sensor type:';
 sProcess.options.sensortype.Type    = 'combobox_label';
 sProcess.options.sensortype.Value   = {'MEG', {'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'; ...
     'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'}};
+
+% Option: Sensors selection
+sProcess.options.lay.Comment = 'layout:';
+sProcess.options.lay.Type    = 'combobox_label';
+sProcess.options.lay.Value   = {'lay', {'neuromag', '4D', 'ctf', 'nolay'; ...
+    'Neuromag','4D','CTF', 'no layout'}};
+
 end
 
 %% ===== FORMAT COMMENT =====
@@ -144,14 +151,27 @@ cfg.method     = 'runica';
 cfg.numcomponent = 20;       % specify the component(s) that should be plotted
 comp           = ft_componentanalysis(cfg, ftData1);
 
-%%
-cfg = [];
-cfg.layout = 'neuromag306mag.lay';
-lay = ft_prepare_layout(cfg);
+%% LAYOUT
+layout = sProcess.options.lay.Value{1};
 
 cfg = [];
+switch layout
+    case 'neuromag'
+        cfg.layout = 'neuromag306mag.lay';
+        lay = ft_prepare_layout(cfg);
+    case '4D'
+        cfg.layout = '4D248.lay';
+        lay = ft_prepare_layout(cfg);
+    case 'cft'
+        disp('TO DO ..')
+end
+
+cfg = [];
+switch layout
+    case {'neuromag', '4D'}
+        cfg.layout = lay;
+end
 cfg.viewmode = 'component';
-cfg.layout = lay;
 ft_databrowser(cfg, comp);
 
 %%
@@ -188,6 +208,7 @@ end
 %%
 disp('Enter bad ICs (use [] for no correction):')
 bic = input(['']);
+close all;
 
 if ~ isempty(bic)
     cfg = [];
