@@ -19,7 +19,7 @@ function varargout = process_ft_sourceanalysis_conn(varargin )
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors: Vahab YoussofZadeh, Francois Tadel, 2021
+% Authors: Vahab YoussofZadeh, 2022
 
 eval(macro_method);
 end
@@ -223,7 +223,7 @@ if (length(sInputs) == 1)
     iStudyOut = sInputs(1).iStudy;
     RefDataFile = sInputs(iChanInputs(iInput)).FileName;
 else
-    [tmp, iStudyOut] = bst_process('GetOutputStudy', sProcess, sInputs);
+    [~, iStudyOut] = bst_process('GetOutputStudy', sProcess, sInputs);
     RefDataFile = [];
 end
 % Create structure
@@ -288,48 +288,6 @@ panel_protocols('SelectNode', [], newResult.FileName);
 db_save();
 % Hide progress bar
 bst_progress('stop');
-end
-
-function [freq,ff, psd,tapsmofrq] = do_fft(cfg_mian, data)
-cfg              = [];
-cfg.method       = 'mtmfft';
-cfg.output       = 'fourier';
-cfg.keeptrials   = 'yes';
-cfg.foilim       = cfg_mian.foilim;
-cfg.tapsmofrq    = cfg_mian.tapsmofrq;
-cfg.taper        = cfg_mian.taper;
-cfg.pad          = 4;
-freq             = ft_freqanalysis(cfg, data);
-psd = squeeze(mean(mean(abs(freq.fourierspctrm),2),1));
-ff = linspace(1, cfg.foilim(2), length(psd));
-
-tapsmofrq = cfg.tapsmofrq;
-end
-
-
-function stat = do_source_stat_montcarlo(s_data)
-cfg = [];
-cfg.parameter        = 'pow';
-cfg.method           = 'montecarlo';
-cfg.statistic        = 'depsamplesT';
-cfg.correctm         = 'fdr';
-cfg.clusteralpha     = 0.001;
-cfg.tail             = 0;
-cfg.clustertail      = 0;
-cfg.alpha            = 0.05;
-cfg.numrandomization = 5000;
-
-ntrials                       = numel(s_data.bsl.trial);
-design                        = zeros(2,2*ntrials);
-design(1,1:ntrials)           = 1;
-design(1,ntrials+1:2*ntrials) = 2;
-design(2,1:ntrials)           = 1:ntrials;
-design(2,ntrials+1:2*ntrials) = 1:ntrials;
-
-cfg.design   = design;
-cfg.ivar     = 1;
-cfg.uvar     = 2;
-stat         = ft_sourcestatistics(cfg,s_data.pst,s_data.bsl);
 end
 
 function t_data = do_timelock(data)
