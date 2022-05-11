@@ -155,6 +155,13 @@ end
 ftData1 = ftData;
 ftData1.grad.chantype = ftData1.grad.chantype';
 
+%% Correction of time info, needed for visualization.
+if ~isequal (ftData1.time{1}(1), ftData1.time{1}(2))   
+    for i=1:length(ftData1.trial)
+        ftData1.time{i} = ftData1.time{1};
+    end
+end
+
 %%
 close all;
 switch mrej
