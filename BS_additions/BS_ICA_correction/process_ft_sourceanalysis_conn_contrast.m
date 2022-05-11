@@ -1,4 +1,4 @@
-function varargout = process_ft_sourceanalysis_conn(varargin )
+function varargout = process_ft_sourceanalysis_conn_contrast(varargin )
 % PROCESS_FT_SOURCEANALYSIS Call FieldTrip function ft_sourceanalysis (DICS)
 
 % @=============================================================================
@@ -27,7 +27,7 @@ end
 %% ===== GET DESCRIPTION =====
 function sProcess = GetDescription() %#ok<DEFNU>
 % Description the process
-sProcess.Comment     = 'FieldTrip: ft_connanalysis (cross-spectral density)';
+sProcess.Comment     = 'FieldTrip: ft_connanalysis contrast (cross-spectral density)';
 sProcess.Category    = 'Custom';
 sProcess.SubGroup    = 'Sources';
 sProcess.Index       = 357;
@@ -45,6 +45,10 @@ sProcess.options.label1.Type    = 'label';
 sProcess.options.poststim.Comment = 'Time interval:';
 sProcess.options.poststim.Type    = 'poststim';
 sProcess.options.poststim.Value   = [];
+% Baseline time window
+sProcess.options.baseline.Comment = 'Baseline (pre-stim):';
+sProcess.options.baseline.Type    = 'baseline';
+sProcess.options.baseline.Value   = [];
 
 % Option: Sensors selection
 sProcess.options.sensortype.Comment = 'Sensor type:';
@@ -52,13 +56,13 @@ sProcess.options.sensortype.Type    = 'combobox_label';
 sProcess.options.sensortype.Value   = {'MEG', {'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'; ...
     'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'}};
 
-    % Label: Frequency
-    sProcess.options.label2.Comment = '<BR><B>Conn resolution:</B>';
-    sProcess.options.label2.Type    = 'label';
-    % Enter the FOI in the data in Hz, eg, 22:
-    sProcess.options.conn.Comment = 'Conn res:';
-    sProcess.options.conn.Type    = 'value';
-    sProcess.options.conn.Value   = {1500, 'voxels (sruf points)', 0};
+% Label: Frequency
+sProcess.options.label2.Comment = '<BR><B>Conn resolution:</B>';
+sProcess.options.label2.Type    = 'label';
+% Enter the FOI in the data in Hz, eg, 22:
+sProcess.options.conn.Comment = 'Conn res:';
+sProcess.options.conn.Type    = 'value';
+sProcess.options.conn.Value   = {1500, 'voxels (sruf points)', 0};
 
 % Effects
 sProcess.options.fconn.Comment = 'full resolution';
@@ -85,6 +89,7 @@ end
 % ===== GET OPTIONS =====
 % Inverse options
 PostStim = sProcess.options.poststim.Value{1};
+Baseline = sProcess.options.baseline.Value{1};
 Modality = sProcess.options.sensortype.Value{1};
 Connres = sProcess.options.conn.Value{1};
 fconn = sProcess.options.fconn.Value;
@@ -172,12 +177,34 @@ end
 ftData.time = TT;
 
 %%
-cfg = [];
+ep = []; cfg = [];
 cfg.toilim = PostStim;
-ep_data = ft_redefinetrial(cfg, ftData);
+ep.pst = ft_redefinetrial(cfg, ftData);
+cfg.toilim = Baseline;
+ep.bsl = ft_redefinetrial(cfg, ftData);
+
+cfg = [];
+ep.app = ft_appenddata(cfg,ep.bsl,ep.pst);
 
 %%
-t_data = do_timelock(ep_data);
+% tlk = [];
+% tlk.pst = do_timelock(ep.pst);
+% tlk.bsl = do_timelock(ep.bsl);
+% tlk.app = do_timelock(ep.app);
+
+%%
+cfg                  = [];
+cfg.covariance       = 'yes';
+cfg.covariancewindow = 'all';
+cfg.preproc.demean   = 'yes';    % enable demean to remove mean value from each single trial
+cfg.keeptrials       = 'yes';
+% cfg.vartrllength = 0;
+
+tlk.pst            = ft_timelockanalysis(cfg, ep.pst);
+tlk.bsl            = ft_timelockanalysis(cfg, ep.bsl);
+
+cfg.vartrllength     = 2;
+tlk.app           = ft_timelockanalysis(cfg, ep.app);
 
 %%
 cfg                  = [];
@@ -189,31 +216,51 @@ cfg.lcmv.keepfilter  = 'yes';
 cfg.keeptrials       = 'yes';
 cfg.lcmv.fixedori    = 'yes'; % project on axis of most variance using SVD
 cfg.lcmv.lambda      = '0.1%';
-source = ft_sourceanalysis(cfg, t_data);
+source = ft_sourceanalysis(cfg, tlk.app);
+
+cfg = [];
+cfg.method           = 'lcmv';
+cfg.sourcemodel        = ftLeadfield;
+cfg.sourcemodel.filter = source.avg.filter;
+cfg.dics.fixedori    = 'yes'; % project on axis of most variance using SVD
+cfg.headmodel = ftHeadmodel;
+src.bsl      = ft_sourceanalysis(cfg, tlk.bsl);
+src.pst      = ft_sourceanalysis(cfg, tlk.pst);
 
 if fconn == 1
-    Connres  =length(source.avg.mom);
+    Connres  = length(src.pst.avg.mom);
 end
 
-idx = round(linspace(1,length(source.avg.mom),Connres));
+idx = round(linspace(1,length(src.pst.avg.mom),Connres));
 % idx = round(linspace(1,length(source.avg.mom),length(source.avg.mom)));
+
+%%
 mom = []; k=1;
-for i=idx
-    clc
-    disp([num2str(i),'/', num2str(length(source.avg.mom))])
-    mom(k,:) = source.avg.mom{i};
-    k = k+1;
+for i=idx, clc
+    disp([num2str(i),'/', num2str(length(src.pst.avg.mom))]); mom(k,:) = src.pst.avg.mom{i}; k = k+1;
 end
+conn.pst = do_conn(mom);
 
-outsum = do_conn(mom);
-v = eigenvector_centrality_und(outsum);
-% figure,bar(v), title('eigenvector');
+mom = []; k=1;
+for i=idx, clc, disp([num2str(i),'/', num2str(length(src.bsl.avg.mom))])
+    mom(k,:) = src.bsl.avg.mom{i}; k = k+1;
+end
+conn.bsl = do_conn(mom);
 
+%%
+net.pst = eigenvector_centrality_und(conn.pst);
+net.bsl = eigenvector_centrality_und(conn.bsl);
+net_diff = net.pst - net.bsl;
+
+% figure,bar(net_diff), title('eigenvector');
+
+%%
 ImageGridAmp = zeros(length(source.avg.mom),1);
 for i=1:length(idx)-1
-    ImageGridAmp(idx(i):idx(i+1)) = v(i);    
+    ImageGridAmp(idx(i):idx(i+1)) = net_diff(i);    
 end
 
+%%
 % ===== SAVE RESULTS =====
 % === CREATE OUTPUT STRUCTURE ===
 bst_progress('text', 'Saving source file...');
@@ -244,7 +291,7 @@ ResultsMat.GoodChannel   = iChannelsData;
 ResultsMat.SurfaceFile   = HeadModelMat.SurfaceFile;
 ResultsMat.nAvg          = DataMat.nAvg;
 ResultsMat.Leff          = DataMat.Leff;
-% ResultsMat.Comment       = 'Conn_PLV';
+
 ResultsMat.Comment       = ['ft_connanalysis: CrossSpectral_' Method, '_', datestr(now, 'dd/mm/yy-HH:MM')];
 switch lower(ResultsMat.HeadModelType)
     case 'volume'
@@ -288,6 +335,7 @@ panel_protocols('SelectNode', [], newResult.FileName);
 db_save();
 % Hide progress bar
 bst_progress('stop');
+
 end
 
 function [freq,ff, psd,tapsmofrq] = do_fft(cfg_mian, data)
@@ -377,7 +425,7 @@ for j = 1:siz(1)
 end
 
 % size(outsum)
-figure,imagesc(outsum), colorbar, title('conn (across voxels)');
+% figure,imagesc(outsum), colorbar, title('conn (across voxels)');
 
 end
 
