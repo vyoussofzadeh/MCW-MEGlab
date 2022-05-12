@@ -1,2 +1,2 @@
 # MEG-MCW data analysis pipelines
-A repostiory allocated to backup copies of data analysis scripts written at the Medical College of Wisconsin (MCW) magnetoencephalptagy laboratory.
+A repostiory contains data analysis pipelines developed at the Medical College of Wisconsin (MCW) magnetoencephalptagy laboratory.
