@@ -29,9 +29,9 @@ function sProcess = GetDescription() %#ok<DEFNU>
 % Description the process
 sProcess.Comment     = 'FieldTrip: ft_connanalysis (cross-spectral density)';
 sProcess.Category    = 'Custom';
-sProcess.SubGroup    = 'Sources';
-sProcess.Index       = 357;
-sProcess.Description = 'https://github.com/vyoussofzadeh/DICS-beamformer-for-Brainstorm';
+sProcess.SubGroup    = 'Connectivity';
+sProcess.Index       = 690;
+sProcess.Description = 'https://github.com/vyoussofzadeh/MCW-MEGlab/tree/master/BS_additions/BS_Conn';
 % Definition of the input accepted by this process
 sProcess.InputTypes  = {'data'};
 sProcess.OutputTypes = {'data'};
@@ -52,13 +52,13 @@ sProcess.options.sensortype.Type    = 'combobox_label';
 sProcess.options.sensortype.Value   = {'MEG', {'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'; ...
     'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'}};
 
-    % Label: Frequency
-    sProcess.options.label2.Comment = '<BR><B>Conn resolution:</B>';
-    sProcess.options.label2.Type    = 'label';
-    % Enter the FOI in the data in Hz, eg, 22:
-    sProcess.options.conn.Comment = 'Conn res:';
-    sProcess.options.conn.Type    = 'value';
-    sProcess.options.conn.Value   = {1500, 'voxels (sruf points)', 0};
+% Label: Frequency
+sProcess.options.label2.Comment = '<BR><B>Conn resolution:</B>';
+sProcess.options.label2.Type    = 'label';
+% Enter the FOI in the data in Hz, eg, 22:
+sProcess.options.conn.Comment = 'Conn res:';
+sProcess.options.conn.Type    = 'value';
+sProcess.options.conn.Value   = {1500, 'voxels (sruf points)', 0};
 
 % Effects
 sProcess.options.fconn.Comment = 'full resolution';
