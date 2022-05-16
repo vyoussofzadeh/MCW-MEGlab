@@ -7,6 +7,11 @@ set(gca,'FontSize',10,'XTickLabelRotation',90);
 set(gcf, 'Position', [1000   100   1500   300]);
 set(gca,'color','none');
 title([tag, ', DL, mean (Str, Math) '])
+axis square
+
+
+%% Best fit to a figure,
+axis tight
 
 %% Legend
 legend('hide')
@@ -23,4 +28,10 @@ tbl = table(X(:,idx(1)),y1');
 mdl = fitlm(tbl,'linear');
 plot(mdl)
 
+%% some helpful links
+% https://anneurai.net/2016/06/13/prettier-plots-in-matlab/
+
 %%
+addpath('/data/MEG/Vahab/Github/MCW-MEGlab/FT/functions/External/brewermap');
+colr = distinguishable_colors(nScouts);
+
