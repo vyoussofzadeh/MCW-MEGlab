@@ -3,7 +3,7 @@ function mcw_surfplot(cfg,surf,source)
 % Author: vyoussofzadeh
 % update: 04/25/22
 
-figure,
+% figure,
 set(gcf, 'Position', cfg.position);
 views = cfg.view;
 
