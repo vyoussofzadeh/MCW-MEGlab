@@ -2,7 +2,7 @@
 clc, close all,
 
 %%
-disp('Where the map is goingn to be exported to ...')
+disp('Where the map is going to be exported to ...')
 svdir = input('1: enter saving dir:');svdir = strrep(svdir, ' ', '');
 disp('===========')
 
