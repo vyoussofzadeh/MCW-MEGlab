@@ -22,7 +22,7 @@ subj = 'pilot1';
 run = 1;
 datafilename = ['Task_run', num2str(run), '_raw.fif'];
 datafile = fullfile(indir, datafilename);
-subdir = fullfile(outdir, subj,'preprocess'); % output dir
+subdir = fullfile(outdir, subj,'preprocess_100Hz'); % output dir
 load(fullfile(subdir,['data_run', num2str(run), '_cond',num2str(1), '.mat']))
 
 mridir = '/group/bgross/work/CIDMEG/analysis/anatomy/Sub001/T1';
@@ -31,7 +31,7 @@ Run_anatomy
 
 %%
 close all
-savedir = '/group/bgross/work/CIDMEG/analysis/process/pilot1/process';
+savedir = '/group/bgross/work/CIDMEG/analysis/process/pilot1/process_100Hz';
 ddd = rdir(fullfile(savedir, '/**/wPLI*.mat'));
 
 clear ID conn_val
@@ -49,6 +49,6 @@ source_conn1.wpli_debiasedspctrm = mconn_val;
 par = conn.par;
 vs_roi1 = conn.vs_roi1;
 
-cd('/group/bgross/work/CIDMEG/analysis/process/pilot1/process/group')
+cd('/group/bgross/work/CIDMEG/analysis/process/pilot1/process_100Hz/group')
 Run_networkanalysis %- network analysis (network degrees)
 Run_vis_netconn_analysis %- mapping
