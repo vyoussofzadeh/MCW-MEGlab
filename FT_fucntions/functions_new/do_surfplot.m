@@ -1,4 +1,4 @@
-function mcw_surfplot(cfg,surf,source)
+function do_surfplot(cfg,surf,source)
 
 % Author: vyoussofzadeh
 % update: 04/25/22
