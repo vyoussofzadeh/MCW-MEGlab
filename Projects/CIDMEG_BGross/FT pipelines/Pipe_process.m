@@ -70,7 +70,7 @@ Run_sourceanalysis
 %% Conn and network analyses (voxel and ROI levels)
 if flag.connanalysis ==1
     if ~exist(fullfile(savedir,['wPLI', num2str(run), '_cond',num2str(condval),'.mat']), 'file') || ...
-          ~exist(fullfile(savedir,['vs', num2str(run), '_cond',num2str(condval),'.mat']), 'file')  
+            ~exist(fullfile(savedir,['vs', num2str(run), '_cond',num2str(condval),'.mat']), 'file')
         Run_extractvirtualsensor %- Extract virtual sensors
         Run_connanalysis %- Conn analysis (wPLI)
         save(fullfile(savedir,['wPLI', num2str(run), '_cond',num2str(condval)]), 'source_conn1', 'par','vs_roi1','-v7.3');
