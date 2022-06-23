@@ -171,6 +171,10 @@ for i=1:length(TT)
 end
 ftData.time = TT;
 
+%% A workaround to avoid using ft_chanunit
+unit = []; for i=1:length(ftData.grad.chantype); unit{i} = 'meg'; end
+ftData.grad.chanunit = unit';
+
 %%
 cfg = [];
 cfg.toilim = PostStim;
@@ -205,6 +209,17 @@ for i=idx
     k = k+1;
 end
 
+%%
+% cfg         = [];
+% cfg.method    = 'amplcorr';
+% source_conn = ft_connectivityanalysis(cfg, source);
+% 
+% A = source_conn.amplcorrspctrm(source_conn.inside, source_conn.inside);
+% 
+% figure,imagesc(), colorbar, title('conn (across voxels)');
+
+%%
+
 outsum = do_conn(mom);
 v = eigenvector_centrality_und(outsum);
 % figure,bar(v), title('eigenvector');
@@ -229,7 +244,6 @@ end
 % Create structure
 ResultsMat = db_template('resultsmat');
 ResultsMat.ImagingKernel = [];
-
 
 Method = 'conn';
 ResultsMat.ImageGridAmp  = ImageGridAmp;
