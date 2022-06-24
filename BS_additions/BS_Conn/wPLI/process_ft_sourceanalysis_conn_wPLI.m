@@ -1,5 +1,5 @@
 function varargout = process_ft_sourceanalysis_conn_wPLI(varargin )
-% PROCESS_FT_SOURCEANALYSIS Call FieldTrip function ft_sourceanalysis (DICS)
+% process_ft_sourceanalysis_conn Call FieldTrip function ft_sourceanalysis (LCMV)
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
@@ -19,7 +19,7 @@ function varargout = process_ft_sourceanalysis_conn_wPLI(varargin )
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors: Vahab YoussofZadeh, Francois Tadel, 2021
+% Author: Vahab YoussofZadeh, 2022
 
 eval(macro_method);
 end
@@ -29,9 +29,9 @@ function sProcess = GetDescription() %#ok<DEFNU>
 % Description the process
 sProcess.Comment     = 'FieldTrip: ft_connanalysis (wPLI)';
 sProcess.Category    = 'Custom';
-sProcess.SubGroup    = 'Sources';
-sProcess.Index       = 357;
-sProcess.Description = 'https://github.com/vyoussofzadeh/DICS-beamformer-for-Brainstorm';
+sProcess.SubGroup    = 'Connectivity';
+sProcess.Index       = 690;
+sProcess.Description = 'https://github.com/vyoussofzadeh/MCW-MEGlab/tree/master/BS_additions/BS_Conn';
 % Definition of the input accepted by this process
 sProcess.InputTypes  = {'data'};
 sProcess.OutputTypes = {'data'};
@@ -51,6 +51,20 @@ sProcess.options.sensortype.Comment = 'Sensor type:';
 sProcess.options.sensortype.Type    = 'combobox_label';
 sProcess.options.sensortype.Value   = {'MEG', {'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'; ...
     'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'}};
+
+% Label: Frequency
+sProcess.options.label2.Comment = '<BR><B>Conn resolution:</B>';
+sProcess.options.label2.Type    = 'label';
+% Enter the FOI in the data in Hz, eg, 22:
+sProcess.options.conn.Comment = 'Conn res:';
+sProcess.options.conn.Type    = 'value';
+sProcess.options.conn.Value   = {1500, 'voxels (sruf points)', 0};
+
+% Effects
+sProcess.options.fconn.Comment = 'full resolution';
+sProcess.options.fconn.Type    = 'checkbox';
+sProcess.options.fconn.Value   = 1;
+
 end
 
 %% ===== FORMAT COMMENT =====
@@ -72,6 +86,9 @@ end
 % Inverse options
 PostStim = sProcess.options.poststim.Value{1};
 Modality = sProcess.options.sensortype.Value{1};
+Connres = sProcess.options.conn.Value{1};
+fconn = sProcess.options.fconn.Value;
+
 TmpDir = bst_get('BrainstormTmpDir');
 % Progress bar
 bst_progress('start', 'ft_sourceanalysis', 'Loading input files...', 0, 2*length(sInputs));
@@ -125,7 +142,7 @@ end
 HeadModelFile = sStudyChan.HeadModel(sStudyChan.iHeadModel).FileName;
 HeadModelMat = in_bst_headmodel(HeadModelFile);
 % Convert head model to FieldTrip format
-[ftHeadmodel, ftLeadfield, iChannelsData] = out_fieldtrip_headmodel(HeadModelMat, ChannelMat, iChannelsData, 1);
+[ftHeadmodel, ftLeadfield, iChannelsData] = out_fieldtrip_headmodel_edt(HeadModelMat, ChannelMat, iChannelsData, 1);
 
 % ===== LOAD: DATA =====
 % Template FieldTrip structure for all trials
@@ -154,6 +171,10 @@ for i=1:length(TT)
 end
 ftData.time = TT;
 
+%% A workaround to avoid using ft_chanunit
+unit = []; for i=1:length(ftData.grad.chantype); unit{i} = 'meg'; end
+ftData.grad.chanunit = unit';
+
 %%
 cfg = [];
 cfg.toilim = PostStim;
@@ -162,10 +183,23 @@ ep_data = ft_redefinetrial(cfg, ftData);
 %%
 cov_matrix = do_timelock(ep_data);
 
-%% INCOMPLETE
+%%
+idx = round(linspace(1,length(ftLeadfield.leadfield),Connres));
+
+ftLeadfield_new = [];
+ftLeadfield_new.label = ftLeadfield.label;
+ftLeadfield_new.leadfielddimord = ftLeadfield.leadfielddimord;
+ftLeadfield_new.unit = ftLeadfield.unit;
+for i=1:Connres
+    ftLeadfield_new.leadfield{i} = ftLeadfield.leadfield{idx(i)};
+    ftLeadfield_new.inside(i) = ftLeadfield.inside(idx(i));
+    ftLeadfield_new.pos(i,:) = ftLeadfield.pos(idx(i),:);
+end
+
+%%
 cfg = [];
 cfg.method = 'lcmv';
-cfg.sourcemodel  = ftLeadfield;
+cfg.sourcemodel  = ftLeadfield_new;
 cfg.headmodel = ftHeadmodel;
 cfg.lcmv.lambda = '10%';
 cfg.lcmv.keepfilter = 'yes';
@@ -173,44 +207,76 @@ source_whole = ft_sourceanalysis(cfg, cov_matrix);
 
 cfg =[];
 cfg.method = 'lcmv';
-cfg.sourcemodel  = ftLeadfield;
+cfg.sourcemodel  = ftLeadfield_new;
+cfg.sourcemodel.filter = source_whole.avg.filter;
 cfg.headmodel = ftHeadmodel;
 cfg.rawtrial = 'yes';
 cfg.keeptrials = 'yes';
 cfg.lcmv.projectmom = 'yes';
 cfg.lcmv.fixedori = 'yes';
-source_active = ft_sourceanalysis(cfg, ep_data);
+source = ft_sourceanalysis(cfg, ep_data);
 
 %%
-cfg                  = [];
-cfg.method           = 'lcmv';
-cfg.sourcemodel  = ftLeadfield;
-cfg.headmodel = ftHeadmodel;
-cfg.keepfilter       = 'yes';
-cfg.lcmv.keepfilter  = 'yes';
-cfg.keeptrials       = 'yes';
-cfg.lcmv.fixedori    = 'yes'; % project on axis of most variance using SVD
-cfg.lcmv.lambda      = '0.1%';
-source = ft_sourceanalysis(cfg, t_data);
-
-idx = round(linspace(1,length(source.avg.mom),2000));
-mom = []; k=1;
-for i=idx
-    clc
-    disp([num2str(i),'/', num2str(length(source.avg.mom))])
-    mom(k,:) = source.avg.mom{i};
-    k = k+1;
+active_nodes = find(source.inside==1);
+% create the trial field from source anal output
+vs = [];
+node = [];
+for i = 1:length(source.trial) % i = number trials
+    for x = 1:length(active_nodes) % x = number nodes
+        node(x,:) = source.trial(i).mom{active_nodes(x)};
+    end
+    vs.trial{i} = node;
 end
 
-outsum = do_conn(mom);
-v = eigenvector_centrality_und(outsum);
-% figure,bar(v), title('eigenvector');
+% set up labels
+label_temp = num2str(active_nodes);
+label_temp = cellstr(label_temp);
+vs.label = label_temp;
 
-ImageGridAmp = zeros(length(source.avg.mom),1);
+% set up time component
+for i = 1:length(source.trial)
+    vs.time{1, i} = source.time;
+end
+
+%%
+cfg = [];
+cfg.savefile = [];
+cfg.saveflag = 2;
+cfg.foilim = [2 40];
+cfg.plotflag  = 1;
+cfg.tapsmofrq       = 1;
+cfg.taper    = 'hanning';
+do_fft(cfg, vs);
+
+%%
+foi = input('frequncy range: ');
+
+cfg            = [];
+cfg.output     = 'fourier';
+cfg.method     = 'mtmfft';
+cfg.foilim     = foi;
+cfg.tapsmofrq  = 2;
+cfg.keeptrials = 'yes';
+cfg.pad = 4;
+freq    = ft_freqanalysis(cfg, vs);
+
+%%
+cfg         = [];
+cfg.method    = 'wpli_debiased';
+source_conn = ft_connectivityanalysis(cfg, freq);
+par = 'wpli_debiasedspctrm';
+
+aedge =  mean(source_conn.(par),3);
+
+aedge(isnan(aedge)) = 0;
+v = eigenvector_centrality_und(aedge);
+
+ImageGridAmp = zeros(15002,1);
 for i=1:length(idx)-1
     ImageGridAmp(idx(i):idx(i+1)) = v(i);    
 end
 
+%%
 % ===== SAVE RESULTS =====
 % === CREATE OUTPUT STRUCTURE ===
 bst_progress('text', 'Saving source file...');
@@ -220,15 +286,12 @@ if (length(sInputs) == 1)
     iStudyOut = sInputs(1).iStudy;
     RefDataFile = sInputs(iChanInputs(iInput)).FileName;
 else
-    [tmp, iStudyOut] = bst_process('GetOutputStudy', sProcess, sInputs);
+    [~, iStudyOut] = bst_process('GetOutputStudy', sProcess, sInputs);
     RefDataFile = [];
 end
 % Create structure
 ResultsMat = db_template('resultsmat');
 ResultsMat.ImagingKernel = [];
-
-% ImageGridAmp = zeros(length(source.avg.mom),1);
-% ImageGridAmp(idx) = v;
 
 Method = 'conn';
 ResultsMat.ImageGridAmp  = ImageGridAmp;
@@ -244,7 +307,7 @@ ResultsMat.SurfaceFile   = HeadModelMat.SurfaceFile;
 ResultsMat.nAvg          = DataMat.nAvg;
 ResultsMat.Leff          = DataMat.Leff;
 % ResultsMat.Comment       = 'Conn_PLV';
-ResultsMat.Comment       = ['ft_connanalysis: plv_' Method, '_', datestr(now, 'dd/mm/yy-HH:MM')];
+ResultsMat.Comment       = ['ft_connanalysis: wPLI_' Method, '_', datestr(now, 'dd/mm/yy-HH:MM')];
 switch lower(ResultsMat.HeadModelType)
     case 'volume'
         ResultsMat.GridLoc    = HeadModelMat.GridLoc;
@@ -289,49 +352,6 @@ db_save();
 bst_progress('stop');
 end
 
-
-function [freq,ff, psd,tapsmofrq] = do_fft(cfg_mian, data)
-cfg              = [];
-cfg.method       = 'mtmfft';
-cfg.output       = 'fourier';
-cfg.keeptrials   = 'yes';
-cfg.foilim       = cfg_mian.foilim;
-cfg.tapsmofrq    = cfg_mian.tapsmofrq;
-cfg.taper        = cfg_mian.taper;
-cfg.pad          = 4;
-freq             = ft_freqanalysis(cfg, data);
-psd = squeeze(mean(mean(abs(freq.fourierspctrm),2),1));
-ff = linspace(1, cfg.foilim(2), length(psd));
-
-tapsmofrq = cfg.tapsmofrq;
-end
-
-
-function stat = do_source_stat_montcarlo(s_data)
-cfg = [];
-cfg.parameter        = 'pow';
-cfg.method           = 'montecarlo';
-cfg.statistic        = 'depsamplesT';
-cfg.correctm         = 'fdr';
-cfg.clusteralpha     = 0.001;
-cfg.tail             = 0;
-cfg.clustertail      = 0;
-cfg.alpha            = 0.05;
-cfg.numrandomization = 5000;
-
-ntrials                       = numel(s_data.bsl.trial);
-design                        = zeros(2,2*ntrials);
-design(1,1:ntrials)           = 1;
-design(1,ntrials+1:2*ntrials) = 2;
-design(2,1:ntrials)           = 1:ntrials;
-design(2,ntrials+1:2*ntrials) = 1:ntrials;
-
-cfg.design   = design;
-cfg.ivar     = 1;
-cfg.uvar     = 2;
-stat         = ft_sourcestatistics(cfg,s_data.pst,s_data.bsl);
-end
-
 function t_data = do_timelock(data)
 
 %
@@ -345,7 +365,7 @@ end
 
 function [outsum] = do_conn(mom)
 
-[nvox, nrpt] = size(mom);
+[~, nrpt] = size(mom);
 crsspctrm = (mom*mom')./nrpt;
 tmp = crsspctrm; crsspctrm = []; crsspctrm(1,:,:) = tmp;
 
@@ -419,4 +439,195 @@ end
 ec = abs(V(:,idx));
 v = reshape(ec, length(ec), 1);
 
+end
+
+function [freq, ff, psd,tapsmofrq] = do_fft(cfg_mian, data)
+
+%
+cfg              = [];
+cfg.method       = 'mtmfft';
+cfg.output       = 'fourier';
+cfg.keeptrials   = 'yes';
+cfg.foilim       = cfg_mian.foilim;
+cfg.tapsmofrq    = cfg_mian.tapsmofrq;
+cfg.taper        = cfg_mian.taper; %'hanning';
+cfg.pad          = 4;
+freq             = ft_freqanalysis(cfg, data);
+psd = squeeze(mean(mean(abs(freq.fourierspctrm),2),1));
+ff = linspace(1, cfg.foilim(2), length(psd));
+
+if cfg_mian.plotflag ==1
+    figure,plot(ff,psd)
+    xlabel('Hz'); ylabel('psd')
+end
+
+tapsmofrq = cfg.tapsmofrq;
+
+end
+
+
+function [ftHeadmodel, ftLeadfield, iChannels] = out_fieldtrip_headmodel_edt(HeadModelFile, ChannelFile, iChannels, isIncludeRef)
+% OUT_FIELDTRIP_HEADMODEL: Converts a head model file into a FieldTrip structure (see ft_datatype_headmodel).
+% 
+% USAGE:  [ftHeadmodel, ftLeadfield, iChannels] = out_fieldtrip_headmodel(HeadModelFile, ChannelFile, isIncludeRef=1);
+%         [ftHeadmodel, ftLeadfield, iChannels] = out_fieldtrip_headmodel(HeadModelMat,  ChannelMat,  isIncludeRef=1);
+%
+% INPUTS:
+%    - HeadModelFile  : Relative path to a head model file available in the database
+%    - HeadModelMat   : Brainstorm head model file structure
+%    - ChannelFile    : Relative path to a channel file available in the database
+%    - ChannelMat     : Brainstorm channel file structure
+% OUTPUTS:
+%    - ftHeadmodel    : Volume conductor model, typically returned by ft_prepare_headmodel
+%    - ftLeadfield    : Leadfield matrix, typically returned by ft_prepare_leadfield
+%    - iChannels      : Modified list of channels (after adding channels)
+
+% @=============================================================================
+% This function is part of the Brainstorm software:
+% https://neuroimage.usc.edu/brainstorm
+% 
+% Copyright (c) University of Southern California & McGill University
+% This software is distributed under the terms of the GNU General Public License
+% as published by the Free Software Foundation. Further details on the GPLv3
+% license can be found at http://www.gnu.org/copyleft/gpl.html.
+% 
+% FOR RESEARCH PURPOSES ONLY. THE SOFTWARE IS PROVIDED "AS IS," AND THE
+% UNIVERSITY OF SOUTHERN CALIFORNIA AND ITS COLLABORATORS DO NOT MAKE ANY
+% WARRANTY, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF
+% MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE, NOR DO THEY ASSUME ANY
+% LIABILITY OR RESPONSIBILITY FOR THE USE OF THIS SOFTWARE.
+%
+% For more information type "brainstorm license" at command prompt.
+% =============================================================================@
+%
+% Authors: Jeremy T. Moreau, Elizabeth Bock, Francois Tadel, 2015
+
+% ===== PARSE INPUTS =====
+if (nargin < 4) || isempty(isIncludeRef)
+    isIncludeRef = 1;
+end
+ftHeadmodel = [];
+ftLeadfield = [];
+
+% ===== LOAD INPUTS =====
+% Load head model file
+if ischar(HeadModelFile)
+    HeadModelMat = in_bst_headmodel(HeadModelFile);
+elseif isstruct(HeadModelFile)
+    HeadModelMat = HeadModelFile;
+else
+    error('Failed to load head model.');
+end
+% If this file was computed with FieldTrip, it should include the original FieldTrip headmodel
+if isfield(HeadModelMat, 'ftHeadmodelMeg') && ~isempty(HeadModelMat.ftHeadmodelMeg)
+    ftHeadmodel = HeadModelMat.ftHeadmodelMeg;
+elseif isfield(HeadModelMat, 'ftHeadmodelEeg') && ~isempty(HeadModelMat.ftHeadmodelEeg)
+    ftHeadmodel = HeadModelMat.ftHeadmodelEeg;
+end
+% Load channel file
+if ischar(ChannelFile)
+    ChannelMat = in_bst_channel(ChannelFile);
+elseif isstruct(ChannelFile)
+    ChannelMat = ChannelFile;
+else
+    error('Failed to load channel file.')
+end
+% Get sensor type
+Modality = ChannelMat.Channel(iChannels(1)).Type;
+% Get headmodel type
+switch (Modality)
+    case 'EEG',   HeadModelMethod = HeadModelMat.EEGMethod;
+    case 'ECOG',  HeadModelMethod = HeadModelMat.ECOGMethod;
+    case 'SEEG',  HeadModelMethod = HeadModelMat.SEEGMethod;
+    case {'MEG','MEG MAG','MEG GRAD','MEG REF'}, HeadModelMethod = HeadModelMat.MEGMethod;
+end
+
+% ===== ADD MEG REF =====
+if isIncludeRef && ismember(Modality, {'MEG','MEG MAG','MEG GRAD'})
+    
+    %% This section was diasbled, 05/11/22
+%     iRef = channel_find(ChannelMat.Channel, 'MEG REF');
+%     if ~isempty(iRef)
+%         iChannels = [iRef, iChannels];
+%     end
+end
+
+
+% ===== CREATE FIELDTRIP HEADMODEL =====
+if isempty(ftHeadmodel)
+    % Get subject
+    sSubject = bst_get('SurfaceFile', HeadModelMat.SurfaceFile);
+    % Headmodel type
+    switch (HeadModelMethod)
+        case {'meg_sphere', 'singlesphere'}
+            ftHeadmodel.type = 'singlesphere';
+            ftHeadmodel.r = HeadModelMat.Param(iChannels(1)).Radii(1);
+            ftHeadmodel.o = HeadModelMat.Param(iChannels(1)).Center(:)';
+            
+        case {'eeg_3sphereberg', 'concentricspheres'}
+            ftHeadmodel.type = 'concentricspheres';
+            ftHeadmodel.r = HeadModelMat.Param(iChannels(1)).Radii(:)';
+            ftHeadmodel.o = HeadModelMat.Param(iChannels(1)).Center(:)';
+            % Get default conductivities
+            BFSProperties = bst_get('BFSProperties');
+            ftHeadmodel.c = BFSProperties(1:3);
+            
+        case {'os_meg', 'localspheres'}
+            ftHeadmodel.type = 'localspheres';
+            ftHeadmodel.r = [HeadModelMat.Param(iChannels).Radii]';
+            ftHeadmodel.o = [HeadModelMat.Param(iChannels).Center]';
+            
+        case {'singleshell'}
+            ftHeadmodel.type = HeadModelMethod;
+            % Check if the surfaces are available
+            if isempty(sSubject.iInnerSkull)
+                error('No inner skull surface available for this subject.');
+            else
+                disp(['BST> ' HeadModelMethod ': Using the default inner skull surface available in the database.']);
+            end
+            % Load surfaces
+            SurfaceFiles = {sSubject.Surface(sSubject.iInnerSkull).FileName};
+            ftHeadmodel.bnd = out_fieldtrip_tess(SurfaceFiles);
+            
+        case {'openmeeg', 'dipoli', 'bemcp'}
+            ftHeadmodel.type = HeadModelMethod;
+            % Check if the surfaces are available
+            if isempty(sSubject.iInnerSkull) || isempty(sSubject.iOuterSkull) || isempty(sSubject.iScalp)
+                error('No BEM surfaces available for this subject.');
+            else
+                disp(['BST> ' HeadModelMethod ': Using the default surfaces available in the database (inner skull, outer skull, scalp).']);
+            end
+            % Load surfaces
+            SurfaceFiles = {sSubject.Surface(sSubject.iScalp).FileName, ...
+                            sSubject.Surface(sSubject.iOuterSkull).FileName, ...
+                            sSubject.Surface(sSubject.iInnerSkull).FileName};
+            ftHeadmodel.bnd = out_fieldtrip_tess(SurfaceFiles);
+            % Default OpenMEEG options
+            ftHeadmodel.cond         = [0.33, 0.004125, 0.33];
+            ftHeadmodel.skin_surface = 1;
+            ftHeadmodel.source       = 3;
+            % ERROR: MISSING .mat field??
+            
+        otherwise
+            error('out_fieldtrip_headmodel does not support converting this type of head model.');
+    end
+    % Unit and labels
+    ftHeadmodel.unit  = 'm';
+    ftHeadmodel.label = {ChannelMat.Channel(iChannels).Name}';
+end
+
+% ===== CREATE FIELDTRIP LEADFIELD =====
+if (nargout >= 2)
+    % Create FieldTrip structure
+    nSources = length(HeadModelMat.GridLoc);
+    ftLeadfield.pos             = HeadModelMat.GridLoc;
+    ftLeadfield.unit            = 'm';
+    ftLeadfield.inside          = true(nSources, 1);
+    ftLeadfield.leadfielddimord = '{pos}_chan_ori';
+    ftLeadfield.label           = {ChannelMat.Channel(iChannels).Name};
+    ftLeadfield.leadfield       = cell(1, nSources);
+    for i = 1:nSources
+        ftLeadfield.leadfield{i} = HeadModelMat.Gain(iChannels, 3*(i-1)+[1 2 3]);
+    end
+end
 end
