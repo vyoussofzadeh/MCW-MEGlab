@@ -228,6 +228,7 @@ for i = 1:length(source.trial) % i = number trials
     vs.trial{i} = node;
 end
 
+%
 % set up labels
 label_temp = num2str(active_nodes);
 label_temp = cellstr(label_temp);
@@ -354,7 +355,6 @@ end
 
 function t_data = do_timelock(data)
 
-%
 cfg                  = [];
 cfg.covariance       = 'yes';
 cfg.covariancewindow = 'all';
@@ -363,71 +363,7 @@ t_data            = ft_timelockanalysis(cfg, data);
 
 end
 
-function [outsum] = do_conn(mom)
-
-[~, nrpt] = size(mom);
-crsspctrm = (mom*mom')./nrpt;
-tmp = crsspctrm; crsspctrm = []; crsspctrm(1,:,:) = tmp;
-
-input = crsspctrm;
-pownorm = 1;
-
-siz = [size(input) 1];
-% crossterms are described by chan_chan_therest
-outsum = zeros(siz(2:end));
-outssq = zeros(siz(2:end));
-% outcnt = zeros(siz(2:end));
-for j = 1:siz(1)
-    if pownorm
-        p1  = zeros([siz(2) 1 siz(4:end)]);
-        p2  = zeros([1 siz(3) siz(4:end)]);
-        for k = 1:siz(2)
-            p1(k,1,:,:,:,:) = input(j,k,k,:,:,:,:);
-            p2(1,k,:,:,:,:) = input(j,k,k,:,:,:,:);
-        end
-        p1    = p1(:,ones(1,siz(3)),:,:,:,:);
-        p2    = p2(ones(1,siz(2)),:,:,:,:,:);
-        denom = sqrt(p1.*p2); clear p1 p2;
-    end
-    tmp    = abs(reshape(input(j,:,:,:,:,:,:), siz(2:end))./denom); % added this for nan support marvin
-    %tmp(isnan(tmp)) = 0; % added for nan support
-    outsum = outsum + tmp;
-    outssq = outssq + tmp.^2;
-%     outcnt = outcnt + double(~isnan(tmp));
-end
-
-% size(outsum)
-figure,imagesc(outsum), colorbar, title('conn (across voxels)');
-
-end
-
 function   v = eigenvector_centrality_und(CIJ)
-%EIGENVECTOR_CENTRALITY_UND      Spectral measure of centrality
-%
-%   v = eigenvector_centrality_und(CIJ)
-%
-%   Eigenector centrality is a self-referential measure of centrality:
-%   nodes have high eigenvector centrality if they connect to other nodes
-%   that have high eigenvector centrality. The eigenvector centrality of
-%   node i is equivalent to the ith element in the eigenvector 
-%   corresponding to the largest eigenvalue of the adjacency matrix.
-%
-%   Inputs:     CIJ,        binary/weighted undirected adjacency matrix.
-%
-%   Outputs:      v,        eigenvector associated with the largest
-%                           eigenvalue of the adjacency matrix CIJ.
-%
-%   Reference: Newman, MEJ (2002). The mathematics of networks.
-%
-%   Contributors:
-%   Xi-Nian Zuo, Chinese Academy of Sciences, 2010
-%   Rick Betzel, Indiana University, 2012
-%   Mika Rubinov, University of Cambridge, 2015
-
-%   MODIFICATION HISTORY
-%   2010/2012: original (XNZ, RB)
-%   2015: ensure the use of leading eigenvector (MR)
-
 
 n = length(CIJ);
 if n < 1000
