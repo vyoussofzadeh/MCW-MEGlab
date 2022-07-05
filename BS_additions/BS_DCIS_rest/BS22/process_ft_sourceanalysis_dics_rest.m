@@ -297,7 +297,6 @@ switch Method
                 source_diff_dics.pow(isnan(source_diff_dics.pow))=0;
                 source_diff_dics.pow(source_diff_dics.pow<0)=0;
             case 'both'
-                source_diff_dics = ft_math(cfg,s_data.pst,s_data.bsl);
                 source_diff_dics.pow(isnan(source_diff_dics.pow))=0;
         end
         
