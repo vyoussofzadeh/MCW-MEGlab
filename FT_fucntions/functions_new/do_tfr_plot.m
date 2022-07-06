@@ -1,4 +1,4 @@
-function [time_of_interest,freq_of_interest] = do_tfr_plot(cfg_main, tfr)
+function [time_of_interest,freq_of_interest, val] = do_tfr_plot(cfg_main, tfr)
 
 %%
 % First compute the average over trials:
