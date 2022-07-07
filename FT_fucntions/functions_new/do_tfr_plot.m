@@ -69,7 +69,7 @@ val.freq = freq_interp;
 
 
 % Plot figure
-if cfg_main.plotflag
+if cfg_main.plotflag == 1
     
     figure();
     ax_main  = axes('Position', [0.1 0.2 0.55 0.55]);
