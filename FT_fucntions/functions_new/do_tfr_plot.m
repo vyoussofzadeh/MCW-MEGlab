@@ -5,17 +5,32 @@ function [time_of_interest,freq_of_interest, val] = do_tfr_plot(cfg_main, tfr)
 cfg = [];
 freq_avg = ft_freqdescriptives(cfg, tfr);
 
-baseline = cfg_main.baseline;
 
-% And baseline-correct the average:
-cfg = [];
-% cfg.baseline = [-0.3 0];
-cfg.baseline = baseline;
-cfg.baselinetype = 'db'; % Use decibel contrast here
-freq_avg_bsl = ft_freqbaseline(cfg, freq_avg);
+if cfg_main.bslcorr == 1
+    % And baseline-correct the average:
+    cfg = [];
+    cfg.baseline = [-0.3 0];
+    cfg.baselinetype = 'db'; % Use decibel contrast here
+    freq_avg_bsl = ft_freqbaseline(cfg, freq_avg);
+    freq_avg_bsl.powspctrm(isnan(freq_avg_bsl.powspctrm))=0;
+    meanpow = squeeze(mean(freq_avg_bsl.powspctrm, 1));
+    
+else
+    freq_avg.powspctrm(isnan(freq_avg.powspctrm))=0;
+    meanpow = squeeze(mean(freq_avg.powspctrm, 1));
+end
 
-freq_avg_bsl.powspctrm(isnan(freq_avg_bsl.powspctrm))=0;
-meanpow = squeeze(mean(freq_avg_bsl.powspctrm, 1));
+% baseline = cfg_main.baseline;
+% 
+% % And baseline-correct the average:
+% cfg = [];
+% % cfg.baseline = [-0.3 0];
+% cfg.baseline = baseline;
+% cfg.baselinetype = 'db'; % Use decibel contrast here
+% freq_avg_bsl = ft_freqbaseline(cfg, freq_avg);
+
+% freq_avg_bsl.powspctrm(isnan(freq_avg_bsl.powspctrm))=0;
+% meanpow = squeeze(mean(freq_avg_bsl.powspctrm, 1));
 
 tim_interp = linspace(cfg_main.toi(1), cfg_main.toi(2), 512);
 freq_interp = linspace(1, cfg_main.fmax, 512);
