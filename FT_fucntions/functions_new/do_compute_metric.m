@@ -48,7 +48,6 @@ info.fsample        = fsample;
 info.offset         = offset;
 info.quit           = 0;
 
-
 % update_log(cfg.output_box, 'Computing metric...');
 % ft_progress('init', cfg.cfg.feedback, 'computing metric');
 level = zeros(info.nchan, info.ntrl);
