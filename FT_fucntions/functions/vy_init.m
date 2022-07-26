@@ -26,7 +26,7 @@ atlas_path = fullfile(ft_path,'template','atlas');
 atlas = ft_read_atlas(fullfile(atlas_path,'aal/ROI_MNI_V4.nii'));
 
 %-Grid template
-load temp_grid_8mm % from, vy_warping()
+% load temp_grid_8mm % from, vy_warping()
 % template_mri = ft_read_mri(fullfile(hcp_path,'template','T1.nii')); %
 % template_mri = ft_read_mri(fullfile(ft_path,'template/anatomy','single_subj_T1.nii')); %
 
