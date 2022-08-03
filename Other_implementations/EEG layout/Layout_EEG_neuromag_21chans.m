@@ -33,3 +33,22 @@ ft_layoutplot(cfg);
 
 
 save('neuromag_21.mat','lay_21_neuromag')
+
+
+%%
+labels2 =    {'EEG001','EEG003','EEG008','EEG010','EEG012','EEG014','EEG016',...
+'EEG017','EEG024','EEG026','EEG028','EEG030','EEG032','EEG034','EEG044',...
+'EEG046','EEG048','EEG050','EEG052','EEG057','EEG059'};
+
+lay_21_neuromag2 = lay_21_neuromag;
+for i=1:length(lay_21_neuromag.lay.label)
+  lay_21_neuromag2.lay.label{i} = labels2{i};
+end
+
+cfg = [];
+cfg.layout = lay_21_neuromag2.lay; % EEG
+lay = ft_prepare_layout(cfg);
+ft_layoutplot(cfg);
+
+
+save('neuromag_21_2.mat','lay_21_neuromag2')
