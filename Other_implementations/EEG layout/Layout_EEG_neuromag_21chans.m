@@ -1,5 +1,8 @@
 %% EEG neuromag layout
 
+% Writtern by MCW group, Youssofzadeh, Vahab <vyoussofzadeh@mcw.edu>
+% Lastest update: 08/03/2022
+
 lay_23 = load('easycapM23.mat');
 
 cfg = [];
@@ -31,9 +34,7 @@ cfg.layout = lay_21_neuromag.lay; % EEG
 lay = ft_prepare_layout(cfg);
 ft_layoutplot(cfg);
 
-
 save('neuromag_21.mat','lay_21_neuromag')
-
 
 %%
 labels2 =    {'EEG001','EEG003','EEG008','EEG010','EEG012','EEG014','EEG016',...
