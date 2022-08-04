@@ -1,0 +1,249 @@
+%% The psb_pilot
+
+% MEG phase amplitude coupling
+% Writtern by MCW group, Shah-Basak, Priyanka <prishah@mcw.edu>
+% input data from MEG (pre-) processing pipeline by Youssofzadeh, Vahab
+% Lastest update: 05/25/2022
+
+clear; clc, close('all'); warning off
+
+%% Paths
+restoredefaultpath
+maindir = '/group/prishah/LanguageMEG/psb_pilot';
+ssid = 'ss_pilot_2';
+subjid = 'pilot2';
+datcol = '220512';
+
+script_path = maindir;%'/data/MEG/Research/psb_pilot';
+addpath(genpath(script_path));
+%- Input dir
+indir = fullfile(maindir, ssid, datcol, 'tsss');%'/data/MEG/Research/psb_pilot/ss_pilot_2/220512/tsss';
+inpath = fullfile(indir, 'STM_Block1_raw.fif');
+
+%- Output dir
+outdir = fullfile(maindir, 'FT');
+ftoutdir = fullfile(maindir, ssid, datcol, 'meg');
+%- MRI dir
+mridir = fullfile(maindir, ssid, datcol, 'mri');
+ftanatdir = fullfile(maindir, ssid, datcol, 'meg' , 'anat');
+%
+ft_path = fullfile('/opt/matlab_toolboxes/ft_packages/fieldtrip_20190419');
+addpath(ft_path);
+ft_defaults
+
+allpath = [];
+allpath.ft_path18 = fullfile('/opt/matlab_toolboxes/ft_packages/fieldtrip_041718'); % needed for IC plotting
+allpath.ft_path = ft_path;
+allpath.script_path = script_path;
+
+%% Load data
+taskd = 'tone'; %options: 'pstm' or 'tone'
+load(fullfile(ftoutdir, ['all_dataclean_', taskd, '_', subjid, '.mat'])) %loads alldata
+ftdatatone = alldata;
+
+taskd = 'pstm'; %options: 'pstm' or 'tone'
+load(fullfile(ftoutdir, ['all_dataclean_', taskd, '_', subjid, '.mat'])) %loads alldata
+ftdatastm = alldata;
+
+%% template grid
+load(fullfile(ft_path, 'template/sourcemodel/standard_sourcemodel3d10mm'));
+template_grid = sourcemodel;
+clear sourcemodel;
+
+%% Read Anatomy and segment the brain
+mri = ft_read_mri(fullfile(mridir,'mprage.nii.gz'));
+mri.coordsys = 'ras';
+%mri_coordsys = ft_determine_coordsys(mri);
+ft_sourceplot([],mri)
+%% Volume realign based on fiducials
+cfg = [];
+cfg.method   = 'interactive';
+cfg.coordsys = 'neuromag';
+mri_realigned = ft_volumerealign(cfg, mri);
+%% Read headshape
+inpath = fullfile(indir, 'STM_Block1_raw.fif');
+headshape = ft_read_headshape(inpath)
+figure; ft_plot_headshape(headshape)
+save([ftanatdir '/headshape'],'headshape')
+%% Coregister with digitized head points
+grad    = ft_read_sens(inpath,'senstype','meg'); % Load MEG sensors
+%elec    = ft_read_sens(inpath,'senstype','eeg'); % Load EEF electrodes
+
+% Plot head points
+figure;
+ft_plot_headshape(headshape);     % Plot headshape again
+ft_plot_sens(grad);
+%ft_plot_sens(elec, 'style', '*b');
+%ft_sourceplot([],mri)
+ 
+%% Volume realign method 2
+
+cfg = [];
+cfg.method              = 'headshape';
+cfg.headshape.headshape = headshape;
+cfg.headshape.icp       = 'yes';
+cfg.coordsys            = 'neuromag';
+
+mri_realigned_2 = ft_volumerealign(cfg, mri_realigned); %_realigned
+
+%% checking co-registration
+cfg = [];
+cfg.method              = 'headshape';
+cfg.headshape.headshape = headshape;
+cfg.coordsys            = 'neuromag';
+cfg.headshape.icp       = 'no';        %Do not fit point again
+mri_realigned_3 = ft_volumerealign(cfg, mri_realigned_2);
+%% Reslice MRI data 
+cfg = [];
+cfg.resolution = 1;
+mri_resliced = ft_volumereslice(cfg, mri_realigned_3); %mri_realigned_3
+mri_resliced = ft_convert_units(mri_resliced, 'cm');
+save([ftanatdir '/mri_resliced'],'mri_resliced')
+%% Segmenting the brain1
+disp('segmenting the brain');
+cfg = [];
+cfg.output = {'brain'};%,'skull','scalp'};
+segmentedmri = ft_volumesegment(cfg,mri_resliced);
+
+% Check the segmentation
+cfg = [];
+cfg.funparameter = 'brain';
+ft_sourceplot(cfg, segmentedmri);
+% cfg.funparameter = 'skull';
+% ft_sourceplot(cfg, segmentedmri);
+% cfg.funparameter = 'scalp';
+% ft_sourceplot(cfg, segmentedmri);
+save([ftanatdir '/segmentedmri'],'segmentedmri')
+%%
+disp('generating the head model')
+cfg = [];
+cfg.method = 'singleshell';
+headmodel = ft_prepare_headmodel(cfg, segmentedmri);
+
+%% Source model and lead fields
+cfg= [];
+cfg.warpmni = 'yes';
+cfg.template = template_grid;
+cfg.nonlinear = 'yes';
+cfg.mri = mri_resliced;
+cfg.unit = 'cm';
+sourcemodel = ft_prepare_sourcemodel(cfg);
+
+%% Cross-spectral density
+% cfg = [];
+% cfg.keepsampleinfo = 'no';
+% dataBoth = ft_appenddata(cfg,ftdatastm, ftdatatone);
+fq = 20;
+cfg = [];
+cfg.method = 'mtmfft';
+cfg.output = 'powandcsd';
+cfg.tapsmofrq = 4;
+cfg.foilim = [fq fq];
+cfg.keeptrials = 'yes';
+freqstm = ft_freqanalysis(cfg, ftdatastm);
+freqtone = ft_freqanalysis(cfg, ftdatatone);
+%freqBoth = ft_freqanalysis(cfg,dataBoth);
+%% Visualize
+figure 
+ft_plot_sens(freqstm.grad,'unit','cm');
+hold on
+ft_plot_headshape(headshape, 'unit', 'cm')
+ft_plot_headmodel(headmodel, 'unit', 'cm','facecolor','cortex','edgecolor','none')
+ft_plot_mesh(sourcemodel.pos(sourcemodel.inside,:));
+ft_plot_axes([], 'unit', 'cm');
+
+%% Compute inverse filters
+cfg = []; 
+cfg.method = 'dics';
+cfg.frequency = fq;
+cfg.sourcemodel = sourcemodel;
+cfg.headmodel = headmodel;
+cfg.dics.projectnoise = 'yes';
+%cfg.dics.lambda = '10%';
+cfg.dics.keepfilter = 'yes';
+cfg.dics.realfiler = 'yes';
+%cfg.rawtrial = 'yes';
+%cfg.keeptrials = 'yes';
+sourcestm = ft_sourceanalysis(cfg, freqstm);
+sourcetone = ft_sourceanalysis(cfg, freqtone);
+cfg = [];
+cfg.parameter = 'pow';
+cfg.operation = 'log(x1/x2)';
+sourceDiff = ft_math(cfg, sourcestm,sourcetone);
+sourceNAI = sourcestm;
+sourceNAI.avg.pow = ((sourcestm.avg.pow) ./ (sourcestm.avg.noise));
+
+cfg = [];
+cfg.parameter = 'pow';
+cfg.operation = '((x1-x2)/x2)*100';
+sourceRelDiff = ft_math(cfg, sourcestm,sourcetone);
+%% Interpolate MRI 
+cfg = [];
+%cfg.downsample = 2;
+cfg.parameter= 'pow';
+sourceInt = ft_sourceinterpolate(cfg,sourceDiff,mri_resliced);
+% Visualize
+maxval = max(sourceInt.pow)
+cfg = [];
+cfg.method = 'ortho';
+cfg.funparameter = 'pow';
+cfg.anaparameter = 'anatomy';
+cfg.funcolorlim = [0 maxval];
+cfg.opacitylim = [0 maxval];
+cfg.opacitymap = 'rampup';
+ft_sourceplot(cfg, sourceInt)
+
+%% write sources
+outfname = fullfile(outdir, ['source_' num2str(fq) 'Hz_STMvsTone']);
+[fdir, fname] = fileparts(outfname)
+cfg =[];
+cfg.filename = outfname;
+cfg.filetype = 'nifti';
+cfg.parameter = 'pow';
+ft_sourcewrite(cfg,ft_convert_units(sourceInt,'mm'))
+
+system(['3dcalc -prefix ' fdir '/mask_' fname '.nii.gz -a ' fdir '/brain_mask.nii -b ' outfname '.nii -expr ' char(39) '(a*b)' char(39)])
+%% write anatomy
+cfg =[];
+cfg.filename = fullfile(outdir, 'mri_resliced');
+cfg.filetype = 'nifti';
+cfg.parameter = 'anatomy';
+ft_volumewrite(cfg,ft_convert_units(mri_resliced,'mm'))
+
+%%
+cfg =[];
+cfg.filename = fullfile(outdir, 'segmented');
+cfg.filetype = 'nifti';
+cfg.parameter = 'brain';
+ft_volumewrite(cfg,ft_convert_units(segmentedmri,'mm'))
+
+%%
+cfg = [];
+cfg.method = 'surface';
+cfg.funparameter = 'pow';
+cfg.maskparameter = cfg.funparameter;
+cfg.funcolorlim = [0 maxval];
+cfg.funcolormap = 'hsv';
+cfg.opacitylim = [0 maxval];
+cfg.opacitymap = 'rampup';
+cfg.projmethod = 'nearest';
+cfg.surffile = 'surface_white_both.mat';
+cfg.surfdownsample = 5;
+cfg.interactive = 'yes';
+ft_sourceplot(cfg,sourceInt);
+view([90 0])
+%%
+cfg = [];
+cfg.dim = sourcestm.dim;
+cfg.method = 'montecarlo';
+cfg.statistic = 'ft_statfun_indepsamplesT';
+cfg.parameter = 'pow';
+cfg.correctm ='cluster';
+cfg.numrandomization = 1000;
+cfg.alpha = 0.05;
+cfg.tail = 0;
+cfg.design(1,:) = [1:numel(sourcestm.trial) 1:numel(sourcetone.trial)];
+cfg.design(2,:) = [ones(1,numel(sourcestm.trial)) ones(1,numel(sourcetone.trial))*2];
+cfg.uvar = 1; %trials
+cfg.ivar = 2; % conditions
+stat = ft_sourcestatistics(cfg,sourcestm,sourcetone)

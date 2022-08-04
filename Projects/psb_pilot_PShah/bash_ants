@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+
+# run this individually for each participant
+export subjid='ss_pilot_2'
+export sessid='220512'
+export maindir='/group/prishah/LanguageMEG/psb_pilot'
+export refimage='/group/prishah/work/tACS/refbrains/MNI_avg152T1.nii.gz'
+export meg='sourceSTMvsTone.nii'
+
+
+#echo $subjid
+export mridir=$maindir'/'$subjid'/'$sessid'/mri'
+export anatdir=$maindir'/'$subjid'/'$sessid'/meg/anat'
+export brainimage=$anatdir'/segmented.nii'
+export subjimage=$anatdir'/mri_resliced.nii'
+export aal='/group/prishah/work/tACS/refbrains/ROI_MNI_V4_nocerel.nii'
+export orthoaal=$anatdir'/ortho_aal.nii.gz'
+cd $anatdir
+#mni to ortho
+#3dSkullStrip -input $subjimage -prefix mask.nii.gz -mask_vol -no_avoid_eyes
+#3dcalc -a $subjimage -b mask.nii.gz -prefix brain.nii.gz -expr 'a * step(b)'
+ANTS 3 -m PR\[$brainimage, $refimage, 1, 2\] -o mni_to_ortho_SYN.nii.gz -r Gauss\[2,0\] -t SyN\[0.5\] -i --use-Histogram-Matching
+WarpImageMultiTransform 3 $aal $orthoaal -R $brainimage --use-NN mni_to_ortho_SYNWarp.nii.gz mni_to_ortho_SYNAffine.txt
+3drefit -space MNI -view tlrc anat_$meg.gz
+
+#native to mni space for relative source maps
+WarpImageMultiTransform 3 $workdir'/'$sessid'/'$eeg 'mni_'$eeg -R $refimage --use-NN anat_to_mni_SYNWarp.nii.gz anat_to_mni_SYNAffine.txt
+3drefit -space MNI -view tlrc mni_$eeg
+3drefit -space MNI -view tlrc mni_brain.nii.gz
+
+
+
+
+#mkdir -p $anatdir
+cd $anatdir
+#native to mni space for anatomy
+#3dSkullStrip -input $subjimage -prefix mask.nii.gz -mask_vol -no_avoid_eyes
+#3dcalc -a $subjimage -b mask.nii.gz -prefix brain.nii.gz -expr 'a * step(b)'
+ANTS 3 -m PR\[$refimage, $subjimage, 1, 2\] -o anat_to_mni_SYN.nii.gz -r Gauss\[2,0\] -t SyN\[0.5\] -i --use-Histogram-Matching
+#WarpImageMultiTransform 3 brain.nii.gz mni_brain.nii.gz -R $refimage --use-NN anat_to_mni_SYNWarp.nii.gz anat_to_mni_SYNAffine.txt
+
+#native to mni space for relative source maps
+WarpImageMultiTransform 3 $workdir'/'$sessid'/'$eeg 'mni_'$eeg -R $refimage --use-NN anat_to_mni_SYNWarp.nii.gz anat_to_mni_SYNAffine.txt
+3drefit -space MNI -view tlrc mni_$eeg
+3drefit -space MNI -view tlrc mni_brain.nii.gz
+
+
+# take a mean
+export grpres=$maindir'/eeg/group_results'
+mkdir -p $grpres
+3dMean -prefix $grpres'/mni_mean_'$eeg $maindir'/eeg/HC002/anat/mni_'$eeg $maindir'/eeg/HC003/anat/mni_'$eeg $maindir'/eeg/HC004/anat/mni_'$eeg
+3drefit -space MNI -view tlrc $grpres'/mni_mean_'$eeg
+
+
+#inverse warp: mni to native space
+#WarpImageMultiTransform 3 AAL.nii brain_AAL_inv.nii.gz -R brain.nii.gz --use-NN -i anat_to_mni_SYNAffine.txt anat_to_mni_SYNInverseWarp.nii.gz
+
+# convert lesion maps from native to mni space
+export subjid='MCW052'
+export sessid='anat'
+export maindir='/group/prishah/work/tACS'
+export refimage=$maindir'/refbrains/MNI_avg152T1.nii.gz'
+export les=$subjid'_Lesion_step.nii'
+
+echo $subjid
+export subjimage=$maindir'/mri/bids/sub-'$subjid'/ses-1/anat/sub-'$subjid'_ses-1_acq-mprage_run-1_T1w.nii.gz'
+export workdir=$maindir'/eeg/'$subjid
+export anatdir=$workdir'/anat'
+mkdir -p $anatdir
+cd $anatdir
+
+
+WarpImageMultiTransform 3 $anatdir'/'$les 'mni_'$les -R $refimage --use-NN anat_to_mni_SYNWarp.nii.gz anat_to_mni_SYNAffine.txt
+3drefit -space MNI -view tlrc mni_$les
+
+
+
