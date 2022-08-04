@@ -14,10 +14,12 @@ if cfg_main.bslcorr == 1
     freq_avg_bsl = ft_freqbaseline(cfg, freq_avg);
     freq_avg_bsl.powspctrm(isnan(freq_avg_bsl.powspctrm))=0;
     meanpow = squeeze(mean(freq_avg_bsl.powspctrm, 1));
+%     meanpow = squeeze(median(freq_avg_bsl.powspctrm, 1));
     
 else
     freq_avg.powspctrm(isnan(freq_avg.powspctrm))=0;
     meanpow = squeeze(mean(freq_avg.powspctrm, 1));
+%     meanpow = squeeze(median(freq_avg.powspctrm, 1));
 end
 
 % baseline = cfg_main.baseline;

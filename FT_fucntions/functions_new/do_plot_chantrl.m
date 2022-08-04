@@ -16,7 +16,7 @@ if info.pflag == 1
     xmax = info.ntrl; ymax = max(maxpertrl); ymin = min(maxpertrl);
     axis([0.5 xmax+0.5 (1-sign(ymin)*0.2)*ymin (1+sign(ymax)*0.2)*ymax]);
     title('Trial')
-    sgtitle(info.metric)
+    %     sgtitle(info.metric)
 end
 
 
@@ -40,3 +40,6 @@ if minflag
     maxpertrl_all  = -1 * maxpertrl_all;
     level          = -1 * level;
 end
+
+%     end
+% end

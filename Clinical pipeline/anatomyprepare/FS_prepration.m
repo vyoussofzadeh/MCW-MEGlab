@@ -1,8 +1,11 @@
+
 clear, clear, clc, close all,
 
+% Author, Vahab Youssof Zadeh, 2021
+% update: 07/25/22
+
 %%
-% cd_org = '/MEG_data/Vahab/Shared Scripts/Freesurfer_anat_prepration/shared';
-cd_org = '/MEG_data/Vahab/Github/MCW-MEGlab/FT/Clinical pipeline/anatomyprepare';
+cd_org = '/MEG_data/MCW_pipeline/Anatomyprepare';
 addpath(cd_org)
 path_tools = '/usr/local/MATLAB_Tools';
 
@@ -31,6 +34,7 @@ cd(indir)
 set_spm
 dicomfile = spm_select(1,'.*','Select one dicome file, e.g. EXP0000');
 [pathstr, name] = fileparts(dicomfile);
+cd(pathstr)
 
 %%
 set_ft
@@ -41,14 +45,29 @@ ft_sourceplot([], mri);
 mri = ft_convert_units(mri, 'mm');
 
 %% Filename for saving
+clc
 cd(pathstr)
-indir = input('Enter saveing dir:');
+cd ..
+cd ..
+disp(['1 = suggesting:', pwd])
+disp( '2 = other')
+indir_ask = input('Enter saveing dir:');
+
+switch indir_ask
+    case 1
+        indir = pwd;
+    case 2
+        indir = input('Enter saveing dir:');
+end
 cd(indir)
 nii_filename = 'mri.nii';
 
+nii_savepath = 'nii';
+if exist(nii_savepath, 'file') == 0, mkdir(nii_savepath), end
+
 %% Save the resliced mni-transformed mri image
 cfg                 = [];
-cfg.filename        = nii_filename;
+cfg.filename        = fullfile(nii_savepath, nii_filename);
 cfg.filetype        = 'nifti';
 cfg.parameter       = 'anatomy';
 ft_volumewrite(cfg, mri);
@@ -85,46 +104,24 @@ ft_sourceplot([], mri_resliced);
 % ft_volumewrite(cfg, mri_resliced);
 
 %% Filename for saving (.nii)
-nii_filename = 'mri_resliced.nii';
 cfg                 = [];
-cfg.filename        = nii_filename;
+cfg.filename        = fullfile(nii_savepath,'mri_resliced.nii');
 cfg.filetype        = 'nifti';
 cfg.parameter       = 'anatomy';
 ft_volumewrite(cfg, mri_resliced);
 
 %% Save the transformation matrix
-transform_vox2mni   = mri_resliced.transform;
-filename_vox2mni    = 'transform_vox2mni';
-save(filename_vox2mni, 'transform_vox2mni');
+% transform_vox2mni   = mri_resliced.transform;
+% filename_vox2mni    = 'transform_vox2mni';
+% save(filename_vox2mni, 'transform_vox2mni');
 
 %% Bias correction
+disp('========');
 disp('1: Yes');
 disp('2: No');
 bsask = input('Bias correction?');
-
 if bsask ==1
-    
-%     % - SPM-8
-%     biasfield = spm_bias_estimate(nii_filename);
-%     spm_bias_apply('mni_resliced.nii', biasfield);
-%     
-%     %
-%     set_ft
-%     mni_resliced = ft_read_mri('mni_resliced.nii');
-%     ft_sourceplot([], mni_resliced); title('before BS correction')
-%     mri_biascorrected = ft_read_mri('mmni_resliced.nii');
-%     ft_sourceplot([], mri_biascorrected); title('after BS correction')
-    
-    %- SPM-12
-    % https://layerfmri.com/2017/12/21/bias-field-correction/
-    
-    %-----------------------------------------------------------------------
-    % Job saved on 09-Nov-2017 14:54:58 by cfg_util (rev $Rev: 6460 $)
-    % spm SPM - SPM12 (6906)
-    % cfg_basicio BasicIO - Unknown
-    %-----------------------------------------------------------------------
-    addpath('/usr/local/MATLAB_Tools/spm12')
-    spm_defaults
+    set_spm
     matlabbatch{1}.spm.spatial.preproc.channel.vols = {'./mri_resliced.nii,1'};
     matlabbatch{1}.spm.spatial.preproc.channel.biasreg = 0.001;
     matlabbatch{1}.spm.spatial.preproc.channel.biasfwhm = 20;
@@ -138,3 +135,59 @@ if bsask ==1
     matlabbatch{1}.spm.spatial.preproc.warp.write = [0 0];
     spm_jobman('run',matlabbatch);
 end
+
+%% Bias correction
+cd(indir)
+clc
+disp('========');
+disp('1: Yes');
+disp('2: No');
+fsask = input('Run FS?');
+% subn = input('enter subject name:');
+
+[pathstr, name, ext] = fileparts (pwd);
+
+disp(['1 = suggesting:', name])
+disp( '2 = other')
+ask_subn = input('Enter saveing dir:');
+
+switch ask_subn
+    case 1
+        subn = name;
+    case 2
+        subn = input('enter subject name:');
+end
+
+% savepath = 'FS';
+% if exist(savepath, 'file') == 0, mkdir(savepath), end
+% FS_savedir = fullfile(pathstr, subn, savepath);
+
+if fsask ==1
+    clc, close all,
+    disp('run this in command ...'),
+    disp(['cd ', fullfile(indir, nii_savepath)]);
+%     [a, name] = fileparts(pwd);
+    disp(['recon-all -s ', subn, ' -i mri_resliced.nii -all'])
+%     disp(['recon-all -s ', FS_savedir, ' -i mri_resliced.nii -all'])
+%     command = ['recon-all -s ', name, ' -i mri_resliced.nii -all'];
+%     system(command)
+end
+
+%% Copy FS
+
+
+
+%% Check FS
+disp('1: Yes');
+disp('2: No');
+fschkask = input('Check FS?');
+if fschkask ==1
+
+end
+
+% /MEG_data/MRI_database/epilepsy/RAPEY_Ward_Jacob/FSrecon_110921
+% cd /MEG_data/MRI_database/epilepsy/RAPEY_Ward_Jacob/
+% tkmedit FSrecon_110921 T1.mgz -surfs
+
+
+
