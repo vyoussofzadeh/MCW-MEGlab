@@ -51,5 +51,4 @@ cfg.layout = lay_21_neuromag2.lay; % EEG
 lay = ft_prepare_layout(cfg);
 ft_layoutplot(cfg);
 
-
 save('neuromag_21_2.mat','lay_21_neuromag2')

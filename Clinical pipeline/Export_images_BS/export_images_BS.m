@@ -3,13 +3,13 @@ clc, close all,
 
 %%
 disp('Where the map is goingn to be exported to ...')
-svdir = input('1: enter saving dir:');
+svdir = input('1: enter saving dir:','s');svdir = strrep(svdir, ' ', '');
 disp('===========')
 
 
 disp('righ-click on the source map file/File/view file history')
-BSpath = input('2: enter BS path:');
-fname = input('3: enter BS source FileName:');
+BSpath = input('2: enter BS path:','s'); BSpath = strrep(BSpath, ' ', '');
+fname = input('3: enter BS source FileName:','s'); fname = strrep(fname, ' ', '');
 disp('===========')
 
 disp('4: Adjust/check the threshold, press enter to proceed ...')
@@ -19,13 +19,13 @@ cd(BSpath)
 sfile = load(fname);
 svname = sfile.Comment;
 disp(['suggesting name:',svname]);
-svname = input('enter saving name:');
+svname = input('enter saving name:', 's');
 disp('===========')
 
 %%
 % Orient = {'left'; 'right';'top';'bottom';'left_intern';'right_intern'};
-% Orient = {'left'; 'bottom';'right'};
-Orient = {'left'; 'right';'top';'bottom'};
+Orient = {'left'; 'bottom';'right'};
+% Orient = {'left'; 'right';'top';'bottom'};
 
 close all
 hFig = view_surface_data([], fname, [], 'NewFigure');
