@@ -2,7 +2,7 @@
 clear, clear, clc, close all,
 
 % Author, Vahab Youssof Zadeh, 2021
-% update: 07/25/22
+% update: 09/27/22,  scp copy files to Squiggles was added
 
 %%
 cd_org = '/MEG_data/MCW_pipeline/Anatomyprepare';
@@ -189,5 +189,16 @@ end
 % cd /MEG_data/MRI_database/epilepsy/RAPEY_Ward_Jacob/
 % tkmedit FSrecon_110921 T1.mgz -surfs
 
+%%
+clc
+disp('1: Yes');
+disp('2: No');
+catask = input('Copy nii to Sqioggles for Cat analysis?');
+if catask
+    % - copy data between servers
+    command = (['scp -r ', fullfile(pwd,'nii'), ' vyoussofzadeh@squiggles.rcc.mcw.edu:/data/MEG/Vahab/Data_clinical/CAT_analysis/', name]);
+%     command = 'scp -r /MEG_data/MRI_database/epilepsy/DEJESUS_Elias_T1_AxBravo/nii vyoussofzadeh@squiggles.rcc.mcw.edu:/data/MEG/Vahab/';
+    system(command)
+end
 
 
