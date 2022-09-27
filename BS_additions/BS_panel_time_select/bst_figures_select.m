@@ -931,7 +931,9 @@ function FireCurrentTimeChanged(ForceTime)
     if (nargin < 1) || isempty(ForceTime)
         ForceTime = 0;
     end
-    disp('enter figure')
+    disp('1 for 1st figure and corresponding topomap')
+    disp('[1:2] or [1,3,4] for multiple panels (and corresponding topomaps)')
+    disp('enter panel # to update:')
     iDS_sel = input('');
     for iDS = iDS_sel%length(GlobalData.DataSet) % edited by VY
         for iFig = 1:length(GlobalData.DataSet(iDS).Figure)
@@ -2109,5 +2111,3 @@ function SetBackgroundColor(hFig, newColor) %#ok<*DEFNU>
                        'YColor', textColor);
     end
 end
-
-
