@@ -60,6 +60,8 @@ catch
     end
 end
 
+% test
+
 %
 [outfid,cals] = fiff_start_writing_raw(outfile,raw.info,picks);
 %
