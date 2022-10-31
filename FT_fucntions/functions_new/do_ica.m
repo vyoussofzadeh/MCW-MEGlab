@@ -7,9 +7,9 @@ comp           = ft_componentanalysis(cfg, data);
 
 %%
 restoredefaultpath
-addpath(genpath(cfg_main.allpath.ft_path18));
+addpath(genpath(cfg_main.allpath.ft18));
 % addpath(genpath(cfg_main.allpath.hcp_path));
-addpath(genpath(cfg_main.allpath.script_path));
+% addpath(genpath(cfg_main.allpath.script_path));
 
 cfg = [];
 cfg.viewmode = 'component';

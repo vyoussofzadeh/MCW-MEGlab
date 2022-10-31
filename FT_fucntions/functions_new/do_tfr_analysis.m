@@ -20,6 +20,8 @@ cfg.toi = [datain.time{2}(1), min(tmax)];
 cfg.savepath = []; 
 cfg.savefile = [];
 cfg.title = cfg_main.title;
+cfg.bslcorr = cfg_main.bslcorr;
+cfg.plotflag = cfg_main.plotflag;
 [toi,foi] = do_tfr_plot(cfg, tfr);
 
 end
