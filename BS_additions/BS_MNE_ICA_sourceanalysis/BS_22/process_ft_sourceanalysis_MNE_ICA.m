@@ -366,7 +366,11 @@ if avg_ask == 1
     ResultsMat.SurfaceFile   = HeadModelMat.SurfaceFile;
     ResultsMat.nAvg          = DataMat.nAvg;
     ResultsMat.Leff          = DataMat.Leff;
-    ResultsMat.Comment       = ['ft_sourceanalysis:' Method, '_IC_avg_', num2str(length(nIC)), '_', num2str(foi(1)),'_',num2str(foi(2)),'_Hz_',datestr(now, 'dd/mm/yy-HH:MM')];
+    if ~isempty(foi)
+        ResultsMat.Comment       = ['ft_sourceanalysis:' Method, '_IC_avg_', num2str(length(nIC)), '_', num2str(foi(1)),'_',num2str(foi(2)),'_Hz_',datestr(now, 'dd/mm/yy-HH:MM')];
+    else
+        ResultsMat.Comment       = ['ft_sourceanalysis:' Method, '_IC_avg_', num2str(length(nIC)), '_broadband_',datestr(now, 'dd/mm/yy-HH:MM')];
+    end
     switch lower(ResultsMat.HeadModelType)
         case 'volume'
             ResultsMat.GridLoc    = HeadModelMat.GridLoc;

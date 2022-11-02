@@ -123,7 +123,6 @@ if ~exist(fullfile(subdir,['data_run', num2str(run), '_cond',num2str(condval), '
 else
     cd(outdir)
     disp('data already preprocessed!')
-%     load(fullfile(subdir,['data_run', num2str(run), '_cond',num2str(condval), '.mat']))
 end
 
 close all,

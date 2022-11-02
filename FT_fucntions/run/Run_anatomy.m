@@ -10,7 +10,7 @@ fidfile = fullfile(indir,subj,'Anatomy/bem/Anatomy-fiducials.fif');
 
 clear fid
 % if ~isempty(d)
-mripfile = fullfile(mridir,'T1.mgz');
+% mripfile = fullfile(mridir,'T1.mgz');
 if exist(outputmridir, 'file') == 0, mkdir(outputmridir); end
 
 headshape = ft_read_headshape(datafile);
