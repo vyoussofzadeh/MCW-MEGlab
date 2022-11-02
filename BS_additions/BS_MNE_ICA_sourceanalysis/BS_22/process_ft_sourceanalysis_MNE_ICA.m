@@ -347,7 +347,7 @@ else
 end
 %%
 
-if avg_ask == 1
+if avg_ask == 1 && ~isempty(nIC)
     
     ResultsMat.ImagingKernel = [];
     switch Method
