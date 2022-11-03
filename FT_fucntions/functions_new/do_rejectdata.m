@@ -89,7 +89,10 @@ else
                 report.btrl = btrl;
                 disp('REJECTED TRIALS:')
                 disp(btrl)
+            else
+                report.btrl = [];
             end
+            
     end
     if cfg_main.saveflag ==1
         %         save(cfg_main.savepath, 'r_data', 'report','-v7.3');
