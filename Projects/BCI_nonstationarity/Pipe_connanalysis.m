@@ -17,9 +17,11 @@ flag.connanalysis = 1;
 flag.network_exportfig = 2;
 
 %% Paths
-addpath('./data')
 addpath('./run')
 Run_setpath
+addpath('./data')
+addpath('./run')
+addpath(genpath('./functions'))
 
 %%
 cd(outdir)

@@ -8,9 +8,11 @@
 clear; clc, close('all'); warning off
 
 %% Paths
-addpath('./data')
 addpath('./run')
 Run_setpath
+addpath('./data')
+addpath('./run')
+addpath(genpath('./functions'))
 
 %% Listing data
 cd(indir)

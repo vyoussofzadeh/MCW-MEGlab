@@ -7,8 +7,6 @@
 
 %%
 restoredefaultpath
-script_path = '/data/MEG/Vahab/Github/MCW_MEGlab/Projects/BCI/non_stationary';
-addpath(genpath(script_path));
 
 %- Input dir
 indir = '/data/MEG/Vahab/Github/MCW_MEGlab/Projects/BCI/Data/MEG_mat';
@@ -23,7 +21,6 @@ ft_defaults
 allpath = [];
 allpath.ft_path18 = fullfile('/opt/matlab_toolboxes/ft_packages/fieldtrip_041718'); % needed for IC plotting
 allpath.ft_path = ft_path;
-allpath.script_path = script_path;
 
 %- atlas
 atlas_path = fullfile(ft_path,'template','atlas');
