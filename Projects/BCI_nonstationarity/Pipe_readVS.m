@@ -6,6 +6,11 @@
 
 clear; clc, close('all'); warning off
 
+%% FieldTrip
+ft_path ='./ft_packages/latest/fieldtrip-master';
+addpath(ft_path);
+ft_defaults
+
 %%
 indir = '/data/MEG/Vahab/Github/MCW_MEGlab/Projects/BCI/Process/ft_process/vs_all';
 cd(indir)
