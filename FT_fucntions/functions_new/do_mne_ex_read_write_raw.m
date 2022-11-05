@@ -67,7 +67,7 @@ end
 %
 % from        = raw.first_samp;
 to          = raw.last_samp;
-quantum_sec = 10;
+% quantum_sec = 10;
 % quantum     = ceil(quantum_sec*raw.info.sfreq);
 %
 %   To read the whole file at once set
