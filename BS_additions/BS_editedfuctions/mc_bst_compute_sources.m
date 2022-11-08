@@ -1,0 +1,136 @@
+function completedStudies = mc_bst_compute_sources(selectedStudies)
+% mc_bst_compute_sources: batch script to compute the headmodel, noise cov and source
+% estimations for the selected studies
+%
+% USAGE:    completedStudies = mc_bst_compute_sources(selectedStudies)
+%
+% INPUT:    selectedStudies = list of study indices
+%
+% OUTPUT:   completedStudies = list of study indices
+%
+% Author: Elizabeth Bock, 2011
+% --------------------------- Script History ------------------------------
+% EB 10-JUNE-2011    Creation (adapted from orig brainstorm_runProcess.m)
+% -------------------------------------------------------------------------
+
+completedStudies = [];
+% Head model, noise cov and source estimation
+for j=1:length(selectedStudies)
+    sProtocol = bst_get('ProtocolInfo');
+    studyDir = sProtocol.STUDIES;
+    subjectName = char(GUI.DataSet.subject);
+    [sSubject, iSubject] = bst_get('Subject',subjectName);
+    
+    % -----Select the study
+    [sStudy, iStudy] = bst_get('Study', selectedStudies(j));
+    fileName = sStudy.Name;
+    currentStudyName = fullfile(studyDir, sStudy.FileName);
+    panel_protocols('SelectStudyNode', iStudy);
+    
+    % -----Check for head model
+    disp(sprintf('%s\n','MC>Computing head model...'));
+    if isempty(sStudy.HeadModel)
+        disp(['Brainstorm - Compute Head Model: ' fileName])
+        mc_bst_create_headmodel(currentStudyName);
+        %Refresh sStudy
+        [sStudy, iStudy] = bst_get('Study', iStudy);
+        if isempty(sStudy.HeadModel)
+            disp('Error creating head model...skipping');
+            continue;
+        end
+    end
+    
+    % -----Check for Noise Covariance Matrix
+    disp(sprintf('%s\n','MC>Computing noise covariance matrix...'));
+    if isempty(sStudy.NoiseCov)
+        disp(['Brainstorm - Get Noise Cov: ' fileName])
+        currentWorkflow = GUI.DataSet.currentWorkflow;
+        [iNoiseStudy, NoiseCovMat] = mc_bst_get_noisecov(iStudy, currentWorkflow);
+        % now copy noiseov to study
+        isDataCov = 0;
+        AutoReplace = 1;
+        db_set_noisecov(iNoiseStudy, iStudy, isDataCov, AutoReplace);
+        if isempty(NoiseCovMat)
+            disp('Error computing noise covariance...skipping');
+            continue;
+        end
+        disp('MC>done');
+    end
+    
+    % -----Source Estimation
+    disp(sprintf('%s\n','MC>Estimating sources...'));
+    dataIndices = [];
+    if ~isempty(sStudy)
+        ResultFiles = sStudy.Result;
+        % Filter results
+        pat='MN: ';
+        ind=strfind({ResultFiles.Comment}, pat);
+        dataIndices = find(~cellfun(@isempty, ind));
+        if isempty(dataIndices)
+            pat='MNE: ';
+            ind=strfind({ResultFiles.Comment}, pat);
+            dataIndices = find(~cellfun(@isempty, ind));
+        end
+    end
+    
+    if isempty(sStudy) || isempty(dataIndices)
+        disp(['Brainstorm - Source Estimation: ' fileName])
+        [sStudy, iStudy] = bst_get('Study', iStudy);
+        sFiles = {sStudy.Data.FileName};
+        
+        
+        % Process: Compute sources
+        %         sFiles = bst_process(...
+        %             'CallProcess', 'process_inverse', ...
+        %             sFiles, [], ...
+        %             'method', 1, ...
+        %             'wmne', struct(...
+        %             'NoiseCov', [], ...
+        %             'InverseMethod', 'wmne', ...
+        %             'SNR', 3, ...
+        %             'diagnoise', 0, ...
+        %             'SourceOrient', {{'fixed'}}, ...
+        %             'loose', 0.2, ...
+        %             'depth', 1, ...
+        %             'weightexp', 0.5, ...
+        %             'weightlimit', 10, ...
+        %             'regnoise', 1, ...
+        %             'magreg', 0.1, ...
+        %             'gradreg', 0.1, ...
+        %             'eegreg', 0.1, ...
+        %             'ecogreg', 0.1, ...
+        %             'seegreg', 0.1, ...
+        %             'fMRI', [], ...
+        %             'fMRIthresh', [], ...
+        %             'fMRIoff', 0.1, ...
+        %             'pca', 1), ...
+        %             'sensortypes', 'MEG, MEG MAG, MEG GRAD', ...
+        %             'output', 1);
+        
+        % Process: Compute sources [2018],  added by VY on 06/10/22
+        sFiles = bst_process('CallProcess', 'process_inverse_2018', sFiles, [], ...
+            'output',  1, ...  % Kernel only: shared
+            'inverse', struct(...
+            'Comment',        'MN: MEG ALL', ...
+            'InverseMethod',  'minnorm', ...
+            'InverseMeasure', 'amplitude', ...
+            'SourceOrient',   {{'fixed'}}, ...
+            'Loose',          0.2, ...
+            'UseDepth',       1, ...
+            'WeightExp',      0.5, ...
+            'WeightLimit',    10, ...
+            'NoiseMethod',    'reg', ...
+            'NoiseReg',       0.1, ...
+            'SnrMethod',      'fixed', ...
+            'SnrRms',         1e-06, ...
+            'SnrFixed',       3, ...
+            'ComputeKernel',  1, ...
+            'DataTypes',      {{'MEG GRAD', 'MEG MAG'}}));       
+        
+    end
+    
+    completedStudies = [completedStudies iStudy];
+    disp('MC>done');
+    % -----Update database
+    db_reload_studies( iStudy );
+end
