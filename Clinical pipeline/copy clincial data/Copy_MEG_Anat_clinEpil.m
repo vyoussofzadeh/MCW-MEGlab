@@ -112,3 +112,10 @@ switch task
     case 3
         Run_copy_Freefurfer
 end
+
+%% Copy to Squiggles
+cd ('/MEG_data/Research_studies/Epil_clinial/')
+command = ['scp -r /MEG_data/Research_studies/Epil_clinial/jones_kellyann vyoussofzadeh@squiggles.rcc.mcw.edu:/data/MEG/Clinical/MEG_clinical_consented'];
+system(command)
+
+%%

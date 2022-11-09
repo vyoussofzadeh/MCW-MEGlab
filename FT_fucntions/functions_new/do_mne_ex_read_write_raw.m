@@ -1,6 +1,5 @@
 function do_mne_ex_read_write_raw(cfg)
 
-
 infile = cfg.infile;
 outfile = cfg.outfile;
 cln_data = cfg.cln_data;
@@ -43,16 +42,11 @@ end
 want_meg   = true;
 want_eeg   = true;
 want_stim  = true;
-include{1} = 'STI 014';
 try
     picks = fiff_pick_types(raw.info,want_meg,want_eeg,want_stim,include,raw.info.bads);
 catch
-    %
-    %   Failure: Try MEG + STI101 + STI201 + STI301 - bad channels instead
-    %
-    include{1} = 'STI101';
-    include{2} = 'STI201';
-    include{3} = 'STI301';
+
+include = [];
     try
         picks = fiff_pick_types(raw.info,want_meg,want_eeg,want_stim,include,raw.info.bads);
     catch
@@ -62,21 +56,10 @@ end
 
 %
 [outfid,cals] = fiff_start_writing_raw(outfile,raw.info,picks);
-%
-%   Set up the reading parameters
-%
-% from        = raw.first_samp;
 to          = raw.last_samp;
-% quantum_sec = 10;
-% quantum     = ceil(quantum_sec*raw.info.sfreq);
-%
-%   To read the whole file at once set
-%
-%quantum     = to - from + 1;
-%
+
 %
 %   Read and write all the data
-%
 first_buffer = true;
 for first = 1%from:quantum:to
     last = to; %first+quantum-1;
@@ -84,7 +67,7 @@ for first = 1%from:quantum:to
         last = to;
     end
     try
-        [ data, times ] = fiff_read_raw_segment(raw,first,last,picks);
+        [ data, ~ ] = fiff_read_raw_segment(raw,first,last,picks);
     catch
         fclose(raw.fid);
         fclose(outfid);
