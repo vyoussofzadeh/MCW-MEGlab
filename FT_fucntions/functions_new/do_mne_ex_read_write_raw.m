@@ -39,22 +39,25 @@ end
 %   Set up pick list: MEG + STI 014 - bad channels
 %
 %
-want_meg   = true;
-want_eeg   = true;
-want_stim  = true;
-try
-    picks = fiff_pick_types(raw.info,want_meg,want_eeg,want_stim,include,raw.info.bads);
-catch
-
-include = [];
-    try
-        picks = fiff_pick_types(raw.info,want_meg,want_eeg,want_stim,include,raw.info.bads);
-    catch
-        error(me,'%s (channel list may need modification)',mne_omit_first_line(lasterr));
-    end
-end
+% want_meg   = true;
+% want_eog   = true;
+% want_eeg   = true;
+% want_stim  = true;
+% include =  [ ];
+% % include{1} = 'STI 014';
+% 
+% try
+%     picks = fiff_pick_types(raw.info,want_meg,want_eeg,want_stim,raw.info.bads);
+% catch
+%     try
+%         picks = fiff_pick_types(raw.info,want_meg,want_eeg,want_stim,include,raw.info.bads);
+%     catch
+%         error(me,'%s (channel list may need modification)',mne_omit_first_line(lasterr));
+%     end
+% end
 
 %
+picks = 1:length(raw.info.chs);
 [outfid,cals] = fiff_start_writing_raw(outfile,raw.info,picks);
 to          = raw.last_samp;
 
@@ -78,6 +81,7 @@ for first = 1%from:quantum:to
     %
     data1 = cln_data.trial{1}; % replacing with raw data
     data(1:306,:) = data1;
+%     cals(1:306) = 1; 
     
     fprintf(1,'Writing...');
     if first_buffer
