@@ -27,15 +27,23 @@ cfg_init.path_tools = '/MEG_data/LAB_MEMBERS/Vahab/Github/tools';
 [allpath, atlas] = vy_init(cfg_init);
 
 %%
-tag = 'spont';
-
-%%
 cd(indir)
 [subjdir] = uigetdir;
 cd(subjdir)
 
 %%
-d = rdir([subjdir,['/**/','sss','/*',tag,'*/*raw.fif']]); 
+disp('1: Spont')
+disp('2: SSEF')
+dcon = input('sel data condition:');
+
+switch dcon
+    case 1
+        tag = 'spont';
+        d = rdir([subjdir,['/**/','sss','/*',tag,'*/*raw.fif']]);
+    case 2
+        tag = 'SSEF';
+        d = rdir([subjdir,['/**/','sss','/*',tag,'*/*raw*.fif']]);
+end
 
 %%
 clear subj datafolder datafile datafile1
@@ -50,7 +58,7 @@ end
 datafile1 = datafile';
 disp(data_disp')
 if length(datafile1) > 1
-    datasel = input('choose data to analyze, eg, 1,2:');
+    datasel = input('choose data to analyze:');
 else
     datasel = 1;
 end
@@ -72,12 +80,15 @@ lay = ft_prepare_layout(cfg);
 disp('============');
 
 %% ICA preprocesssing 
-cfg = []; cfg.channel = {'MEG'}; cfg.datafile  = datafile;
+cfg = []; cfg.channel = {'MEG'}; 
+cfg.datafile  = datafile;
+% cfg.hpfreq = 0.1;
+% cfg.lpfreq = 40;
 f_data  = ft_preprocessing(cfg);
 
 %%
 cfg = []; cfg.savepath = []; cfg.savefile = []; cfg.saveflag = 2; cfg.overwrite = 2;
-cfg.lay = lay; cfg.n   = 20; cfg.subj = subj; cfg.allpath = allpath; cfg.select = 1;
+cfg.lay = lay; cfg.n   = 5; cfg.subj = subj; cfg.allpath = allpath; cfg.select = 1;
 cln_data = vy_ica_cleaning_light(cfg, f_data);
 
 %% Export to fif format
@@ -89,6 +100,7 @@ str = strfind(datafile,'/'); savedir = datafile(1:str(end)-1);
 name = [tkz{end}(1:end-4), '_ic.fif'];
 outfile = fullfile(savedir, name);
 
+%-
 cfg = [];
 cfg.infile = datafile;
 cfg.outfile = outfile;
@@ -97,5 +109,7 @@ do_mne_ex_read_write_raw(cfg);
 cd(savedir)
 
 disp('completed, data are ready to review in MEG_clinic!')
+disp(outfile);
 
-%%
+%% Check the header file
+% dataheader = ft_read_header(datafile);
