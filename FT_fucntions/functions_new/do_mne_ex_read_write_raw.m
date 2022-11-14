@@ -1,6 +1,5 @@
 function do_mne_ex_read_write_raw(cfg)
 
-
 infile = cfg.infile;
 outfile = cfg.outfile;
 cln_data = cfg.cln_data;
@@ -40,43 +39,30 @@ end
 %   Set up pick list: MEG + STI 014 - bad channels
 %
 %
-want_meg   = true;
-want_eeg   = true;
-want_stim  = true;
-include{1} = 'STI 014';
-try
-    picks = fiff_pick_types(raw.info,want_meg,want_eeg,want_stim,include,raw.info.bads);
-catch
-    %
-    %   Failure: Try MEG + STI101 + STI201 + STI301 - bad channels instead
-    %
-    include{1} = 'STI101';
-    include{2} = 'STI201';
-    include{3} = 'STI301';
-    try
-        picks = fiff_pick_types(raw.info,want_meg,want_eeg,want_stim,include,raw.info.bads);
-    catch
-        error(me,'%s (channel list may need modification)',mne_omit_first_line(lasterr));
-    end
-end
+% want_meg   = true;
+% want_eog   = true;
+% want_eeg   = true;
+% want_stim  = true;
+% include =  [ ];
+% % include{1} = 'STI 014';
+% 
+% try
+%     picks = fiff_pick_types(raw.info,want_meg,want_eeg,want_stim,raw.info.bads);
+% catch
+%     try
+%         picks = fiff_pick_types(raw.info,want_meg,want_eeg,want_stim,include,raw.info.bads);
+%     catch
+%         error(me,'%s (channel list may need modification)',mne_omit_first_line(lasterr));
+%     end
+% end
 
 %
+picks = 1:length(raw.info.chs);
 [outfid,cals] = fiff_start_writing_raw(outfile,raw.info,picks);
-%
-%   Set up the reading parameters
-%
-% from        = raw.first_samp;
 to          = raw.last_samp;
-quantum_sec = 10;
-% quantum     = ceil(quantum_sec*raw.info.sfreq);
-%
-%   To read the whole file at once set
-%
-%quantum     = to - from + 1;
-%
+
 %
 %   Read and write all the data
-%
 first_buffer = true;
 for first = 1%from:quantum:to
     last = to; %first+quantum-1;
@@ -84,7 +70,7 @@ for first = 1%from:quantum:to
         last = to;
     end
     try
-        [ data, times ] = fiff_read_raw_segment(raw,first,last,picks);
+        [ data, ~ ] = fiff_read_raw_segment(raw,first,last,picks);
     catch
         fclose(raw.fid);
         fclose(outfid);
@@ -95,6 +81,7 @@ for first = 1%from:quantum:to
     %
     data1 = cln_data.trial{1}; % replacing with raw data
     data(1:306,:) = data1;
+%     cals(1:306) = 1; 
     
     fprintf(1,'Writing...');
     if first_buffer
