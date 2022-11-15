@@ -2,7 +2,7 @@ function do_peakcoor_detection(cfg)
 
 
 %%
-disp('Where the map is goingn to be exported to ...')
+disp('Where the map is going to be exported to ...')
 svdir = input('1: enter saving dir:','s');svdir = strrep(svdir, ' ', '');
 disp('===========')
 
@@ -28,13 +28,12 @@ npeaks = cfg.npeaks;
 
 %%
 cd(BSpath)
-sSurface = load(fname);
 cd ..
 cd ./anat
-d = load(sSurface.SurfaceFile);
+d = load(sfile.SurfaceFile);
 
 %%
-ImageGridAmp = sSurface.ImageGridAmp;
+ImageGridAmp = sfile.ImageGridAmp;
 [maxval, maxidx] = max(ImageGridAmp);
 
 b = [];
