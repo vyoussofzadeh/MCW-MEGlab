@@ -195,7 +195,7 @@ else
 end
 
 imwrite(a,imgFile);
-disp('5: completed!, images were saved at,')
+disp('completed!, images were stored at,')
 disp(fullfile(svdir))
 disp('as,')
 disp([svname,'.tif'])
