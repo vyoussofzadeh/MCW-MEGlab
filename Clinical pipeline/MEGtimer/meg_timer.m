@@ -1,9 +1,5 @@
-
-%% The CNRP project
-
-% MEG phase amplitude coupling
+% Timing info of the CNRP MEG data
 % Writtern by MCW group, Youssofzadeh, Vahab <vyoussofzadeh@mcw.edu>
-% MEG timer
 % Lastest update: 12/13/2022
 
 %%
@@ -12,7 +8,7 @@ addpath('/usr/local/MATLAB_Tools/mne')
 
 cd_datapath = '/MEG_acq/cnrp_tacs_healthy';
 
-%%
+%% HC data
 cd(cd_datapath)
 dd = dir('./hc*');
 for j = 1:length(dd)
@@ -30,7 +26,8 @@ for j = 1:length(dd)
     date_data_hc{j} = unique(date_data);
 end
 
-%%
+%% MCW (pataint) data
+
 cd(cd_datapath)
 dd = dir('./mcw*');
 for j = 1:length(dd)
