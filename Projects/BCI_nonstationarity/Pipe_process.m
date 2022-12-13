@@ -69,7 +69,7 @@ for df = 1:length(data_sel)
         cfg.toilim = [0,5];
         ep_data = ft_redefinetrial(cfg, data_ica);
         
-        %- Source analysis, time-domain (LCMV)
+        %- Source analysis, time-domain beamformer (LCMV)
         cfg = [];
         cfg.individual_grid = individual_grid;
         cfg.vol = individual_headmodel;

@@ -36,7 +36,6 @@ end
 %% Intersect (2 strings)
 [C,ia,ib] = intersect(sort_sub_name, sort_sub_name2, 'stable');
 
-
 %% Lowercase and uppercase 
 lower(sub_name2);
 
@@ -45,3 +44,6 @@ lower(sub_name2);
 
 %% check if a variable exist in a cell matlab
 isfield(a, 'History')
+
+%% Check if a folder exists
+isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_raw'])
