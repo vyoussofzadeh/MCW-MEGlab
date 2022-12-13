@@ -1,4 +1,12 @@
 
+%% The CNRP project
+
+% MEG phase amplitude coupling
+% Writtern by MCW group, Youssofzadeh, Vahab <vyoussofzadeh@mcw.edu>
+% MEG timer
+% Lastest update: 12/13/2022
+
+%%
 addpath('/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab/MCW_MEGlab_git/FT_fucntions/functions/External')
 addpath('/usr/local/MATLAB_Tools/mne')
 
@@ -40,7 +48,7 @@ for j = 1:length(dd)
     date_data_mcw{j} = unique(date_data);
 end
 
-%%
+%% Merging details
 clc
 summ_tim  = [summ_tim_mcw, summ_tim_hc];
 data_name = [data_name_mcw, data_name_hc];
