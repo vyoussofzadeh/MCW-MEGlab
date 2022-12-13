@@ -98,19 +98,26 @@ addpath('/usr/local/MATLAB_Tools/fieldtrip_20190419/external/mne')
 
 tkz = tokenize(datafile,'/');
 str = strfind(datafile,'/'); savedir = datafile(1:str(end)-1);
-name = [tkz{end}(1:end-4), '_ic.fif'];
+str_idx = strfind(tkz{end},'_raw');
+name = [tkz{end}(1:str_idx(end)), 'ic_raw.fif'];
+% name = [tkz{end}(1:end-4), '_ic.fif'];
 outfile = fullfile(savedir, name);
 
-%-
-cfg = [];
-cfg.infile = datafile;
-cfg.outfile = outfile;
-cfg.cln_data = cln_data;
-do_mne_ex_read_write_raw(cfg);
-cd(savedir)
+disp(outfile)
+sok = input('name looking ok (yes=1, no=0)?');
 
-disp('completed, data are ready to review in MEG_clinic!')
-disp(outfile);
+if sok == 1
+    %-
+    cfg = [];
+    cfg.infile = datafile;
+    cfg.outfile = outfile;
+    cfg.cln_data = cln_data;
+    do_mne_ex_read_write_raw(cfg);
+    cd(savedir)
+    
+    disp('completed, data are ready to review in MEG_clinic!')
+    disp(outfile);    
+end
 
 %% Check the header file
 % dataheader = ft_read_header(datafile);
