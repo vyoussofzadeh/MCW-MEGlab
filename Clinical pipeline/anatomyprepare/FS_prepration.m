@@ -173,31 +173,26 @@ if fsask ==1
 %     system(command)
 end
 
-%% Copy FS
-
-
 
 %% Check FS
 disp('1: Yes');
 disp('2: No');
 fschkask = input('Check FS?');
 if fschkask ==1
-
+    % /MEG_data/MRI_database/epilepsy/RAPEY_Ward_Jacob/FSrecon_110921
+    % cd /MEG_data/MRI_database/epilepsy/RAPEY_Ward_Jacob/
+    % tkmedit FSrecon_110921 T1.mgz -surfs
+    
 end
 
-% /MEG_data/MRI_database/epilepsy/RAPEY_Ward_Jacob/FSrecon_110921
-% cd /MEG_data/MRI_database/epilepsy/RAPEY_Ward_Jacob/
-% tkmedit FSrecon_110921 T1.mgz -surfs
-
-%%
-clc
+%% Copy FS
+disp('==========')
 disp('1: Yes');
 disp('2: No');
 catask = input('Copy nii to Sqioggles for Cat analysis?');
 if catask
     % - copy data between servers
     command = (['scp -r ', fullfile(pwd,'nii'), ' vyoussofzadeh@squiggles.rcc.mcw.edu:/data/MEG/Vahab/Data_clinical/CAT_analysis/', name]);
-%     command = 'scp -r /MEG_data/MRI_database/epilepsy/DEJESUS_Elias_T1_AxBravo/nii vyoussofzadeh@squiggles.rcc.mcw.edu:/data/MEG/Vahab/';
     system(command)
 end
 
