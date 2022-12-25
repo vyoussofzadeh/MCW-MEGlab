@@ -187,18 +187,18 @@ cfg.toilim = Baseline; ep.bsl = ft_redefinetrial(cfg, ftData);
 disp('Yes = 1, No = 0');
 filt_ask = input('filter data: ');
 
-switch filt_ask 
+switch filt_ask
     case 1
-    foi = input('frequncy range: ');
-    cfg = [];
-    cfg.hpfilter = 'yes';
-    cfg.hpfreq = foi(1);
-    cfg.hpfiltord = 3;
-    cfg.lpfilter = 'yes';
-    cfg.lpfreq = foi(2);
-    cfg.coilaccuracy = 0;
-    ep.pst = ft_preprocessing(cfg, ep.pst);
-    ep.bsl = ft_preprocessing(cfg, ep.bsl);
+        foi = input('frequncy range: ');
+        cfg = [];
+        cfg.hpfilter = 'yes';
+        cfg.hpfreq = foi(1);
+        cfg.hpfiltord = 3;
+        cfg.lpfilter = 'yes';
+        cfg.lpfreq = foi(2);
+        cfg.coilaccuracy = 0;
+        ep.pst = ft_preprocessing(cfg, ep.pst);
+        ep.bsl = ft_preprocessing(cfg, ep.bsl);
 end
 
 %%
@@ -214,17 +214,12 @@ cfg.keepfilter       = 'yes';
 cfg.lcmv.keepfilter  = 'yes';
 cfg.keeptrials       = 'yes';
 cfg.lcmv.fixedori    = 'yes'; % project on axis of most variance using SVD
-%         cfg.lcmv.lambda      = '5%';
-%         cfg.lcmv.lambda      = '0.1%';
 cfg.lcmv.lambda      = '100%';
 sourceAll = ft_sourceanalysis(cfg, tlk.app);
 
 % now applying the precomputed filters to pre and post intervals
 cfg                  = [];
 cfg.method           = 'lcmv';
-% cfg.sourcemodel  = ftLeadfield;
-% cfg.headmodel = ftHeadmodel;
-% cfg.lcmv.lambda      = '0.1%';
 cfg.sourcemodel  = ftLeadfield;
 cfg.sourcemodel.filter = sourceAll.avg.filter;
 cfg.headmodel = ftHeadmodel;
@@ -237,23 +232,8 @@ s_data.bsl = ft_sourceanalysis(cfg, tlk.bsl);
 s_data.pst = ft_sourceanalysis(cfg, tlk.pst);
 
 %%
-% cfg                  = [];
-% cfg.method           = 'lcmv';
-% cfg.sourcemodel  = ftLeadfield;
-% cfg.headmodel = ftHeadmodel;
-% cfg.keepfilter       = 'yes';
-% cfg.lcmv.keepfilter  = 'yes';
-% cfg.keeptrials       = 'yes';
-% cfg.lcmv.fixedori    = 'yes'; % project on axis of most variance using SVD
-% cfg.lcmv.lambda      = '0.1%';
-% source_active = ft_sourceanalysis(cfg, t_data_active);
-
 if fconn == 1, Connres = length(source.avg.mom); end
 idx = round(linspace(1,length(s_data.pst.avg.mom),Connres));
-% mom = []; k=1;
-% for i=idx, clc, disp([num2str(i),'/', num2str(length(source.avg.mom))])
-%     mom(k,:) = source.avg.mom{i}; k = k+1;
-% end
 
 %%
 conn_pst = do_conn(s_data.pst, Connres);
@@ -262,20 +242,13 @@ conn_bsl = do_conn(s_data.bsl, Connres);
 ev_pst = eigenvector_centrality_und(conn_pst);
 ev_bsl = eigenvector_centrality_und(conn_bsl);
 
-% cfg = [];
-% cfg.parameter = 'pow';
-% cfg.operation = 'x1-x2'; % sourceA divided by sourceB
-% ev_diff = ft_math(cfg, ev_pst, ev_bsl);
-
 ev_diff = ev_pst- ev_bsl;
 ev_diff(ev_diff < 0) = 0;
-% source_diff_dics.pow(isnan(source_diff_dics.pow))=0;
-% figure,bar(ev_diff), title('eigenvector');
 
 %%
 ImageGridAmp = zeros(length(s_data.pst.avg.mom),1);
 for i=1:length(idx)-1
-    ImageGridAmp(idx(i):idx(i+1)) = ev_diff(i);    
+    ImageGridAmp(idx(i):idx(i+1)) = ev_diff(i);
 end
 
 %%
@@ -360,13 +333,6 @@ end
 function t_data = do_timelock(data)
 
 %
-% cfg                  = [];
-% cfg.covariance       = 'yes';
-% cfg.covariancewindow = 'all';
-% cfg.preproc.demean   = 'yes';    % enable demean to remove mean value from each single trial
-% t_data            = ft_timelockanalysis(cfg, data);
-
-%
 cfg                  = [];
 cfg.covariance       = 'yes';
 cfg.covariancewindow = 'all';
@@ -420,7 +386,7 @@ for j = 1:siz(1)
     %tmp(isnan(tmp)) = 0; % added for nan support
     outsum = outsum + tmp;
     outssq = outssq + tmp.^2;
-%     outcnt = outcnt + double(~isnan(tmp));
+    %     outcnt = outcnt + double(~isnan(tmp));
 end
 
 % size(outsum)
@@ -436,7 +402,7 @@ function   v = eigenvector_centrality_und(CIJ)
 %   Eigenector centrality is a self-referential measure of centrality:
 %   nodes have high eigenvector centrality if they connect to other nodes
 %   that have high eigenvector centrality. The eigenvector centrality of
-%   node i is equivalent to the ith element in the eigenvector 
+%   node i is equivalent to the ith element in the eigenvector
 %   corresponding to the largest eigenvalue of the adjacency matrix.
 %
 %   Inputs:     CIJ,        binary/weighted undirected adjacency matrix.
@@ -470,7 +436,7 @@ end
 
 function [ftHeadmodel, ftLeadfield, iChannels] = out_fieldtrip_headmodel_edt(HeadModelFile, ChannelFile, iChannels, isIncludeRef)
 % OUT_FIELDTRIP_HEADMODEL: Converts a head model file into a FieldTrip structure (see ft_datatype_headmodel).
-% 
+%
 % USAGE:  [ftHeadmodel, ftLeadfield, iChannels] = out_fieldtrip_headmodel(HeadModelFile, ChannelFile, isIncludeRef=1);
 %         [ftHeadmodel, ftLeadfield, iChannels] = out_fieldtrip_headmodel(HeadModelMat,  ChannelMat,  isIncludeRef=1);
 %
@@ -487,12 +453,12 @@ function [ftHeadmodel, ftLeadfield, iChannels] = out_fieldtrip_headmodel_edt(Hea
 % @=============================================================================
 % This function is part of the Brainstorm software:
 % https://neuroimage.usc.edu/brainstorm
-% 
+%
 % Copyright (c) University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
-% 
+%
 % FOR RESEARCH PURPOSES ONLY. THE SOFTWARE IS PROVIDED "AS IS," AND THE
 % UNIVERSITY OF SOUTHERN CALIFORNIA AND ITS COLLABORATORS DO NOT MAKE ANY
 % WARRANTY, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF
@@ -548,10 +514,10 @@ end
 if isIncludeRef && ismember(Modality, {'MEG','MEG MAG','MEG GRAD'})
     
     %% This section was diasbled, 05/11/22
-%     iRef = channel_find(ChannelMat.Channel, 'MEG REF');
-%     if ~isempty(iRef)
-%         iChannels = [iRef, iChannels];
-%     end
+    %     iRef = channel_find(ChannelMat.Channel, 'MEG REF');
+    %     if ~isempty(iRef)
+    %         iChannels = [iRef, iChannels];
+    %     end
 end
 
 
@@ -601,8 +567,8 @@ if isempty(ftHeadmodel)
             end
             % Load surfaces
             SurfaceFiles = {sSubject.Surface(sSubject.iScalp).FileName, ...
-                            sSubject.Surface(sSubject.iOuterSkull).FileName, ...
-                            sSubject.Surface(sSubject.iInnerSkull).FileName};
+                sSubject.Surface(sSubject.iOuterSkull).FileName, ...
+                sSubject.Surface(sSubject.iInnerSkull).FileName};
             ftHeadmodel.bnd = out_fieldtrip_tess(SurfaceFiles);
             % Default OpenMEEG options
             ftHeadmodel.cond         = [0.33, 0.004125, 0.33];
