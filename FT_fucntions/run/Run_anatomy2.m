@@ -33,7 +33,7 @@ if ~isempty(d)
     cfg.outputmridir = outputmridir;
     cfg.subj = subj;
     cfg.plotflag = 2;
-    cfg.atlas = atlas;
+    cfg.atlas = [];
     cfg.indir = indir;
     cfg.outd.sub = outd.sub;
     cfg.flag = flag;
