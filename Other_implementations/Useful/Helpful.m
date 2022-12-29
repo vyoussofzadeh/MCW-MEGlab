@@ -40,7 +40,7 @@ end
 lower(sub_name2);
 
 %% alphabetically sorting cells
-[sort_sub_name2,~]=sort(lower(sub_name2));
+[sort_sub_name2,~] = sort(lower(sub_name2));
 
 %% check if a variable exist in a cell matlab
 isfield(a, 'History')
