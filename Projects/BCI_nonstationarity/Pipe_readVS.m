@@ -98,5 +98,7 @@ for df = 1:length(d_sel)
     
     disp('Do the non-nonstationarity testing analysis ...to be added!')
 end
+disp(vs_in)
+disp(vs_in_sel)
 
 
