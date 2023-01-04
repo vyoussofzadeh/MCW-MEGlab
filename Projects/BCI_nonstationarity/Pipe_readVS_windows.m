@@ -96,5 +96,5 @@ for df = 1:length(d_sel)
         vs_in_sel.time{i} = vs_in_sel.time{i}(idx_mn:idx_mx);
     end
     
-    disp('Do the non-nonstationarity testing analysis ...to be added!')
+    disp('Do the non-nonstationarity analysis (to be added!)')
 end
