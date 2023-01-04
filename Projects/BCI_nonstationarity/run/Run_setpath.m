@@ -6,7 +6,7 @@
 % Update: 11/03/2022
 
 %%
-restoredefaultpath
+% restoredefaultpath
 
 %- Input dir
 indir = '/data/MEG/Vahab/Github/MCW_MEGlab/Projects/BCI/Data/MEG_mat';
@@ -14,7 +14,8 @@ indir = '/data/MEG/Vahab/Github/MCW_MEGlab/Projects/BCI/Data/MEG_mat';
 outdir = '/data/MEG/Vahab/Github/MCW_MEGlab/Projects/BCI/Process/ft_process';
 
 %
-ft_path = fullfile('/opt/matlab_toolboxes/ft_packages/fieldtrip_20190419');
+% ft_path = fullfile('/opt/matlab_toolboxes/ft_packages/fieldtrip_20190419');
+ft_path ='/opt/matlab_toolboxes/ft_packages/latest/fieldtrip-master';
 addpath(ft_path);
 ft_defaults
 

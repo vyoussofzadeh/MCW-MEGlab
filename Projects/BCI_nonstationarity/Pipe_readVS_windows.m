@@ -2,7 +2,7 @@
 
 % MEG read VS data
 % Writtern by MCW group, Youssofzadeh, Vahab <vyoussofzadeh@mcw.edu>
-% Lastest update: 01/02/2022
+% Lastest update: 01/02/2023
 
 clear; clc, close('all'); warning off
 
