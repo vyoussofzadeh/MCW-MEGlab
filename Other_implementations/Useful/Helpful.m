@@ -47,3 +47,12 @@ isfield(a, 'History')
 
 %% Check if a folder exists
 isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_raw'])
+
+%% FT Progress 
+clc
+ft_progress('init', 'text',     'please wait ...');
+for i=1:42
+    ft_progress(i/42, 'Processing event %d from %d', i, 42);
+    pause(0.1);
+end
+ft_progress('close')
