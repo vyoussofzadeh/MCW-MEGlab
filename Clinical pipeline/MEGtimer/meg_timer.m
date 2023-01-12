@@ -7,6 +7,7 @@ addpath('/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab/MCW_MEGlab_git/FT_fucntio
 addpath('/usr/local/MATLAB_Tools/mne')
 
 cd_datapath = '/MEG_acq/cnrp_tacs_healthy';
+cd_datapath = '/MEG_acq/cnrp_tacs_healthy/hc004_v3';
 
 %% HC data
 cd(cd_datapath)
@@ -27,7 +28,6 @@ for j = 1:length(dd)
 end
 
 %% MCW (pataint) data
-
 cd(cd_datapath)
 dd = dir('./mcw*');
 for j = 1:length(dd)

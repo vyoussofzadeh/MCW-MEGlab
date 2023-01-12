@@ -13,10 +13,7 @@ flag.sourceanalysis = 1;     % grand average analysis
 flag.warping = 1;  % warping to a template, not recommended for clinical reports
 
 %% Initial settings
-% set(0,'DefaultFigureWindowStyle','docked')
-% set(0,'DefaultFigureWindowStyle','normal')
-
-cd('/MEG_data/Vahab/Github/MCW-MEGlab/FT');
+cd('/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab/FT');
 restoredefaultpath
 cd_org = cd;
 addpath(genpath(cd_org));
@@ -24,7 +21,7 @@ addpath(genpath(cd_org));
 %- Input dir
 indir = '/MEG_data/epilepsy';
 %- Output dir
-outdir = '/MEG_data/Vahab/Processed_data';
+outdir = '/MEG_data/LAB_MEMBERS/Vahab/Processed_data';
 
 %- Adding path
 cfg_init = [];
