@@ -2,23 +2,23 @@
 
 % MEG read VS data
 % Writtern by MCW group, Youssofzadeh, Vahab <vyoussofzadeh@mcw.edu>
-% Lastest update: 11/03/2022
+% Lastest update: 01/02/2023
 
 clear; clc, close('all'); warning off
 
 %% FieldTrip
-ft_path ='./ft_packages/latest/fieldtrip-master';
+ft_path ='Z:\Software\Fieldtrip\latest\fieldtrip-master';
 addpath(ft_path);
 ft_defaults
 
 %%
-indir = '/data/MEG/Vahab/Github/MCW_MEGlab/Projects/BCI/Process/ft_process/vs_all';
+indir = 'C:\Users\vyoussofzadeh\Box\Shared data\BCI\Processed_vBCI_VirtualSensors\vs_all';
 cd(indir)
 
 clear d_all sub session
-d = rdir(fullfile(indir,'/**/vs_*.mat'));
+d = rdir(fullfile(indir,'\**\vs_*.mat'));
 for i=1:length(d)
-    tkz = tokenize(d(i).name,'/');
+    tkz = tokenize(d(i).name,'\');
     D.df{i} = tkz{end};
     
     tkz1 = tokenize(D.df{i},'_');
@@ -49,7 +49,7 @@ for df = 1:length(d_sel)
     subj = D.ss{d_sel(df)};
     disp(['Analyzing: ', subj])
     
-    idx = strfind(D.datafile{df},'/');
+    idx = strfind(D.datafile{df},'\');
     D.datafile{df}(1:idx(end)-1);
     
     load(D.datafile{df})
@@ -96,9 +96,5 @@ for df = 1:length(d_sel)
         vs_in_sel.time{i} = vs_in_sel.time{i}(idx_mn:idx_mx);
     end
     
-    disp('Do the non-nonstationarity testing analysis ...to be added!')
+    disp('Do the non-nonstationarity analysis (to be added!)')
 end
-disp(vs_in)
-disp(vs_in_sel)
-
-
