@@ -1,8 +1,8 @@
-function [LI,unq_roi_idx] = do_lat_analysis(cfg)
+function [LI,unq_roi_idx, LI_max] = do_lat_analysis(cfg)
 
-clc, cd(cfg.BS_data_dir), tmp = load(cfg.sinput);
-
+tmp = load(fullfile(cfg.BS_data_dir, cfg.sinput));
 wi = cfg.wi;
+atlas = cfg.atlas;
 
 idx_L = cfg.lat_index(:,1);
 idx_R = cfg.lat_index(:,2);
@@ -10,22 +10,19 @@ idx_R = cfg.lat_index(:,2);
 % thre = 0.5;
 LI = []; roi_idx = [];
 for j=1:size(wi,1)
-    timind1 = nearest(tmp.Time, wi(j,1));
-    timind2 = nearest(tmp.Time, wi(j,2));
-    [parcelval,rois] = do_sourceparcell_surface(cfg.atlas,mean(tmp.ImageGridAmp(:,timind1:timind2),2));
-    %     [roiid, idx, roi_val] = do_barplot_ecp(parcelval,roi_ha2', 0.95, 2);
-    [roiid, idx, roi_val] = do_barplot_ecp(parcelval,rois, 0.95, 2);
-    %     parcelval(parcelval < thre.*max(parcelval(:))) = 0;
-    %     parcelval(parcelval < 0) = nan;
-    %     m_left = mean(parcelval(1:2:end)); m_right = mean(parcelval(2:2:end));
+    
+    timind1 = nearest(tmp.Time, wi(j,1)); timind2 = nearest(tmp.Time, wi(j,2));
+    
+    [parcelval,rois] = do_sourceparcell_surface(atlas,mean(tmp.ImageGridAmp(:,timind1:timind2),2));
+    
+    [~, idx, ~] = do_barplot_ecp(parcelval,rois, 0.95, 2);
+    
     m_left = mean(parcelval(idx_L)); m_right = mean(parcelval(idx_R));
+    
     LI(j) = (m_left - m_right)./ (m_left + m_right);
     roi_idx = [roi_idx, idx];
 end
-
 unq_roi_idx = unique(roi_idx);
-% % roi_ha2(unq_roi_idx)
-% rois(unq_roi_idx)
 
 if cfg.fplot ==1
     figure,plot(LI),
@@ -35,3 +32,6 @@ if cfg.fplot ==1
     set(gcf, 'Position', [1000   400   1500   500]);
     title(tmp.Comment), set(gca,'color','none');
 end
+
+[~, idx_mx] = max(LI); LI_max = wi(idx_mx,:);
+% [~, idx_mn] = min(LI); LI_min = wi(idx_mn,:);
