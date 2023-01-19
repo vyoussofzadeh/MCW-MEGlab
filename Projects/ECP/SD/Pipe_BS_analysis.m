@@ -412,7 +412,7 @@ subj = ProtocolSubjects;
 datatag = {'3','2'};
 for ii = 1:length(subj)
     cd(fullfile(BS_data_dir,subj{ii}))
-    dd = rdir(['./*',tag,'*/results*.mat']);
+    dd = rdir(['./*',tag,'*/results_PNAI*.mat']);
     for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
     sFiles1 = []; sFiles_name = [];
     for jj=1:length(dd)
@@ -440,10 +440,28 @@ for ii = 1:length(subj)
         tkz = tokenize(sFiles1{j},'/');
         d_name = [];
         dd = rdir(fullfile(BS_data_dir, '/Group_analysis', tkz{2}, 'results_*.mat'));
+        
         for jj = 1:length(dd)
             d_name{jj} = dd(jj).name;
         end
         tkz2 = tokenize(sFiles1{j},'_');
+        
+        % --- Condition OK
+        nn = d.name(3:end);
+        idd = strfind(nn,'data_');
+        
+        cond_ok = [];
+        if ~isempty(d_name)
+            tmp_comment = [];
+            for k=1:length(d_name)
+                tmp  = load(d_name{k});
+                tmp_comment{k} = tmp.Comment;
+            end
+            cond_ok = double(isempty(find(contains(tmp_comment,[' ',nn(idd+5),' ']), 1)));
+        else
+            cond_ok = 0;
+        end
+        %---
         
         if isempty(d_name)
             run_ok =1;
@@ -453,10 +471,11 @@ for ii = 1:length(subj)
             run_ok = 0;
         end
         
-        if run_ok ==1
-            sFiles = bst_process('CallProcess', 'process_project_sources', sFiles2, [], ...
-                'headmodeltype', 'surface');  % Cortex surface
-            %
+        if (run_ok ==1) || (cond_ok == 1)
+            pause
+%             sFiles = bst_process('CallProcess', 'process_project_sources', sFiles2, [], ...
+%                 'headmodeltype', 'surface');  % Cortex surface
+            sFiles = bst_project_sources({sFiles2}, destSurfFile, 0, 1);
         end
     end
 end
@@ -562,8 +581,7 @@ end
 %% Apply smoothing, for group source analysis
 cd(BS_data_dir)
 clc
-dd = rdir(fullfile('./Group_analysis/*/results_*.mat'));
-
+dd = rdir(fullfile('./Group_analysis/*clean/results_*.mat'));
 comment = [];
 for j=1:length(dd)
     disp([num2str(j),'/',num2str(length(dd))])
@@ -573,7 +591,7 @@ end
 
 %%
 comm_data = [];
-for ii=1:length(dd) 
+for ii=500:length(dd) 
     cd(BS_data_dir)
     disp([num2str(ii), '/', num2str(length(dd))])
     [a, ~] = fileparts(dd(ii).name);
@@ -682,6 +700,9 @@ bst_process('CallProcess', 'process_average', sFiles_name(idx_2_smooth), [], ...
     'scalenormalized', 0);
 
 %% Subject avg
+sFiles_3 = sFiles_name(idx_3_smooth);
+sFiles_2 = sFiles_name(idx_2_smooth);
+
 L = length(sFiles_3); k = 1;
 clear subjs_3
 for i=1:length(sFiles_3)
@@ -703,7 +724,6 @@ for i=1:length(sFiles_2)
     k=1+k;
 end
 unq_bs_subj_2 = unique(subjs_2);
-
 
 %%
 s_in = sFiles_name(idx_3_smooth);
@@ -731,19 +751,34 @@ for j=1:length(unq_bs_subj_2)
 end
 
 %%
+sub_3 = [];
 d_in = sFiles_name(idx_3_smooth);
 for i=1:length(d_in)
    sub_3{i} = d_in{i}(16:21); 
 end
 usub_3 = unique(sub_3)';
 
-A = sub_all1';
+
+sub_2 = [];
+d_in = sFiles_name(idx_2_smooth);
+for i=1:length(d_in)
+   sub_2{i} = d_in{i}(16:21); 
+end
+usub_2 = unique(sub_2)';
+
+A = usub_2;
 B = usub_3;
 setdiff(lower(A), lower(B))
 
 for i=1:length(sub_3)
     if length(find(contains(sub_3, sub_3(i))))~=2
         disp(sub_3(i))
+    end
+end
+
+for i=1:length(sub_2)
+    if length(find(contains(sub_2, sub_2(i))))~=2
+        disp(sub_2(i))
     end
 end
 

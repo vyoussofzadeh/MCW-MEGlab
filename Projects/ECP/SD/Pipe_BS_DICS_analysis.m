@@ -333,7 +333,7 @@ for i=1:length(d)
     
     if isempty(results)
         flag = 1;
-    elseif isempty(find(contains(results, '3')==1, 1))
+    elseif isempty(find(contains(results, 'tv_dics_3')==1, 1))
         flag = 1;
     else
         flag = 0;
@@ -383,7 +383,7 @@ for i=1:length(d)
     
     if isempty(results)
         flag = 1;
-    elseif isempty(find(contains(results, '2')==1, 1))
+    elseif isempty(find(contains(results, 'tv_dics_2')==1, 1))
         flag = 1;
     else
         flag = 0;
@@ -424,7 +424,214 @@ end
 % BS_chan.datafolder = datafolder;
 % BS_datafile = datafile;
 
-%% Project to default template
+%% Intra-subject averaging
+load(protocol);
+Subj = ProtocolSubjects.Subject;
+ProtocolSubjects = []; k=1;
+for i=1:length(Subj)
+    if contains(Subj(i).Name, 'EC')
+        ProtocolSubjects{k} =  Subj(i).Name; k=1+k;
+    end
+end
+
+% subj = unique(BS_chan.subj_all);
+no_anat = {'EC1036'
+    'EC1037'
+    'EC1038'
+    'EC1040'
+    'EC1045'
+    'EC1049'
+    'EC1061'
+    'EC1065'
+    'EC1085'
+    'EC1092'
+    'EC1094'
+    'EC1096'
+    'EC1110'
+    'EC1111'
+    'EC1112'
+    'EC1141'
+    'EC1153'
+    'EC1162'};
+
+no_anat = {'EC1036'
+    'EC1037'
+    'EC1038'
+    'EC1040'
+    'EC1045'
+    'EC1049'
+    'EC1061'
+    'EC1065'
+    'EC1085'
+    'EC1094'
+    'EC1096'
+    'EC1110'
+    'EC1111'};
+
+incomplete_data = {'EC1161'};
+
+subj = unq_bs_subj;
+
+atag = '3';
+
+clc
+close all,
+subj_del = [];
+for ii = 1:length(subj)
+    
+    
+    
+    %     [a, ~] = fileparts(BS_chan.datafile{ii});[c,d] = fileparts(a); [e,f] = fileparts(c);
+    %     tkz = tokenize(d,'_');
+    %     ee = [[tkz{2},'_',tkz{3}(1:3)]];
+    %
+    
+    if ~(contains(subj{ii},no_anat) || contains(subj{ii},incomplete_data))
+        cd(fullfile(BS_data_dir,subj{ii}))
+        dd = rdir(['./*',tag,'*/results*.mat']);
+        for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
+        sel = [];
+        for jj=1:length(dd)
+            tmp = load(dd(jj).name);
+            disp(tmp.Comment);
+            if contains(tmp.Comment,['dics_', atag])
+                sel = [sel,jj];
+            end
+        end        
+        
+        dd_Sel = [];
+        if length(sel)>2
+            clc
+            subj_del = [subj_del;subj{ii}];
+            dd_Sel = dd(sel);
+            for jj=1:length(dd_Sel)
+                tmp = load(dd_Sel(jj).name);
+                disp([num2str(jj),':',dd_Sel(jj).name])
+                disp(tmp.Comment);
+            end
+            delin = input('del extra files:');
+            delete(dd_Sel(delin).name)
+%
+            dd = rdir(['./*',tag,'*/results*.mat']);
+            for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
+            sel = [];
+            for jj=1:length(dd)
+                tmp = load(dd(jj).name);
+                disp(tmp.Comment);
+                if contains(tmp.Comment,'s_2sided')
+                    sel = [sel,jj];
+                end
+            end
+        end
+        
+        dd_Sel = [];
+        if length(sel)==2
+            dd_Sel = dd(sel);
+            
+            sFiles1 = []; sFiles_name = [];
+            for jj=1:length(dd_Sel)
+                sFiles1{jj} = fullfile(subj{ii},dd_Sel(jj).name);
+                [aa,bb] = fileparts(dd(jj).name);
+                sFiles_name{jj} = aa;
+            end
+            disp(sFiles1')
+            disp('------------');
+            
+            dd1 = rdir('./@intra/results*.mat');
+            if ~isempty(dd1)
+                for kk=1:length(dd1)
+                    tmp = load(dd1(kk).name);
+                    disp(tmp.Comment);
+                    if contains(tmp.Comment,[subj{ii}, '_dics_', atag])
+                        runok = 0; break,
+                    else
+                        runok = 1;
+                    end
+                end
+            else
+                runok = 1;
+            end
+            
+            if length(sFiles1)==2 && runok == 1                                
+%                 tkz = tokenize(sFiles1{1},'/');
+%                 idx1 = find(strcmp(tkz{1}, ProtocolSubjects)==1);
+%                 db_reload_conditions(idx1);
+%                 db_reload_subjects(idx1);
+%                 pause
+                % Process: Average: Everything
+                bst_process('CallProcess', 'process_average', sFiles1, [], ...
+                    'avgtype',         1, ...  % Everything
+                    'avg_func',        1, ...  % Arithmetic average:  mean(x)
+                    'weighted',        0, ...
+                    'Comment', [subj{ii}, '_dics_', atag], ...
+                    'scalenormalized', 0);
+            else
+                warning(['check data:', subj{ii}])
+            end
+            %         clc,
+%             pause
+            %     end
+        end
+    end
+end
+disp('intra-subject source averaging was completed!');
+
+%%
+cd(BS_data_dir);
+dd = rdir(fullfile (BS_data_dir,'/*/@intra/results*.mat'));
+dd1 = rdir(fullfile (BS_data_dir,'/Group*/@intra/results*.mat'));
+
+d = []; d2 = [];
+for ii=1:length(dd), d{ii}=dd(ii).name; disp(dd(ii).name); end
+for ii=1:length(dd1), d2{ii}=dd1(ii).name; disp(dd1(ii).name); end
+dd3 = setdiff(d,d2);
+
+subj = []; comm_data = []; sel = []; dconn = []; kk = 1;
+sFiles_name = [];
+for ii=1:length(dd3)
+    [pp, ~] = fileparts(dd3{ii});
+    disp([num2str(ii),'/',num2str(length(dd3))])
+    cd(pp)
+    tmp = load(dd3{ii});
+    comm_data{ii} = tmp.Comment;
+    if contains(comm_data{ii}, '_dics_3')
+        sel = [sel,ii];
+        tkz = tokenize(comm_data{ii},'_');
+        subj{kk}= tkz{1}(6:end);
+        dconn{kk} = tkz{2};
+        sFiles_name{kk} = [subj{kk},'_',dconn{kk}];
+        kk=1+kk;
+    end
+    
+end
+d_sel = dd(sel);
+
+% looking for already caculated maps ..
+dd = rdir(fullfile (BS_data_dir,'/Group*/*/results*.mat'));
+subj_comp = []; comm_data = []; sel = []; dconn = []; kk = 1;
+sFiles_name_completed = [];
+for ii=1:length(dd)
+    [pp, ~] = fileparts(dd(ii).name);
+    disp([num2str(ii),'/',num2str(length(dd))])
+    cd(pp)
+    tmp = load(dd(ii).name);
+    comm_data{ii} = tmp.Comment;
+    disp(comm_data{ii})
+    if contains(comm_data{ii}, '_dics_3')
+        sel = [sel,ii];
+        tkz = tokenize(comm_data{ii},'_');
+        subj_comp{kk}= tkz{1}(13:end);
+        dconn{kk} = tkz{2};
+        sFiles_name_completed{kk} = [subj_comp{kk},'_',dconn{kk}];
+        kk=1+kk;
+    end   
+end
+if isempty(sFiles_name_completed)
+    sFiles_name_completed = 'none';
+end
+
+%% Project on default anatomy (for group mapping)
+idx = find(contains(sFiles_name,'dics')==1);
 destSurfFile = '@default_subject/tess_cortex_pial_low.mat';
 
 load(protocol);
@@ -436,225 +643,101 @@ for i=1:length(Subj)
     end
 end
 
-subj = ProtocolSubjects;
-
-datatag = {'3','2'};
-for ii = 1:length(subj)
-    cd(fullfile(BS_data_dir,subj{ii}))
-    dd = rdir(['./*',tag,'*/results*.mat']);
-    for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
-    sFiles1 = []; sFiles_name = [];
-    for jj=1:length(dd)
-        sFiles1{jj} = fullfile(subj{ii},dd(jj).name);
-        [aa,bb] = fileparts(dd(jj).name);
-        sFiles_name{jj} = aa;
-    end
-    for j=1:length(sFiles1)
-        cd(BS_data_dir)
-        tmp  = load(sFiles1{j}); disp(tmp.Comment(1))
-        dtagsel = find(contains(datatag,tmp.Comment(1))==1);
-        d = rdir(['./',fileparts(sFiles1{j}), '/data_', datatag{dtagsel}, '_average*.mat']);
-        disp(sFiles1{j})
-        if length(d) > 1
-            for jj=1:length(d)
-                tmp2 = load(d(jj).name);
-                disp([num2str(jj), ': ', tmp2.Comment])
-            end
-            del_sel = input('sel_del:');
-            delete(d(del_sel).name)
-            d = rdir(['./',fileparts(sFiles1{j}), '/data_', datatag{dtagsel}, '_average*.mat']);
-        end
-        sFiles2 = ['link|',sFiles1{j}, '|',d.name(3:end)];
-        
-        tkz = tokenize(sFiles1{j},'/');
-        d_name = [];
-        dd = rdir(fullfile(BS_data_dir, '/Group_analysis', tkz{2}, 'results_*.mat'));
-        for jj = 1:length(dd)
-            d_name{jj} = dd(jj).name;
-        end
-        tkz2 = tokenize(sFiles1{j},'_');
-        
-        if isempty(d_name)
-            run_ok =1;
-        elseif ~contains(d_name, tkz2{end}(1:end-4))
-            run_ok =1;
-        else
-            run_ok = 0;
-        end
-        
-        if run_ok ==1
-            sFiles = bst_process('CallProcess', 'process_project_sources', sFiles2, [], ...
-                'headmodeltype', 'surface');  % Cortex surface
-            %
+cd(BS_data_dir);
+sFiles = [];
+if length(idx)>1
+    for i=1:length(idx)
+        if ~contains(subj{i},no_anat) && ~contains(sFiles_name{i},sFiles_name_completed)
+            disp(i);
+            sFiles = d_sel(i).name;
+            tkz = tokenize(sFiles,'/');
+            idx1 = find(strcmp(tkz{end-2}, ProtocolSubjects)==1);
+            db_reload_conditions(idx1);
+            db_reload_subjects(idx1);
+            disp(tkz{end-2});
+            sFiles1 = fullfile(tkz{end-2}, tkz{end-1}, tkz{end});
+            bst_project_sources ({sFiles1}, destSurfFile);
         end
     end
 end
 
-%% delete extra smoothed files
-cd(BS_data_dir)
-clc
-dd = rdir(fullfile('./Group_analysis/*/results_*.mat'));
+%% Inter-subject (group) averaging
 
+filter_tag = 'dics_3';
+
+clc
+dd = rdir(fullfile (BS_data_dir,'/Group*/*/results*.mat'));
+
+k = 1; sFiles = [];
 for ii=1:length(dd)
-    disp([num2str(ii), '/', num2str(length(dd))])
-    cd(BS_data_dir)
-    [path, name] = fileparts(dd(ii).name);
-    cd(path)
-    d = rdir('./*_ssmooth*.mat');
-    
-    comment = [];
-    for j=1:length(d)
-        tmp = load(d(j).name);
-%         disp([num2str(j), ': ', tmp.Comment])
-        comment{j} = tmp.Comment(21);
-    end
-    
-    if length(d) > 2 || (length(d) == 2 && comment{1} == comment{2})
-        for j=1:length(d)
-            tmp = load(d(j).name);
-            disp([num2str(j), ': ', tmp.Comment])
-        end
-        del_sel = input('sel to delete:');
-        delete(d(del_sel).name)
+    disp(ii)
+    [a, ~] = fileparts(dd(ii).name);
+    cd(a)
+    tmp = load(dd(ii).name);
+    comm_data = tmp.Comment;
+    tkz = tokenize(comm_data,'_');
+    if contains(comm_data,'Avg:') && contains(comm_data, filter_tag)
+        disp(comm_data)
+        sFiles{k} = dd(ii).name; k=k+1;
     end
 end
 
-%% delete extra avg file
-cd(BS_data_dir)
-clc
-dd = rdir(fullfile('./Group_analysis/*/results_*.mat'));
+clear subj dconn sFiles_name
+for ii=1:length(sFiles)
+    tmp = load(sFiles{ii});
+    comm_data = tmp.Comment;
+    tkz = tokenize(comm_data,'_');
+    subj{ii}= tkz{1}(13:end);
+    dconn{ii} = tkz{2};
+    sFiles_name{ii} = [subj{ii},'_',dconn{ii}];
+end
 
+[idx,a] = unique(sFiles_name);
+idx_del = setdiff(1:length(sFiles),a);
+
+if idx_del>0
+    for i=1:length(idx_del)
+        delete(sFiles{idx_del(i)})
+        disp(sFiles{idx_del(i)})
+    end
+end
+
+%-
+clc
+dd = rdir(fullfile (BS_data_dir,'/Group*/*/results*.mat'));
+
+k = 1; sFiles = [];
+ft_progress('init', 'text',     '');
 for ii=1:length(dd)
-    disp([num2str(ii), '/', num2str(length(dd))])
-    cd(BS_data_dir)
-    [path, name] = fileparts(dd(ii).name);
-    cd(path)
+%     disp(ii)
+    ft_progress(ii/length(dd), 'Processing event %d from %d', ii, length(dd));
     
-    if ~contains(path,'@intra')
-%         pause,
-        d = rdir('./*results*.mat');
-        
-        comment = []; k=1;
-        for j=1:length(d)
-         tmp = load(d(j).name);
-            if ~contains(tmp.Comment,'ssmooth')
-                comment{k} = tmp.Comment(13); k=1+k;
-            end
-        end
-%         if tmp.Time(end) <= 0.30
-%             
-%         end
-        
-        if length(comment) > 2 
-            for j=1:length(d)
-                tmp = load(d(j).name);
-                disp([num2str(j), ': ', tmp.Comment])
-            end
-            del_sel = input('sel to delete:');
-            delete(d(del_sel).name)
-        end
+    [a, ~] = fileparts(dd(ii).name);
+    cd(a)
+    tmp = load(dd(ii).name);
+    comm_data = tmp.Comment;
+    tkz = tokenize(comm_data,'_');
+    if contains(comm_data,'Avg:') && contains(comm_data, filter_tag)
+        disp(comm_data)
+        sFiles{k} = dd(ii).name; k=k+1;
     end
 end
+ft_progress('close')
 
-%% delete short epochs
-cd(BS_data_dir)
-clc
-dd = rdir(fullfile('./EC*/*/results_*.mat'));
 
-for ii=1:length(dd)
-    
-    cd(BS_data_dir)
-    [path, name] = fileparts(dd(ii).name);
-    cd(path)
-    
-    if ~contains(path,'@intra')
-        d = rdir('./*_average*.mat');
-        comment = []; tt=[];
-        for j=1:length(d)
-            tmp = load(d(j).name);
-            tt(j) = tmp.Time(end);
-            if round(tt(j)) ~= 2
-                rmv = 1; break,
-            else
-                rmv = 0;
-            end
-        end
-        
-        if rmv ==1
-            disp(path)
-%             pause
-%             rmdir(fullfile(BS_data_dir, path),'s')
-        end
-    end
-end
+% Process: Average: Everything
+bst_process('CallProcess', 'process_average', sFiles, [], ...
+    'avgtype',         1, ...  % Everything
+    'avg_func',        1, ...  % Arithmetic average:  mean(x)
+    'weighted',        0, ...
+    'scalenormalized', 0);
 
-%% Apply smoothing, for group source analysis
-cd(BS_data_dir)
-clc
-dd = rdir(fullfile('./Group_analysis/*/results_*.mat'));
-
-comment = [];
-for j=1:length(dd)
-    disp([num2str(j),'/',num2str(length(dd))])
-    tmp = load(dd(j).name);
-    comment{j} = tmp.Comment;
-end
 
 %%
-comm_data = [];
-for ii=1:length(dd) 
-    cd(BS_data_dir)
-    disp([num2str(ii), '/', num2str(length(dd))])
-    [a, ~] = fileparts(dd(ii).name);
-    tmp = load(dd(ii).name);
-    comm_data_sel = tmp.Comment;
-    if contains(comm_data_sel,datatag) && ~contains(comm_data_sel,'ssmooth') ...
-            && ~contains(comm_data_sel,'matlab') && ...
-            ~contains(comm_data_sel,' - ') && ...
-            ~contains(comm_data_sel,'mean_')
-        disp(ii)
-        disp(comm_data_sel);
-        tkz = tokenize(dd(ii).name,'/');
-        sFiles = dd(ii).name(3:end);
-        
-        [path, name] = fileparts(dd(ii).name);
-        ddd = rdir([path, '/results_PNAI*.mat']);
-        comment1 = [];
-        for j=1:length(ddd)
-            tmp = load(ddd(j).name);
-            comment1{j} = tmp.Comment;
-        end
-        if ~isempty(comment1)
-            if isempty(find(contains(comment1, ['ssmooth', '_', comm_data_sel])==1, 1))
-                %             disp(comm_data_sel)
-                %             [path, name] = fileparts(dd(ii).name);
-                %             cd(path)
-                %             d = rdir('./*_ssmooth*.mat');
-                %             label = [];
-                %             if length(d) > 1
-                %                 for j=1:length(d)
-                %                     tmp = load(d(j).name);
-                %                     disp([num2str(j), ': ', tmp.Comment])
-                %                     label{j} = tmp.Comment(21);
-                %                 end
-                %                 if label{1} == label{2}
-                %                     del_sel = input('sel to delete:');
-                %                     delete(d(del_sel).name)
-                %                 end
-                %             end
-                %             pause,
-                bst_process('CallProcess', 'process_ssmooth_surfstat', sFiles, [], ...
-                    'fwhm',       3, ...
-                    'overwrite',  0, ...
-                    'Comment', ['ssmooth', '_', comm_data_sel], ...
-                    'source_abs', 1);
-            end
-        end
-    end
-end
 
-%% Intra-subject averaging
-% db_reload_database('current',1)
+% %% Project to default template
+% destSurfFile = '@default_subject/tess_cortex_pial_low.mat';
+% 
 % load(protocol);
 % Subj = ProtocolSubjects.Subject;
 % ProtocolSubjects = []; k=1;
@@ -663,305 +746,532 @@ end
 %         ProtocolSubjects{k} =  Subj(i).Name; k=1+k;
 %     end
 % end
-
-clc
-close all,
-subj_del = [];
-
-cd(BS_data_dir)
-dd = rdir(fullfile('./Group_analysis/*/results_*.mat'));
-for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
-
-sFiles_name = [];
-for jj=1:length(dd)
-    sFiles_name{jj} = fullfile(dd(jj).name(3:end));
-end
-
-Comment = [];
-for jj=1:length(sFiles_name)
-    cd(BS_data_dir)
-    tmp  = load(sFiles_name{jj});
-    Comment{jj} = tmp.Comment;
-end
-
-idx_31 = find(contains(Comment, '3_')==1); idx_32 = find(contains(Comment, '3 (')==1);
-idx_21 = find(contains(Comment, '2_')==1); idx_22 = find(contains(Comment, '2 (')==1);
-
-idx3 = [idx_31, idx_32];
-idx2 = [idx_21, idx_22];
-
-idx_ssmoth = find(contains(Comment, 'ssmooth')==1);
-idx_3_smooth = intersect(idx3,idx_ssmoth);
-idx_2_smooth = intersect(idx2,idx_ssmoth);
-
-% Process: Average: Everything
-bst_process('CallProcess', 'process_average', sFiles_name(idx_3_smooth), [], ...
-    'avgtype',         1, ...  % Everything
-    'avg_func',        1, ...  % Arithmetic average:  mean(x)
-    'weighted',        0, ...
-    'Comment', 'mean_3', ...
-    'scalenormalized', 0);
-
-% Process: Average: Everything
-bst_process('CallProcess', 'process_average', sFiles_name(idx_2_smooth), [], ...
-    'avgtype',         1, ...  % Everything
-    'avg_func',        1, ...  % Arithmetic average:  mean(x)
-    'weighted',        0, ...
-    'Comment', 'mean_2', ...
-    'scalenormalized', 0);
-
-%% Subject avg
-L = length(sFiles_3); k = 1;
-clear subjs_3
-for i=1:length(sFiles_3)
-%     disp([num2str(i), '/' , num2str(length(sFiles_3))])
-    tmp = load(sFiles_3{i});
-    subjs_3{k} = (tmp.Comment(9:14));
-    disp([subjs_3{k}, ': ', num2str(i), '/' , num2str(length(sFiles_3))])
-    k=1+k;
-end
-unq_bs_subj_3 = unique(subjs_3);
-
-L = length(sFiles_2); k = 1;
-clear subjs_2
-for i=1:length(sFiles_2)
-%     disp([num2str(i), '/' , num2str(length(sFiles_3))])
-    tmp = load(sFiles_2{i});
-    subjs_2{k} = (tmp.Comment(9:14));
-    disp([subjs_2{k}, ': ', num2str(i), '/' , num2str(length(sFiles_2))])
-    k=1+k;
-end
-unq_bs_subj_2 = unique(subjs_2);
-
-
-%%
-s_in = sFiles_name(idx_3_smooth);
-for j=1:length(unq_bs_subj_3)
-    disp([num2str(j), '/', num2str(length(unq_bs_subj_3))])
-    idx = contains(subjs_3, unq_bs_subj_3{j})==1;
-    bst_process('CallProcess', 'process_average', s_in(idx), [], ...
-        'avgtype',         1, ...  % Everything
-        'avg_func',        1, ...  % Arithmetic average:  mean(x)
-        'weighted',        0, ...
-        'Comment', ['Anim_', unq_bs_subj_3{j}], ...
-        'scalenormalized', 0);
-end
-
-s_in = sFiles_name(idx_2_smooth);
-for j=1:length(unq_bs_subj_2)
-    disp([num2str(j), '/', num2str(length(unq_bs_subj_2))])
-    idx = contains(subjs_2, unq_bs_subj_2{j})==1;
-    bst_process('CallProcess', 'process_average', s_in(idx), [], ...
-        'avgtype',         1, ...  % Everything
-        'avg_func',        1, ...  % Arithmetic average:  mean(x)
-        'weighted',        0, ...
-        'Comment', ['Symbol_', unq_bs_subj_2{j}], ...
-        'scalenormalized', 0);
-end
-
-%%
-d_in = sFiles_name(idx_3_smooth);
-for i=1:length(d_in)
-   sub_3{i} = d_in{i}(16:21); 
-end
-usub_3 = unique(sub_3)';
-
-A = sub_all1';
-B = usub_3;
-setdiff(lower(A), lower(B))
-
-for i=1:length(sub_3)
-    if length(find(contains(sub_3, sub_3(i))))~=2
-        disp(sub_3(i))
-    end
-end
-
-%%
-sFiles = bst_process('CallProcess', 'process_test_parametric1',  sFiles_name(idx_3_smooth), [], ...
-    'timewindow',    [-0.3, 2], ...
-    'scoutsel',      {}, ...
-    'scoutfunc',     1, ...  % Mean
-    'isnorm',        0, ...
-    'avgtime',       0, ...
-    'Comment',       'stat_3', ...
-    'test_type',     'ttest_onesample', ...  % One-sample Student's t-test    X~N(m,s)t = mean(X) ./ std(X) .* sqrt(n)      df=n-1
-    'tail',          'one+');  % One-tailed (+)
-
-sFiles = bst_process('CallProcess', 'process_test_parametric1',  sFiles_name(idx_2_smooth), [], ...
-    'timewindow',    [-0.3, 2], ...
-    'scoutsel',      {}, ...
-    'scoutfunc',     1, ...  % Mean
-    'isnorm',        0, ...
-    'avgtime',       0, ...
-    'Comment',       'stat_2', ...
-    'test_type',     'ttest_onesample', ...  % One-sample Student's t-test    X~N(m,s)t = mean(X) ./ std(X) .* sqrt(n)      df=n-1
-    'tail',          'one+');  % One-tailed (+)
-
-%% BS, Paired t-test
-idx = find(contains(sFiles_A, 'ec1127')==1);
-
-sFiles_A = sFiles_name(idx_3_smooth); sFiles_A(idx) = [];
-sFiles_B = sFiles_name(idx_2_smooth);
-
-% Process: Perm t-test paired [-0.300s,2.000s]          H0:(A=B), H1:(A<>B)
-sFiles = bst_process('CallProcess', 'process_test_permutation2p', sFiles_A, sFiles_B, ...
-    'timewindow',     [-0.3, 2], ...
-    'scoutsel',       {}, ...
-    'scoutfunc',      1, ...  % Mean
-    'isnorm',         0, ...
-    'avgtime',        0, ...
-    'iszerobad',      1, ...
-    'Comment',        '', ...
-    'test_type',      'ttest_paired', ...  % Paired Student's t-test T = mean(A-B) / std(A-B) * sqrt(n)
-    'randomizations', 1000, ...
-    'tail',           'two');  % Two-tailed
-
-% Process: Perm t-test paired [-1000ms,2000ms]          H0:(A=B), H1:(A<>B)
+% 
+% subj = ProtocolSubjects;
+% 
+% datatag = {'3','2'};
+% for ii = 1:length(subj)
+%     cd(fullfile(BS_data_dir,subj{ii}))
+%     dd = rdir(['./*',tag,'*/results*.mat']);
+%     for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
+%     sFiles1 = []; sFiles_name = [];
+%     for jj=1:length(dd)
+%         sFiles1{jj} = fullfile(subj{ii},dd(jj).name);
+%         [aa,bb] = fileparts(dd(jj).name);
+%         sFiles_name{jj} = aa;
+%     end
+%     for j=1:length(sFiles1)
+%         cd(BS_data_dir)
+%         tmp  = load(sFiles1{j}); disp(tmp.Comment(1))
+%         dtagsel = find(contains(datatag,tmp.Comment(1))==1);
+%         d = rdir(['./',fileparts(sFiles1{j}), '/data_', datatag{dtagsel}, '_average*.mat']);
+%         disp(sFiles1{j})
+%         if length(d) > 1
+%             for jj=1:length(d)
+%                 tmp2 = load(d(jj).name);
+%                 disp([num2str(jj), ': ', tmp2.Comment])
+%             end
+%             del_sel = input('sel_del:');
+%             delete(d(del_sel).name)
+%             d = rdir(['./',fileparts(sFiles1{j}), '/data_', datatag{dtagsel}, '_average*.mat']);
+%         end
+%         sFiles2 = ['link|',sFiles1{j}, '|',d.name(3:end)];
+%         
+%         tkz = tokenize(sFiles1{j},'/');
+%         d_name = [];
+%         dd = rdir(fullfile(BS_data_dir, '/Group_analysis', tkz{2}, 'results_*.mat'));
+%         for jj = 1:length(dd)
+%             d_name{jj} = dd(jj).name;
+%         end
+%         tkz2 = tokenize(sFiles1{j},'_');
+%         
+%         if isempty(d_name)
+%             run_ok =1;
+%         elseif ~contains(d_name, tkz2{end}(1:end-4))
+%             run_ok =1;
+%         else
+%             run_ok = 0;
+%         end
+%         
+%         if run_ok ==1
+%             sFiles = bst_process('CallProcess', 'process_project_sources', sFiles2, [], ...
+%                 'headmodeltype', 'surface');  % Cortex surface
+%             %
+%         end
+%     end
+% end
+% 
+% %% delete extra smoothed files
+% cd(BS_data_dir)
+% clc
+% dd = rdir(fullfile('./Group_analysis/*/results_*.mat'));
+% 
+% for ii=1:length(dd)
+%     disp([num2str(ii), '/', num2str(length(dd))])
+%     cd(BS_data_dir)
+%     [path, name] = fileparts(dd(ii).name);
+%     cd(path)
+%     d = rdir('./*_ssmooth*.mat');
+%     
+%     comment = [];
+%     for j=1:length(d)
+%         tmp = load(d(j).name);
+% %         disp([num2str(j), ': ', tmp.Comment])
+%         comment{j} = tmp.Comment(21);
+%     end
+%     
+%     if length(d) > 2 || (length(d) == 2 && comment{1} == comment{2})
+%         for j=1:length(d)
+%             tmp = load(d(j).name);
+%             disp([num2str(j), ': ', tmp.Comment])
+%         end
+%         del_sel = input('sel to delete:');
+%         delete(d(del_sel).name)
+%     end
+% end
+% 
+% %% delete extra avg file
+% cd(BS_data_dir)
+% clc
+% dd = rdir(fullfile('./Group_analysis/*/results_*.mat'));
+% 
+% for ii=1:length(dd)
+%     disp([num2str(ii), '/', num2str(length(dd))])
+%     cd(BS_data_dir)
+%     [path, name] = fileparts(dd(ii).name);
+%     cd(path)
+%     
+%     if ~contains(path,'@intra')
+% %         pause,
+%         d = rdir('./*results*.mat');
+%         
+%         comment = []; k=1;
+%         for j=1:length(d)
+%          tmp = load(d(j).name);
+%             if ~contains(tmp.Comment,'ssmooth')
+%                 comment{k} = tmp.Comment(13); k=1+k;
+%             end
+%         end
+% %         if tmp.Time(end) <= 0.30
+% %             
+% %         end
+%         
+%         if length(comment) > 2 
+%             for j=1:length(d)
+%                 tmp = load(d(j).name);
+%                 disp([num2str(j), ': ', tmp.Comment])
+%             end
+%             del_sel = input('sel to delete:');
+%             delete(d(del_sel).name)
+%         end
+%     end
+% end
+% 
+% %% delete short epochs
+% cd(BS_data_dir)
+% clc
+% dd = rdir(fullfile('./EC*/*/results_*.mat'));
+% 
+% for ii=1:length(dd)
+%     
+%     cd(BS_data_dir)
+%     [path, name] = fileparts(dd(ii).name);
+%     cd(path)
+%     
+%     if ~contains(path,'@intra')
+%         d = rdir('./*_average*.mat');
+%         comment = []; tt=[];
+%         for j=1:length(d)
+%             tmp = load(d(j).name);
+%             tt(j) = tmp.Time(end);
+%             if round(tt(j)) ~= 2
+%                 rmv = 1; break,
+%             else
+%                 rmv = 0;
+%             end
+%         end
+%         
+%         if rmv ==1
+%             disp(path)
+% %             pause
+% %             rmdir(fullfile(BS_data_dir, path),'s')
+%         end
+%     end
+% end
+% 
+% %% Apply smoothing, for group source analysis
+% cd(BS_data_dir)
+% clc
+% dd = rdir(fullfile('./Group_analysis/*/results_*.mat'));
+% 
+% comment = [];
+% for j=1:length(dd)
+%     disp([num2str(j),'/',num2str(length(dd))])
+%     tmp = load(dd(j).name);
+%     comment{j} = tmp.Comment;
+% end
+% 
+% %%
+% comm_data = [];
+% for ii=1:length(dd) 
+%     cd(BS_data_dir)
+%     disp([num2str(ii), '/', num2str(length(dd))])
+%     [a, ~] = fileparts(dd(ii).name);
+%     tmp = load(dd(ii).name);
+%     comm_data_sel = tmp.Comment;
+%     if contains(comm_data_sel,datatag) && ~contains(comm_data_sel,'ssmooth') ...
+%             && ~contains(comm_data_sel,'matlab') && ...
+%             ~contains(comm_data_sel,' - ') && ...
+%             ~contains(comm_data_sel,'mean_')
+%         disp(ii)
+%         disp(comm_data_sel);
+%         tkz = tokenize(dd(ii).name,'/');
+%         sFiles = dd(ii).name(3:end);
+%         
+%         [path, name] = fileparts(dd(ii).name);
+%         ddd = rdir([path, '/results_PNAI*.mat']);
+%         comment1 = [];
+%         for j=1:length(ddd)
+%             tmp = load(ddd(j).name);
+%             comment1{j} = tmp.Comment;
+%         end
+%         if ~isempty(comment1)
+%             if isempty(find(contains(comment1, ['ssmooth', '_', comm_data_sel])==1, 1))
+%                 %             disp(comm_data_sel)
+%                 %             [path, name] = fileparts(dd(ii).name);
+%                 %             cd(path)
+%                 %             d = rdir('./*_ssmooth*.mat');
+%                 %             label = [];
+%                 %             if length(d) > 1
+%                 %                 for j=1:length(d)
+%                 %                     tmp = load(d(j).name);
+%                 %                     disp([num2str(j), ': ', tmp.Comment])
+%                 %                     label{j} = tmp.Comment(21);
+%                 %                 end
+%                 %                 if label{1} == label{2}
+%                 %                     del_sel = input('sel to delete:');
+%                 %                     delete(d(del_sel).name)
+%                 %                 end
+%                 %             end
+%                 %             pause,
+%                 bst_process('CallProcess', 'process_ssmooth_surfstat', sFiles, [], ...
+%                     'fwhm',       3, ...
+%                     'overwrite',  0, ...
+%                     'Comment', ['ssmooth', '_', comm_data_sel], ...
+%                     'source_abs', 1);
+%             end
+%         end
+%     end
+% end
+% 
+% %% Intra-subject averaging
+% % db_reload_database('current',1)
+% % load(protocol);
+% % Subj = ProtocolSubjects.Subject;
+% % ProtocolSubjects = []; k=1;
+% % for i=1:length(Subj)
+% %     if contains(Subj(i).Name, 'EC')
+% %         ProtocolSubjects{k} =  Subj(i).Name; k=1+k;
+% %     end
+% % end
+% 
+% clc
+% close all,
+% subj_del = [];
+% 
+% cd(BS_data_dir)
+% dd = rdir(fullfile('./Group_analysis/*/results_*.mat'));
+% for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
+% 
+% sFiles_name = [];
+% for jj=1:length(dd)
+%     sFiles_name{jj} = fullfile(dd(jj).name(3:end));
+% end
+% 
+% Comment = [];
+% for jj=1:length(sFiles_name)
+%     cd(BS_data_dir)
+%     tmp  = load(sFiles_name{jj});
+%     Comment{jj} = tmp.Comment;
+% end
+% 
+% idx_31 = find(contains(Comment, '3_')==1); idx_32 = find(contains(Comment, '3 (')==1);
+% idx_21 = find(contains(Comment, '2_')==1); idx_22 = find(contains(Comment, '2 (')==1);
+% 
+% idx3 = [idx_31, idx_32];
+% idx2 = [idx_21, idx_22];
+% 
+% idx_ssmoth = find(contains(Comment, 'ssmooth')==1);
+% idx_3_smooth = intersect(idx3,idx_ssmoth);
+% idx_2_smooth = intersect(idx2,idx_ssmoth);
+% 
+% % Process: Average: Everything
+% bst_process('CallProcess', 'process_average', sFiles_name(idx_3_smooth), [], ...
+%     'avgtype',         1, ...  % Everything
+%     'avg_func',        1, ...  % Arithmetic average:  mean(x)
+%     'weighted',        0, ...
+%     'Comment', 'mean_3', ...
+%     'scalenormalized', 0);
+% 
+% % Process: Average: Everything
+% bst_process('CallProcess', 'process_average', sFiles_name(idx_2_smooth), [], ...
+%     'avgtype',         1, ...  % Everything
+%     'avg_func',        1, ...  % Arithmetic average:  mean(x)
+%     'weighted',        0, ...
+%     'Comment', 'mean_2', ...
+%     'scalenormalized', 0);
+% 
+% %% Subject avg
+% L = length(sFiles_3); k = 1;
+% clear subjs_3
+% for i=1:length(sFiles_3)
+% %     disp([num2str(i), '/' , num2str(length(sFiles_3))])
+%     tmp = load(sFiles_3{i});
+%     subjs_3{k} = (tmp.Comment(9:14));
+%     disp([subjs_3{k}, ': ', num2str(i), '/' , num2str(length(sFiles_3))])
+%     k=1+k;
+% end
+% unq_bs_subj_3 = unique(subjs_3);
+% 
+% L = length(sFiles_2); k = 1;
+% clear subjs_2
+% for i=1:length(sFiles_2)
+% %     disp([num2str(i), '/' , num2str(length(sFiles_3))])
+%     tmp = load(sFiles_2{i});
+%     subjs_2{k} = (tmp.Comment(9:14));
+%     disp([subjs_2{k}, ': ', num2str(i), '/' , num2str(length(sFiles_2))])
+%     k=1+k;
+% end
+% unq_bs_subj_2 = unique(subjs_2);
+% 
+% %%
+% s_in = sFiles_name(idx_3_smooth);
+% for j=1:length(unq_bs_subj_3)
+%     disp([num2str(j), '/', num2str(length(unq_bs_subj_3))])
+%     idx = contains(subjs_3, unq_bs_subj_3{j})==1;
+%     bst_process('CallProcess', 'process_average', s_in(idx), [], ...
+%         'avgtype',         1, ...  % Everything
+%         'avg_func',        1, ...  % Arithmetic average:  mean(x)
+%         'weighted',        0, ...
+%         'Comment', ['Anim_', unq_bs_subj_3{j}], ...
+%         'scalenormalized', 0);
+% end
+% 
+% s_in = sFiles_name(idx_2_smooth);
+% for j=1:length(unq_bs_subj_2)
+%     disp([num2str(j), '/', num2str(length(unq_bs_subj_2))])
+%     idx = contains(subjs_2, unq_bs_subj_2{j})==1;
+%     bst_process('CallProcess', 'process_average', s_in(idx), [], ...
+%         'avgtype',         1, ...  % Everything
+%         'avg_func',        1, ...  % Arithmetic average:  mean(x)
+%         'weighted',        0, ...
+%         'Comment', ['Symbol_', unq_bs_subj_2{j}], ...
+%         'scalenormalized', 0);
+% end
+% 
+% %%
+% d_in = sFiles_name(idx_3_smooth);
+% for i=1:length(d_in)
+%    sub_3{i} = d_in{i}(16:21); 
+% end
+% usub_3 = unique(sub_3)';
+% 
+% A = sub_all1';
+% B = usub_3;
+% setdiff(lower(A), lower(B))
+% 
+% for i=1:length(sub_3)
+%     if length(find(contains(sub_3, sub_3(i))))~=2
+%         disp(sub_3(i))
+%     end
+% end
+% 
+% %%
+% sFiles = bst_process('CallProcess', 'process_test_parametric1',  sFiles_name(idx_3_smooth), [], ...
+%     'timewindow',    [-0.3, 2], ...
+%     'scoutsel',      {}, ...
+%     'scoutfunc',     1, ...  % Mean
+%     'isnorm',        0, ...
+%     'avgtime',       0, ...
+%     'Comment',       'stat_3', ...
+%     'test_type',     'ttest_onesample', ...  % One-sample Student's t-test    X~N(m,s)t = mean(X) ./ std(X) .* sqrt(n)      df=n-1
+%     'tail',          'one+');  % One-tailed (+)
+% 
+% sFiles = bst_process('CallProcess', 'process_test_parametric1',  sFiles_name(idx_2_smooth), [], ...
+%     'timewindow',    [-0.3, 2], ...
+%     'scoutsel',      {}, ...
+%     'scoutfunc',     1, ...  % Mean
+%     'isnorm',        0, ...
+%     'avgtime',       0, ...
+%     'Comment',       'stat_2', ...
+%     'test_type',     'ttest_onesample', ...  % One-sample Student's t-test    X~N(m,s)t = mean(X) ./ std(X) .* sqrt(n)      df=n-1
+%     'tail',          'one+');  % One-tailed (+)
+% 
+% %% BS, Paired t-test
+% idx = find(contains(sFiles_A, 'ec1127')==1);
+% 
+% sFiles_A = sFiles_name(idx_3_smooth); sFiles_A(idx) = [];
+% sFiles_B = sFiles_name(idx_2_smooth);
+% 
+% % Process: Perm t-test paired [-0.300s,2.000s]          H0:(A=B), H1:(A<>B)
 % sFiles = bst_process('CallProcess', 'process_test_permutation2p', sFiles_A, sFiles_B, ...
+%     'timewindow',     [-0.3, 2], ...
 %     'scoutsel',       {}, ...
 %     'scoutfunc',      1, ...  % Mean
 %     'isnorm',         0, ...
 %     'avgtime',        0, ...
 %     'iszerobad',      1, ...
+%     'Comment',        '', ...
 %     'test_type',      'ttest_paired', ...  % Paired Student's t-test T = mean(A-B) / std(A-B) * sqrt(n)
-%     'randomizations', 100, ...
+%     'randomizations', 1000, ...
 %     'tail',           'two');  % Two-tailed
-
-%     'timewindow',     toi, ...
-
-%     'Comment',        ['Perm t-test paired', ' [', num2str(toi(1)),',', num2str(toi(2)),']ms: ', stag1, '-', stag2], ...
-
-%% FT, Paired t-test
-bst_process('CallProcess', 'process_ft_sourcestatistics_VY', sFiles_A, sFiles_B, ...
-    'timewindow',     [1, 1], ...
-    'scoutsel',       {}, ...
-    'scoutfunc',      1, ...  % Mean
-    'isabs',          0, ...
-    'avgtime',        0, ...
-    'randomizations', 1000, ...
-    'statistictype',  2, ...  % Paired t-test
-    'tail',           'two', ...  % One-tailed (+)
-    'correctiontype', 5, ...  % max
-    'minnbchan',      0, ...
-    'clusteralpha',   0.05);
-
-%     'timewindow', toi, ...
-%     'Comment', ['FT ttest, ', ' [', num2str(toi(1)),',', num2str(toi(2)),']ms: ', stag1, '-', stag2], ...
-
-%% Source modelling, DICS-BF
-% addpath('/data/MEG/Vahab/Github/MCW_MEGlab/Projects/ECP/SM/Surface_based/progression_analysis/function');
-
-% disp('1: 1st');
-% disp('2: 2nd');
-% disp('3: 3rd');
-% disp('4: 4th');
-% disp('5: 5th');
-% anal_sel = input(':');
-%
-% func = 'process_ft_sourceanalysis_DICS_BF_5intervals';
-%
-% datalog = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/datalog';
-%
-% switch anal_sel
-%     case 1
-%         datatag = '1st'; t_sel = 1;
-%     case 2
-%         datatag = '2nd'; t_sel = 2;
-%     case 3
-%         datatag = '3rd'; t_sel = 3;
-%     case 4
-%         datatag = '4th'; t_sel = 4;
-%     case 5
-%         datatag = '5th'; t_sel = 5;
-% end
-%
-%
-% for ii = 1:length(BS_chan.datafile)
-%     [a, ~] = fileparts(BS_chan.datafile{ii});[c,d] = fileparts(a); [e,f] = fileparts(c);
-%     tkz = tokenize(d,'_');
-%     ee = [tkz{1},'_',tkz{2},'_',tkz{3}];
-%     cd(a);
-%     dd1 = rdir('./results_dics*.mat');
-%
-%     %     if any(strcmp(HCs,tkz{2}))
-%     disp('======')
-%     disp(ee)
-%     %         pause,
-%     run = [];
-%     if ~isempty(dd1)
-%         for jj=1:length(dd1)
-%             tmp = load(dd1(jj).name);
-%             disp(tmp.Comment);
-%             run(jj) = contains(tmp.Comment, datatag);
-%         end
-%     end
-%     runval  = isempty(find(run==1, 1));
-%
-%     %         if runval && ~exist(fullfile(datalog, [ee,'_', num2str(t_sel),'.mat']),'file')
-%     disp(ii)
-%     db_reload_studies(ii, 1);
-%     %             dd = rdir('./*_IC*.mat');
-%     dd = rdir('./data*.mat');
-%
-%     sFiles1 = [];
-%     clear d_tag
-%     for jj=1:length(dd)
-%         sFiles1{jj} = fullfile(f,d,dd(jj).name);
-%         tkz = tokenize(dd(jj).name, '_');
-%         d_tag(jj) = str2num(tkz{2});
-%     end
-%
-%     sFiles_2 = sFiles1(d_tag == 2); sFiles_3 = sFiles1(d_tag == 3);
-%
-%
-%     w1 = 0.4; l = 1; ov = l.*1; j=1; wi=[];
-%     %         w1 = 0.4; l = 0.8; ov = l.*0.2; j=1; wi=[];
-%     while w1+l < 2
-%         wi(j,:) = [w1, w1+l]; j=j+1; w1 = w1 + ov;
-%     end
-%
-%     for jj = 1:length(wi)
-%
-%         sFiles = bst_process('CallProcess', 'process_ft_sourceanalysis_dics', sFiles_2, [], ...
-%             'sensortype', 'MEG', ...  % MEG
-%             'poststim',   wi(jj,:), ...
-%             'baseline',   [-0.3, -0.0005], ...
-%             'foi',        20, ...
-%             'tpr',        4, ...
-%             'method',     'subtraction', ...  % Subtraction (post-pre)
-%             'erds',       'erd', ...  % ERD
-%             'effect',     'abs', ...  % abs
-%             'Comment', [ee,'_2_', num2str(t_sel),'.mat'], ...
-%             'maxfreq',    40, ...
-%             'showtfr',    1);
-%
-%
-%         sFiles = bst_process('CallProcess', 'process_ft_sourceanalysis_dics', sFiles_3, [], ...
-%             'sensortype', 'MEG', ...  % MEG
-%             'poststim',   wi(jj,:), ...
-%             'baseline',   [-0.3, -0.0005], ...
-%             'foi',        20, ...
-%             'tpr',        4, ...
-%             'method',     'subtraction', ...  % Subtraction (post-pre)
-%             'erds',       'erd', ...  % ERD
-%             'effect',     'abs', ...  % abs
-%             'Comment', [ee,'_3_', num2str(t_sel),'.mat'], ...
-%             'maxfreq',    40, ...
-%             'showtfr',    1);
-%
-%     end
-%
-%     %                         pause,
-%     save(fullfile(datalog, [ee,'_Sybl_', num2str(t_sel),'.mat']),'t_sel'); % prevent conflict with other running scripts
-%     bst_process('CallProcess', func, sFiles_2, [], ...
-%         'method',     'dics', ...  % DICS beamformer
-%         'sensortype', 'MEG', ...
-%         't_sel', t_sel, 'progressbar', 0);  % MEG
-%     disp('done');
-%     delete(fullfile(datalog, [ee,'_', num2str(t_sel),'.mat'])); % delete tmp file
-%     clc,
-%     %         end
-%     %     end
-% end
-%
-% subj_all1 = unique(subj_all);
+% 
+% % Process: Perm t-test paired [-1000ms,2000ms]          H0:(A=B), H1:(A<>B)
+% % sFiles = bst_process('CallProcess', 'process_test_permutation2p', sFiles_A, sFiles_B, ...
+% %     'scoutsel',       {}, ...
+% %     'scoutfunc',      1, ...  % Mean
+% %     'isnorm',         0, ...
+% %     'avgtime',        0, ...
+% %     'iszerobad',      1, ...
+% %     'test_type',      'ttest_paired', ...  % Paired Student's t-test T = mean(A-B) / std(A-B) * sqrt(n)
+% %     'randomizations', 100, ...
+% %     'tail',           'two');  % Two-tailed
+% 
+% %     'timewindow',     toi, ...
+% 
+% %     'Comment',        ['Perm t-test paired', ' [', num2str(toi(1)),',', num2str(toi(2)),']ms: ', stag1, '-', stag2], ...
+% 
+% %% FT, Paired t-test
+% bst_process('CallProcess', 'process_ft_sourcestatistics_VY', sFiles_A, sFiles_B, ...
+%     'timewindow',     [1, 1], ...
+%     'scoutsel',       {}, ...
+%     'scoutfunc',      1, ...  % Mean
+%     'isabs',          0, ...
+%     'avgtime',        0, ...
+%     'randomizations', 1000, ...
+%     'statistictype',  2, ...  % Paired t-test
+%     'tail',           'two', ...  % One-tailed (+)
+%     'correctiontype', 5, ...  % max
+%     'minnbchan',      0, ...
+%     'clusteralpha',   0.05);
+% 
+% %     'timewindow', toi, ...
+% %     'Comment', ['FT ttest, ', ' [', num2str(toi(1)),',', num2str(toi(2)),']ms: ', stag1, '-', stag2], ...
+% 
+% %% Source modelling, DICS-BF
+% % addpath('/data/MEG/Vahab/Github/MCW_MEGlab/Projects/ECP/SM/Surface_based/progression_analysis/function');
+% 
+% % disp('1: 1st');
+% % disp('2: 2nd');
+% % disp('3: 3rd');
+% % disp('4: 4th');
+% % disp('5: 5th');
+% % anal_sel = input(':');
+% %
+% % func = 'process_ft_sourceanalysis_DICS_BF_5intervals';
+% %
+% % datalog = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/datalog';
+% %
+% % switch anal_sel
+% %     case 1
+% %         datatag = '1st'; t_sel = 1;
+% %     case 2
+% %         datatag = '2nd'; t_sel = 2;
+% %     case 3
+% %         datatag = '3rd'; t_sel = 3;
+% %     case 4
+% %         datatag = '4th'; t_sel = 4;
+% %     case 5
+% %         datatag = '5th'; t_sel = 5;
+% % end
+% %
+% %
+% % for ii = 1:length(BS_chan.datafile)
+% %     [a, ~] = fileparts(BS_chan.datafile{ii});[c,d] = fileparts(a); [e,f] = fileparts(c);
+% %     tkz = tokenize(d,'_');
+% %     ee = [tkz{1},'_',tkz{2},'_',tkz{3}];
+% %     cd(a);
+% %     dd1 = rdir('./results_dics*.mat');
+% %
+% %     %     if any(strcmp(HCs,tkz{2}))
+% %     disp('======')
+% %     disp(ee)
+% %     %         pause,
+% %     run = [];
+% %     if ~isempty(dd1)
+% %         for jj=1:length(dd1)
+% %             tmp = load(dd1(jj).name);
+% %             disp(tmp.Comment);
+% %             run(jj) = contains(tmp.Comment, datatag);
+% %         end
+% %     end
+% %     runval  = isempty(find(run==1, 1));
+% %
+% %     %         if runval && ~exist(fullfile(datalog, [ee,'_', num2str(t_sel),'.mat']),'file')
+% %     disp(ii)
+% %     db_reload_studies(ii, 1);
+% %     %             dd = rdir('./*_IC*.mat');
+% %     dd = rdir('./data*.mat');
+% %
+% %     sFiles1 = [];
+% %     clear d_tag
+% %     for jj=1:length(dd)
+% %         sFiles1{jj} = fullfile(f,d,dd(jj).name);
+% %         tkz = tokenize(dd(jj).name, '_');
+% %         d_tag(jj) = str2num(tkz{2});
+% %     end
+% %
+% %     sFiles_2 = sFiles1(d_tag == 2); sFiles_3 = sFiles1(d_tag == 3);
+% %
+% %
+% %     w1 = 0.4; l = 1; ov = l.*1; j=1; wi=[];
+% %     %         w1 = 0.4; l = 0.8; ov = l.*0.2; j=1; wi=[];
+% %     while w1+l < 2
+% %         wi(j,:) = [w1, w1+l]; j=j+1; w1 = w1 + ov;
+% %     end
+% %
+% %     for jj = 1:length(wi)
+% %
+% %         sFiles = bst_process('CallProcess', 'process_ft_sourceanalysis_dics', sFiles_2, [], ...
+% %             'sensortype', 'MEG', ...  % MEG
+% %             'poststim',   wi(jj,:), ...
+% %             'baseline',   [-0.3, -0.0005], ...
+% %             'foi',        20, ...
+% %             'tpr',        4, ...
+% %             'method',     'subtraction', ...  % Subtraction (post-pre)
+% %             'erds',       'erd', ...  % ERD
+% %             'effect',     'abs', ...  % abs
+% %             'Comment', [ee,'_2_', num2str(t_sel),'.mat'], ...
+% %             'maxfreq',    40, ...
+% %             'showtfr',    1);
+% %
+% %
+% %         sFiles = bst_process('CallProcess', 'process_ft_sourceanalysis_dics', sFiles_3, [], ...
+% %             'sensortype', 'MEG', ...  % MEG
+% %             'poststim',   wi(jj,:), ...
+% %             'baseline',   [-0.3, -0.0005], ...
+% %             'foi',        20, ...
+% %             'tpr',        4, ...
+% %             'method',     'subtraction', ...  % Subtraction (post-pre)
+% %             'erds',       'erd', ...  % ERD
+% %             'effect',     'abs', ...  % abs
+% %             'Comment', [ee,'_3_', num2str(t_sel),'.mat'], ...
+% %             'maxfreq',    40, ...
+% %             'showtfr',    1);
+% %
+% %     end
+% %
+% %     %                         pause,
+% %     save(fullfile(datalog, [ee,'_Sybl_', num2str(t_sel),'.mat']),'t_sel'); % prevent conflict with other running scripts
+% %     bst_process('CallProcess', func, sFiles_2, [], ...
+% %         'method',     'dics', ...  % DICS beamformer
+% %         'sensortype', 'MEG', ...
+% %         't_sel', t_sel, 'progressbar', 0);  % MEG
+% %     disp('done');
+% %     delete(fullfile(datalog, [ee,'_', num2str(t_sel),'.mat'])); % delete tmp file
+% %     clc,
+% %     %         end
+% %     %     end
+% % end
+% %
+% % subj_all1 = unique(subj_all);

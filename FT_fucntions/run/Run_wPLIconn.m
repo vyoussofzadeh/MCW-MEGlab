@@ -505,7 +505,6 @@ roiid(b(1:10))'
 % view([-90,90])
 % % view ([180 90])
 
-
 %% FOI_ connectvitiy (incomplete)
 %         cfg = [];
 %         cfg.channel = [78:79];
