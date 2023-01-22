@@ -1,23 +1,28 @@
 function [LI,unq_roi_idx, LI_max] = do_lat_analysis(cfg)
 
-tmp = load(fullfile(cfg.BS_data_dir, cfg.sinput));
 wi = cfg.wi;
 atlas = cfg.atlas;
 
-idx_L = cfg.lat_index(:,1);
-idx_R = cfg.lat_index(:,2);
+if size(cfg.lat_index,2) == 2
+    idx_L = cfg.lat_index(:,1);
+    idx_R = cfg.lat_index(:,2);
+else
+    error('check the size of LI indecies')
+end
+thre = cfg.thre;
+sinput = cfg.sinput;
 
-% thre = 0.5;
+%%
+tmp = load(fullfile(cfg.BS_data_dir, sinput));
 LI = []; roi_idx = [];
 for j=1:size(wi,1)
     
     timind1 = nearest(tmp.Time, wi(j,1)); timind2 = nearest(tmp.Time, wi(j,2));
-    
     [parcelval,rois] = do_sourceparcell_surface(atlas,mean(tmp.ImageGridAmp(:,timind1:timind2),2));
+    [~, idx, ~] = do_barplot_ecp(parcelval,rois, thre, 2);
     
-    [~, idx, ~] = do_barplot_ecp(parcelval,rois, 0.95, 2);
-    
-    m_left = mean(parcelval(idx_L)); m_right = mean(parcelval(idx_R));
+    m_left = mean(parcelval(idx_L));
+    m_right = mean(parcelval(idx_R));
     
     LI(j) = (m_left - m_right)./ (m_left + m_right);
     roi_idx = [roi_idx, idx];
