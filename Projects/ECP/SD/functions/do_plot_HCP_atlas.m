@@ -80,5 +80,7 @@ cfg.view = [-180,-90;0,90;-90,0; 90,0; 0, 0];
 cfg.position = [800   800   1000   300];
 cfg.color = (viridis(256));
 cfg.title = ['']; cfg.alpha = 1; cfg.coor = [];
-do_surfplot(cfg,src,vertexcolor);
+cfg.surf = src;
+cfg.d_in = vertexcolor;
+do_surfplot(cfg);
 % title([num2str(sel), ': ', rois{idx_L_Sel}])
