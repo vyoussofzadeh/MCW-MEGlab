@@ -21,7 +21,7 @@ for j=1:size(cfg_main.views,1)
     colorbar off
 %     pause(1)
 %     ff = gcf;
-    set(gcf,'name',cfg_main.subj,'numbertitle','off')
+    set(gcf,'name',cfg_main.tit,'numbertitle','off')
     if cfg_main.saveflag ==1
 %         pause(1)
         set(gcf,'Color','k')
