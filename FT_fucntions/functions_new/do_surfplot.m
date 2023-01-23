@@ -13,7 +13,7 @@ views = cfg.view;
 
 for i=1:size(views,1)
     subplot(1,length(views),i)
-    handles = ft_plot_mesh(surf, 'vertexcolor', d_in);
+    ft_plot_mesh(surf, 'vertexcolor', d_in);
     colormap(cfg.color)
     colorbar off
     axis tight

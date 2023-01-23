@@ -1,4 +1,4 @@
-function do_plot_atlas(cfg)
+function do_plot_HCP_atlas(cfg)
 
 idx_L = cfg.lat_index(:,1);
 idx_R = cfg.lat_index(:,2);

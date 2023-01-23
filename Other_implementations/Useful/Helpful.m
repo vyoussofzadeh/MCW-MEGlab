@@ -55,4 +55,6 @@ for i=1:42
     ft_progress(i/42, 'Processing event %d from %d', i, 42);
     pause(0.1);
 end
-ft_progress('close')
+ft_progress('close');
+
+%%
