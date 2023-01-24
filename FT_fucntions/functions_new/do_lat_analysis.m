@@ -35,7 +35,10 @@ if cfg.fplot ==1
     set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
     set(gca,'FontSize',8,'XTickLabelRotation',90);
     set(gcf, 'Position', [1000   400   1500   500]);
-    title(tmp.Comment), set(gca,'color','none');
+    title([cfg.tit, ' - ', tmp.Comment]),
+    xlabel('temporal windows (sec)')
+    ylabel('LI')
+    set(gca,'color','none');
 end
 
 [~, idx_mx] = max(LI); LI_max = wi(idx_mx,:);

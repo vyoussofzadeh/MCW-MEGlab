@@ -3,6 +3,7 @@ function [idx_L32, idx_R32] = do_plot_HCP23_atlas(cfg)
 groups = cfg.groups;
 rois = cfg.rois;
 groups_labels = cfg.groups_labels;
+sel = cfg.roi_sel;
 
 idx_L32 = [];
 for i=1:length(groups)
@@ -84,7 +85,7 @@ switch cfg.sel
             groups_labels_num{i} = [num2str(i), ': ', groups_labels{i}{1}];
         end
         disp(cell2table(groups_labels_num'));
-        sel = input('enter rois:');
+%         sel = input('enter rois:');
         for iScout=1:length(sel)
             for j=1:length(idx_L32{sel(iScout)})
                 index = Scouts((idx_L32{sel(iScout)}(j))).Vertices;
