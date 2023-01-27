@@ -14,7 +14,10 @@ addpath('./run')
 Run_setpath
 addpath('./data')
 addpath('./run')
-addpath(genpath('./functions'))
+% addpath(genpath('./functions'))
+
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/functions_new')
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/helper')
 
 %% Loading up raw data
 cd(indir)

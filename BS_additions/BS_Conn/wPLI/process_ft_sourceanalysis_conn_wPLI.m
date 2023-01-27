@@ -259,20 +259,38 @@ cfg.foilim     = foi;
 cfg.tapsmofrq  = 2;
 cfg.keeptrials = 'yes';
 cfg.pad = 4;
+% cfg.pad = 2;
 freq    = ft_freqanalysis(cfg, vs);
 
 %%
-cfg         = [];
-cfg.method    = 'wpli_debiased';
-source_conn = ft_connectivityanalysis(cfg, freq);
-par = 'wpli_debiasedspctrm';
+cfg = []; cfg.method = 'wpli_debiased'; par = 'wpli_debiasedspctrm';
+% cfg = []; cfg.method = 'powcorr'; par = 'powcorrspctrm';
+% cfg = []; cfg.method  ='coh'; cfg.complex = 'absimag'; par = 'cohspctrm';
+% cfg = []; cfg.method = 'plv'; par = 'plvspctrm';
 
+if length(freq.freq) > 10
+    f_sel = freq.freq(1):freq.freq(end);
+end
+
+conn_app = [];
+for i=1:length(f_sel)
+    disp(['F = ', num2str(f_sel(i)),'/',num2str(f_sel(end))]);
+    f_id = find(freq.freq == f_sel(i));
+    freq_sel = freq;
+    freq_sel.freq = freq.freq(f_id);
+    freq_sel.fourierspctrm = freq.fourierspctrm(:,:,f_id);
+    source_conn = ft_connectivityanalysis(cfg, freq_sel);
+    conn_app(:,:,i) = source_conn.(par);
+end
+source_conn.(par) = conn_app;
+source_conn.freq = freq.freq;
+
+%%
 aedge =  mean(source_conn.(par),3);
-
 aedge(isnan(aedge)) = 0;
 v = eigenvector_centrality_und(aedge);
 
-ImageGridAmp = zeros(15002,1);
+ImageGridAmp = zeros(size(v,1),1);
 for i=1:length(idx)-1
     ImageGridAmp(idx(i):idx(i+1)) = v(i);    
 end
@@ -308,7 +326,7 @@ ResultsMat.SurfaceFile   = HeadModelMat.SurfaceFile;
 ResultsMat.nAvg          = DataMat.nAvg;
 ResultsMat.Leff          = DataMat.Leff;
 % ResultsMat.Comment       = 'Conn_PLV';
-ResultsMat.Comment       = ['ft_connanalysis: wPLI_' Method, '_', datestr(now, 'dd/mm/yy-HH:MM')];
+ResultsMat.Comment       = [par, ', egienvectorcent, freq:', num2str(foi(1)), '-', num2str(foi(2)), ', ', datestr(now, 'dd/mm/yy-HH:MM')];
 switch lower(ResultsMat.HeadModelType)
     case 'volume'
         ResultsMat.GridLoc    = HeadModelMat.GridLoc;
@@ -349,6 +367,7 @@ panel_protocols('SelectNode', [], newResult.FileName);
 
 % Save database
 db_save();
+close all
 % Hide progress bar
 bst_progress('stop');
 end

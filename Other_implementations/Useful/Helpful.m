@@ -57,4 +57,5 @@ for i=1:42
 end
 ft_progress('close');
 
-%%
+%% Normalization
+tmp = (tmp - min(tmp(:))) ./ (max(tmp(:)) - min(tmp(:)));
