@@ -57,12 +57,24 @@ switch cfg.sel
         sel = input('enter rois (1-180):');
         idx_L_Sel = idx_L(sel);
         disp(rois(idx_L_Sel)')
+        
+        idx_R_Sel = idx_R(sel);
+        disp(rois(idx_R_Sel)')
+        
+        
         for iScout=1:length(idx_L_Sel)
             index = Scouts(idx_L_Sel(iScout)).Vertices;
             if ~isempty(index)
                 vertexcolor(index,:) = repmat(Scouts(idx_L_Sel(iScout)).Color,  length(index), 1);
             end
         end
+        
+        %         for iScout=1:length(idx_R_Sel)
+        %             index = Scouts(idx_R_Sel(iScout)).Vertices;
+        %             if ~isempty(index)
+        %                 vertexcolor(index,:) = repmat(Scouts(idx_R_Sel(iScout)).Color,  length(index), 1);
+        %             end
+        %         end
         
 end
 % Visualisation de l'atlas Desikan_killiany
@@ -79,7 +91,7 @@ cfg = [];
 cfg.view = [-180,-90;0,90;-90,0; 90,0; 0, 0];
 cfg.position = [800   800   1000   300];
 cfg.color = (viridis(256));
-cfg.title = ['']; 
+cfg.title = [''];
 cfg.alpha = 1; cfg.coor = [];
 cfg.surf = src;
 cfg.d_in = vertexcolor;

@@ -1,4 +1,4 @@
-function [opt_idx_L, opt_idx_R] = do_network_indecies(cfg)
+function [opt_idx_L, opt_idx_R] = do_network_indecies2(cfg)
 
 roi_network = cfg.roi_network;
 idx_L = cfg.idx_L;
@@ -8,7 +8,7 @@ groups_labels = cfg.groups_labels;
 
 opt_groups_labels_num = [];
 for i=1:length(net_sel)
-    opt_groups_labels_num{i} = [num2str(roi_network(net_sel(i))), ': ', groups_labels{roi_network(net_sel(i))}{1}];
+    opt_groups_labels_num{i} = [num2str(roi_network(net_sel(i))), ': ', groups_labels{roi_network(net_sel(i))}];
 end
 % disp(cell2table(opt_groups_labels_num'));
 
