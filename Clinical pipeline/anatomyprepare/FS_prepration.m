@@ -57,7 +57,7 @@ switch indir_ask
     case 1
         indir = pwd;
     case 2
-        indir = input('Enter saveing dir:');
+        indir = input('Enter saveing dir:','s');
 end
 cd(indir)
 nii_filename = 'mri.nii';
@@ -73,6 +73,7 @@ cfg.parameter       = 'anatomy';
 ft_volumewrite(cfg, mri);
 
 %%
+cd(nii_savepath)
 set_spm
 setorigin_center(nii_filename);
 
@@ -104,6 +105,7 @@ ft_sourceplot([], mri_resliced);
 % ft_volumewrite(cfg, mri_resliced);
 
 %% Filename for saving (.nii)
+cd ..
 cfg                 = [];
 cfg.filename        = fullfile(nii_savepath,'mri_resliced.nii');
 cfg.filetype        = 'nifti';
@@ -194,6 +196,7 @@ if catask
     % - copy data between servers
     command = (['scp -r ', fullfile(pwd,'nii'), ' vyoussofzadeh@squiggles.rcc.mcw.edu:/data/MEG/Vahab/Data_clinical/CAT_analysis/', name]);
     system(command)
+    disp('copied to /data/MEG/Vahab/Data_clinical/CAT_analysis/')
 end
 
 
