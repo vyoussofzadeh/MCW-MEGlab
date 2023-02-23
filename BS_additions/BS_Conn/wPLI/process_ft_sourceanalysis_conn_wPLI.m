@@ -177,6 +177,11 @@ ftData.grad.chanunit = unit';
 
 %%
 cfg = [];
+cfg.resamplefs = 500;
+ftData = ft_resampledata(cfg, ftData);
+
+%%
+cfg = [];
 cfg.toilim = PostStim;
 ep_data = ft_redefinetrial(cfg, ftData);
 
@@ -270,6 +275,8 @@ cfg = []; cfg.method = 'wpli_debiased'; par = 'wpli_debiasedspctrm';
 
 if length(freq.freq) > 10
     f_sel = freq.freq(1):freq.freq(end);
+else
+    f_sel = freq.freq;
 end
 
 conn_app = [];

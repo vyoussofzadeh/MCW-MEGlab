@@ -2,8 +2,8 @@ function [LI,unq_roi_idx, LI_max] = do_lat_analysis_asymetric(cfg)
 
 wi = cfg.wi;
 atlas = cfg.atlas;
-idx_L = cfg.lat_index_L;
-idx_R = cfg.lat_index_R;
+idx_L = cfg.index_L;
+idx_R = cfg.index_R;
 
 thre = cfg.thre;
 sinput = cfg.sinput;

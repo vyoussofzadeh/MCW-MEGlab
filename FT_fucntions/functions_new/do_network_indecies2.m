@@ -14,8 +14,8 @@ end
 
 opt_idx_L = []; opt_idx_R = [];
 for i=1:length(net_sel)
-    opt_idx_L = [opt_idx_L, idx_L{roi_network(net_sel(i))}];
-    opt_idx_R = [opt_idx_R, idx_R{roi_network(net_sel(i))}];
+    opt_idx_L = [opt_idx_L; idx_L{roi_network(net_sel(i))}];
+    opt_idx_R = [opt_idx_R; idx_R{roi_network(net_sel(i))}];
 end
 
 opt_idx_L = sort(opt_idx_L);

@@ -25,36 +25,36 @@ addpath(ft_path); ft_defaults
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/functions_new')
 
 %%
-atlas = load('/data/MEG/Vahab/Github/MCW_MEGlab/FT/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_corr.nii_362_updated.mat');
-
-clear rois region region_lr
-for i=1:length(atlas.Scouts)
-    rois{i} = atlas.Scouts(i).Label;
-    region{i} = atlas.Scouts(i).Region;
-    region_lr{i} = atlas.Scouts(i).Region(1);
-end
-idx_L = []; idx_R = []; idx_clr_L = []; idx_clr_R = [];
-for i = 1:length(rois)
-    idx = [];
-    if find(strfind(rois{i}, 'L_')==1)
-        idx_L = [idx_L; i];
-    elseif find(strfind(rois{i}, 'R_')==1)
-        idx_R = [idx_R; i];
-    end
-end
-length(idx_R)
-length(idx_L)
-
-[groups_labels, groups] = do_read_HCP_labels_bs;
+% atlas = load('/data/MEG/Vahab/Github/MCW_MEGlab/FT/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_corr.nii_362_updated.mat');
+% 
+% clear rois region region_lr
+% for i=1:length(atlas.Scouts)
+%     rois{i} = atlas.Scouts(i).Label;
+%     region{i} = atlas.Scouts(i).Region;
+%     region_lr{i} = atlas.Scouts(i).Region(1);
+% end
+% idx_L = []; idx_R = []; idx_clr_L = []; idx_clr_R = [];
+% for i = 1:length(rois)
+%     idx = [];
+%     if find(strfind(rois{i}, 'L_')==1)
+%         idx_L = [idx_L; i];
+%     elseif find(strfind(rois{i}, 'R_')==1)
+%         idx_R = [idx_R; i];
+%     end
+% end
+% length(idx_R)
+% length(idx_L)
+% 
+% [groups_labels, groups] = do_read_HCP_labels_bs;
 
 %% Plot HCP atlas
-cfg = [];
-cfg.atlas = atlas;
-cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data_info/cortex_pial_low.fs';
-cfg.sel = 'whole'; % 'whole', 'left', 'right', 'roi';
-cfg.lat_index = [idx_L, idx_R];
-cfg.rois = rois;
-do_plot_HCP_atlas(cfg);
+% cfg = [];
+% cfg.atlas = atlas;
+% cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data_info/cortex_pial_low.fs';
+% cfg.sel = 'whole'; % 'whole', 'left', 'right', 'roi';
+% cfg.lat_index = [idx_L, idx_R];
+% cfg.rois = rois;
+% do_plot_HCP_atlas(cfg);
 
 %% Bilateral (symmetrical) ROIs for LI analysis (ROIs were provided by Joe)
 opts = delimitedTextImportOptions("NumVariables", 13);
@@ -154,10 +154,9 @@ for i=1:length(glass_net_regions)
         k2 = k2 + 1;
         disp(bilateralglasserROISSDTD2020.roi_name(idx))
     end
-    pause
+%     pause
 end
 save(fullfile(s_dir, 'LI_glasser_bilateral_net_12.mat'), 'glass_net_regions', 'glass_net_L_idx','glass_net_R_idx', 'glass_net_R_label', 'glass_net_L_label');
-
 
 %% Lateral ROIs for LI analysis (ROIs were provided by Joe)
 opts = delimitedTextImportOptions("NumVariables", 7);
@@ -260,6 +259,22 @@ for i=1:length(glass_net_regions)
     pause
 end
 save(fullfile(s_dir, 'LI_glasser_net_12.mat'), 'glass_net_regions', 'glass_net_L_idx','glass_net_R_idx', 'glass_net_R_label', 'glass_net_L_label');
+
+%% Read mask (fMRI_1)
+cd('/group/jbinder/ECP/MEG/laterality_index')
+ROI_AllCortex_Mask_new = ft_read_mri('lateral_roi.nii.gz');
+
+cfg = [];
+cfg.method        = 'ortho';
+ft_sourceplot(cfg, ROI_AllCortex_Mask_new);
+
+cfg = [];
+cfg.funparameter = 'anatomy';
+cfg.method = 'surface';
+cfg.surfinflated   = 'surface_inflated_both_caret.mat';
+cfg.projmethod     = 'nearest'; 
+cfg1 = ft_sourceplot(cfg, ROI_AllCortex_Mask_new);
+view([-90,0])
 
 %% Read mask (fMRI)
 cd('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data_info/ECP_masks')

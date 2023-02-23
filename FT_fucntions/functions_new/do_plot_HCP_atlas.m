@@ -1,7 +1,7 @@
 function do_plot_HCP_atlas(cfg)
 
-idx_L = cfg.lat_index(:,1);
-idx_R = cfg.lat_index(:,2);
+idx_L = cfg.index_L;
+idx_R = cfg.index_R;
 idx_lr = [idx_L;idx_R];
 
 rois = cfg.rois;
@@ -32,8 +32,6 @@ switch cfg.sel
             end
         end
     case 'left'
-        
-        %
         % left ROIs
         for iScout=1:length(idx_L)
             index = Scouts(idx_L(iScout)).Vertices;
@@ -54,12 +52,12 @@ switch cfg.sel
     case 'roi'
         % % close all
         % % left_sel ROIs
-        sel = input('enter rois (1-180):');
+        sel = cfg.rois_sel; %input('enter rois (1-180):');
         idx_L_Sel = idx_L(sel);
         disp(rois(idx_L_Sel)')
         
-        idx_R_Sel = idx_R(sel);
-        disp(rois(idx_R_Sel)')
+%         idx_R_Sel = idx_R(sel);
+%         disp(rois(idx_R_Sel)')
         
         
         for iScout=1:length(idx_L_Sel)
@@ -96,4 +94,5 @@ cfg.alpha = 1; cfg.coor = [];
 cfg.surf = src;
 cfg.d_in = vertexcolor;
 do_surfplot(cfg);
+
 % title([num2str(sel), ': ', rois{idx_L_Sel}])
