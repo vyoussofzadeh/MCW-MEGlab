@@ -128,7 +128,9 @@ opts.ExtraColumnsRule = "ignore";
 opts.EmptyLineRule = "read";
 
 % Import the data
-bilateralglasserROISSDTD2020 = readtable("/group/jbinder/ECP/MEG/laterality_index/bilateral_glasser_ROIS_SDTD_2020.tsv", opts);
+% bilateralglasserROISSDTD2020 = readtable("/group/jbinder/ECP/MEG/laterality_index/bilateral_glasser_ROIS_SDTD_2020.tsv", opts);
+bilateralglasserROISSDTD2020 = readtable("/group/jbinder/ECP/MEG/laterality_index/manual_glasser_ROIS_SDTD_2020.tsv", opts);
+
 clear opts
 
 glass_net_regions = unique(bilateralglasserROISSDTD2020.roi_name);

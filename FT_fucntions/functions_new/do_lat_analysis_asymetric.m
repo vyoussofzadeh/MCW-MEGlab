@@ -30,7 +30,7 @@ if cfg.fplot ==1
     val = round(mean(wi(:,1),2),2);
     set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
     set(gca,'FontSize',8,'XTickLabelRotation',90);
-    set(gcf, 'Position', [1000   400   1500   500]);
+    set(gcf, 'Position', [1000   400   1000   300]);
     title([cfg.tit, ' - ', tmp.Comment]),
     xlabel('temporal windows (sec)')
     ylabel('LI')
