@@ -1,4 +1,8 @@
 
+%% Resources 
+% 1) https://brendanhasz.github.io/2019/07/03/matlab-uncertainty-viz.html
+
+
 %% Matlab figure settings
 figure,
 bar((DL_runs.math + DL_runs.str)/2), L = length(DL_runs.math);
@@ -40,4 +44,29 @@ addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External'
 colr = distinguishable_colors(nScouts);
 
 %% Shaded area error bar plot
+% link: 'https://brendanhasz.github.io/2019/07/03/matlab-uncertainty-viz.html'
 
+N = 60;
+X = linspace(-2, 6, N)';
+Y1 = exp(-X)-exp(-2*X);
+Y1(X<0) = 0;
+Y1 = Y1 + 0.01*randn(N, 1);
+E1 = 0.02+0.1*rand(N, 1);
+Y2 = exp(-X+1)-exp(-2*(X-1));
+Y2(Y2<0) = 0;
+Y2 = Y2 + 0.01*randn(N, 1);
+E2 = 0.03+0.05*rand(N, 1);
+
+% Plot shaded, semitransparent error bounds
+blue = [0.35 0.7 0.9]; orange = [0.9,0.6,0];
+
+figure
+fill([X; flipud(X)], [Y1+E1; flipud(Y1-E1)], blue, ...
+     'EdgeColor', 'none', 'facealpha', 0.3)
+hold on
+plot(X, Y1, 'Color', blue, 'LineWidth', 2)
+fill([X; flipud(X)], [Y2+E2; flipud(Y2-E2)], orange, ...
+     'EdgeColor', 'none', 'facealpha', 0.3)
+plot(X, Y2, 'Color', orange, 'LineWidth', 2)
+
+%%
