@@ -8,6 +8,7 @@ set(gcf, 'Position', [1000   100   1500   300]);
 set(gca,'color','none');
 title([tag, ', DL, mean (Str, Math) '])
 axis square
+set(lgnd,'color','none');
 
 %% Overlay text on bargraph
 text(1:length(Y),Y,num2str(Y'),'vert','bottom','horiz','center'); 
@@ -34,7 +35,9 @@ plot(mdl)
 %% some helpful links
 % https://anneurai.net/2016/06/13/prettier-plots-in-matlab/
 
-%%
-addpath('/data/MEG/Vahab/Github/MCW-MEGlab/FT/functions/External/brewermap');
+%% Distinguishable_colors
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External');
 colr = distinguishable_colors(nScouts);
+
+%% Shaded area error bar plot
 

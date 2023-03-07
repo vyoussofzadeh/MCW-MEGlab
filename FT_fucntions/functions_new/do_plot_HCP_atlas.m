@@ -87,31 +87,31 @@ end
 
 switch cfg_main.sel
     case 'roi'
-        %% Left
+        %- Left
         src_L = src;
         src_L.tri = src_L.tri(1:14980,:);
         
         figure
         cfg = [];
-        cfg.view = [-90,0; 90,0];
-        cfg.position = [800   800   300   300];
+        cfg.view = [-180,-90; 0,90;-90,0; 90,0;];
+        cfg.position = [800   800   900   200];
         cfg.color = (viridis(256));
-        cfg.title = ['LH_', cfg_main.title];
+        cfg.title = ['LH: roi', cfg_main.title];
         cfg.alpha = 1; cfg.coor = [];
         cfg.surf = src_L;
         cfg.d_in = vertexcolor;
         do_surfplot(cfg);
         
-        %% Right
+        %- Right
         src_R = src;
         src_R.tri = src_R.tri(14981:end,:);
         
         figure
         cfg = [];
-        cfg.view = [-90,0; 90,0];
-        cfg.position = [800   200   300   300];
+        cfg.view = [-180,-90; 0,90;-90,0; 90,0;];
+        cfg.position = [800   500   900   200];
         cfg.color = (viridis(256));
-        cfg.title = ['RH_', cfg_main.title];
+        cfg.title = ['RH: roi', cfg_main.title];
         cfg.alpha = 1; cfg.coor = [];
         cfg.surf = src_R;
         cfg.d_in = vertexcolor;
