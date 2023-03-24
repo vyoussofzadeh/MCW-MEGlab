@@ -1,7 +1,6 @@
 
-%% Resources 
+%% Resources
 % 1) https://brendanhasz.github.io/2019/07/03/matlab-uncertainty-viz.html
-
 
 %% Matlab figure settings
 figure,
@@ -15,8 +14,8 @@ axis square
 set(lgnd,'color','none');
 
 %% Overlay text on bargraph
-text(1:length(Y),Y,num2str(Y'),'vert','bottom','horiz','center'); 
-text(1:length(Y),Y,num2str(Y','%4.2f'),'vert','bottom','horiz','center'); 
+text(1:length(Y),Y,num2str(Y'),'vert','bottom','horiz','center');
+text(1:length(Y),Y,num2str(Y','%4.2f'),'vert','bottom','horiz','center');
 
 %% Best fit to a figure,
 axis tight
@@ -62,11 +61,30 @@ blue = [0.35 0.7 0.9]; orange = [0.9,0.6,0];
 
 figure
 fill([X; flipud(X)], [Y1+E1; flipud(Y1-E1)], blue, ...
-     'EdgeColor', 'none', 'facealpha', 0.3)
+    'EdgeColor', 'none', 'facealpha', 0.3)
 hold on
 plot(X, Y1, 'Color', blue, 'LineWidth', 2)
 fill([X; flipud(X)], [Y2+E2; flipud(Y2-E2)], orange, ...
-     'EdgeColor', 'none', 'facealpha', 0.3)
+    'EdgeColor', 'none', 'facealpha', 0.3)
 plot(X, Y2, 'Color', orange, 'LineWidth', 2)
+
+% example 2
+figure,
+y = rand(1,10); % your mean vector;
+x = 1:numel(y);
+std_dev = 1;
+curve1 = y + std_dev;
+curve2 = y - std_dev;
+x2 = [x, fliplr(x)];
+inBetween = [curve1, fliplr(curve2)];
+fill(x2, inBetween, 'g');
+hold on;
+plot(x, y, 'r', 'LineWidth', 2);
+
+%% Legned stop
+legend('AutoUpdate', 'off')
+
+h2 = fill(x2, inBetween, colr(j,:), 'EdgeColor', 'none', 'facealpha', 0.1);
+h2.Annotation.LegendInformation.IconDisplayStyle = 'off'; % make the legend for step plot off
 
 %%

@@ -63,7 +63,7 @@ switch cfg_main.sel
         % % left_sel ROIs
         sel = cfg_main.rois_sel; %input('enter rois (1-180):');
         idx_L_Sel = idx_L(sel);
-        disp(rois(idx_L_Sel)')
+%         disp(rois(idx_L_Sel)')
         
         %         idx_R_Sel = idx_R(sel);
         %         disp(rois(idx_R_Sel)')

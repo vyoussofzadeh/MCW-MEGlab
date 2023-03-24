@@ -1,4 +1,4 @@
-function [idx_L, idx_R, groups_labels_num] = do_plot_HCP6_atlas(cfg)
+function [idx_L, idx_R, groups_labels_num, src] = do_plot_HCP6_atlas(cfg)
 
 
 group_members = cfg.group_members;
@@ -12,7 +12,7 @@ for i=1:length(group_members)
     idx = [];
     for j=1:length(grois)
         idx(j) = strmatch(grois{j},rois);
-        disp([grois{j}, rois(idx(j))])
+%         disp([grois{j}, rois(idx(j))])
     end
     idx_L{i} = idx;
 end
@@ -23,7 +23,7 @@ for i=1:length(group_members)
     idx = [];
     for j=1:length(grois)
         idx(j) = strmatch(grois{j},rois);
-        disp([grois{j}, rois(idx(j))])
+%         disp([grois{j}, rois(idx(j))])
     end
     idx_R{i} = idx;
 end
@@ -87,7 +87,7 @@ switch cfg.sel
         for i=1:length(group_labels)
             groups_labels_num{i} = [num2str(i), ': ', group_labels{i}];
         end
-        disp(cell2table(groups_labels_num'));
+%         disp(cell2table(groups_labels_num'));
 
         for iScout=1:length(sel)
             for j=1:length(idx_L{sel(iScout)})
@@ -97,7 +97,7 @@ switch cfg.sel
                 end
             end
         end
-        disp((groups_labels_num(sel)'));
+%         disp((groups_labels_num(sel)'));
 end
 
 
