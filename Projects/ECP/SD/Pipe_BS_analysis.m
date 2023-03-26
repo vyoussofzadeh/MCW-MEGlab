@@ -16,6 +16,8 @@ addpath('./data')
 addpath('./run')
 addpath(genpath('./functions'))
 
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/functions/External')
+
 %% Loading up raw data
 cd(indir)
 tag = 'SD'; %- Semantic decision
@@ -43,9 +45,14 @@ else
 end
 disp(datafile_fif)
 
+
+% 'EC1090'
+% 'EC1092'
+% 'EC1112'
+
 %%
 % adding BS path
-bs_path = '/opt/matlab_toolboxes/Brainstorm3_2021/brainstorm3'; %BS-2021
+bs_path = '/opt/matlab_toolboxes/Brainstorm/Brainstorm3_2022/brainstorm3'; %BS-2021
 addpath(bs_path);
 brainstorm
 disp('choose DB from BS, then enter!');
@@ -81,17 +88,18 @@ no_anat = {'EC1036'
     'EC1049'
     'EC1061'
     'EC1065'
-    'EC1085'
-    'EC1092'
+    'EC1085'    
     'EC1094'
     'EC1096'
     'EC1110'
-    'EC1111'
-    'EC1112'
+    'EC1111'   
     'EC1141'
     'EC1153'
     'EC1162'
     'EC1090'};
+
+% 'EC1092'
+%  'EC1112'
 
 sub_all1 = setdiff(unq_bs_subj,no_anat);
 
@@ -527,7 +535,7 @@ for ii=1:length(dd)
         comment = []; k=1;
         for j=1:length(d)
          tmp = load(d(j).name);
-            if ~contains(tmp.Comment,'ssmooth')
+            if ~contains(tmp.Comment,'ssmooth') && ~contains(tmp.Comment,'Avg: ')
                 comment{k} = tmp.Comment(13); k=1+k;
             end
         end

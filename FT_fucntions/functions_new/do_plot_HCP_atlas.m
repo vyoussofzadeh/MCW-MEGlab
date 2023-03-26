@@ -1,15 +1,24 @@
-function do_plot_HCP_atlas(cfg)
+function do_plot_HCP_atlas(cfg_main)
 
-idx_L = cfg.lat_index(:,1);
-idx_R = cfg.lat_index(:,2);
+idx_L = cfg_main.index_L;
+idx_R = cfg_main.index_R;
+
 idx_lr = [idx_L;idx_R];
 
-rois = cfg.rois;
+if size(idx_lr,2) > 1
+    error('check the size of index')
+end
 
-Scouts = cfg.atlas.Scouts;
+rois = cfg_main.rois;
+
+Scouts = cfg_main.atlas.Scouts;
 nScouts = length(Scouts);
-src_fname = cfg.src_fname;
+src_fname = cfg_main.src_fname;
 src = ft_read_headshape(src_fname);
+
+% addpath('/opt/matlab_toolboxes/ft_packages/Stable_version/fieldtrip-master/template/anatomy')
+% surface_pial_both = load('surface_inflated_both.mat');
+% src1 = surface_pial_both.mesh;
 
 %- Whole atlas
 vertexcolor = zeros(size(src.pos,1), 3);
@@ -21,7 +30,7 @@ for iScout=1:nScouts
     end
 end
 
-switch cfg.sel
+switch cfg_main.sel
     
     case 'whole'
         % all ROIs
@@ -32,8 +41,6 @@ switch cfg.sel
             end
         end
     case 'left'
-        
-        %
         % left ROIs
         for iScout=1:length(idx_L)
             index = Scouts(idx_L(iScout)).Vertices;
@@ -54,9 +61,14 @@ switch cfg.sel
     case 'roi'
         % % close all
         % % left_sel ROIs
-        sel = input('enter rois (1-180):');
+        sel = cfg_main.rois_sel; %input('enter rois (1-180):');
         idx_L_Sel = idx_L(sel);
-        disp(rois(idx_L_Sel)')
+%         disp(rois(idx_L_Sel)')
+        
+        %         idx_R_Sel = idx_R(sel);
+        %         disp(rois(idx_R_Sel)')
+        
+        
         for iScout=1:length(idx_L_Sel)
             index = Scouts(idx_L_Sel(iScout)).Vertices;
             if ~isempty(index)
@@ -64,24 +76,58 @@ switch cfg.sel
             end
         end
         
+        %         for iScout=1:length(idx_R_Sel)
+        %             index = Scouts(idx_R_Sel(iScout)).Vertices;
+        %             if ~isempty(index)
+        %                 vertexcolor(index,:) = repmat(Scouts(idx_R_Sel(iScout)).Color,  length(index), 1);
+        %             end
+        %         end
+        
 end
-% Visualisation de l'atlas Desikan_killiany
-% close all
-% figure;
-% ft_plot_mesh(src, 'faecolor', 'brain',  'vertexcolor', ...
-%     vertexcolor, 'facealpha', 1);
-% view(-3, 2);
 
-% addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/Colormaps-from-MatPlotLib2.0')
+switch cfg_main.sel
+    case 'roi'
+        %- Left
+        src_L = src;
+        src_L.tri = src_L.tri(1:14980,:);
+        
+        figure
+        cfg = [];
+        cfg.view = [-180,-90; 0,90;-90,0; 90,0;];
+        cfg.position = [800   800   900   200];
+        cfg.color = (viridis(256));
+        cfg.title = ['LH: roi', cfg_main.title];
+        cfg.alpha = 1; cfg.coor = [];
+        cfg.surf = src_L;
+        cfg.d_in = vertexcolor;
+        do_surfplot(cfg);
+        
+        %- Right
+        src_R = src;
+        src_R.tri = src_R.tri(14981:end,:);
+        
+        figure
+        cfg = [];
+        cfg.view = [-180,-90; 0,90;-90,0; 90,0;];
+        cfg.position = [800   500   900   200];
+        cfg.color = (viridis(256));
+        cfg.title = ['RH: roi', cfg_main.title];
+        cfg.alpha = 1; cfg.coor = [];
+        cfg.surf = src_R;
+        cfg.d_in = vertexcolor;
+        do_surfplot(cfg);
+        
+    otherwise
+        figure
+        cfg = [];
+        cfg.view = [-180,-90;0,90;-90,0; 90,0; 0, 0];
+        cfg.position = [800   800   1000   300];
+        cfg.color = (viridis(256));
+        cfg.title = [''];
+        cfg.alpha = 1; cfg.coor = [];
+        cfg.surf = src;
+        cfg.d_in = vertexcolor;
+        do_surfplot(cfg);        
+end
 
-figure
-cfg = [];
-cfg.view = [-180,-90;0,90;-90,0; 90,0; 0, 0];
-cfg.position = [800   800   1000   300];
-cfg.color = (viridis(256));
-cfg.title = ['']; 
-cfg.alpha = 1; cfg.coor = [];
-cfg.surf = src;
-cfg.d_in = vertexcolor;
-do_surfplot(cfg);
-% title([num2str(sel), ': ', rois{idx_L_Sel}])
+

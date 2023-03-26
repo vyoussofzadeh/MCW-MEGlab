@@ -1,32 +1,35 @@
-function [idx_L32, idx_R32, groups_labels_num] = do_plot_HCP23_atlas(cfg)
+function [idx_L, idx_R, groups_labels_num, src] = do_plot_HCP6_atlas(cfg)
 
-groups = cfg.groups;
+
+group_members = cfg.group_members;
 rois = cfg.rois;
-groups_labels = cfg.groups_labels;
+group_labels = cfg.group_labels;
 sel = cfg.roi_sel;
 
-idx_L32 = [];
-for i=1:length(groups)
-    grois = groups{i}(2:end);
+idx_L = [];
+for i=1:length(group_members)
+    grois = group_members{i};
     idx = [];
     for j=1:length(grois)
-        idx(j) = strmatch(['L_',grois{j}, '_ROI'],rois);
+        idx(j) = strmatch(grois{j},rois);
+%         disp([grois{j}, rois(idx(j))])
     end
-    idx_L32{i} = idx;
+    idx_L{i} = idx;
 end
 
-idx_R32 = [];
-for i=1:length(groups)
-    grois = groups{i}(2:end);
+idx_R = [];
+for i=1:length(group_members)
+    grois = group_members{i}(1:end);
     idx = [];
     for j=1:length(grois)
-        idx(j) = strmatch(['R_',grois{j}, '_ROI'],rois);
+        idx(j) = strmatch(grois{j},rois);
+%         disp([grois{j}, rois(idx(j))])
     end
-    idx_R32{i} = idx;
+    idx_R{i} = idx;
 end
 
 %%
-idx_LR32 = [idx_L32,idx_R32];
+idx_LR32 = [idx_L,idx_R];
 
 Scouts = cfg.atlas.Scouts;
 nScouts = length(Scouts);
@@ -58,9 +61,9 @@ switch cfg.sel
     case 'left'
         
         % left ROIs
-        for iScout=1:length(idx_L32)
-            for j=1:length(idx_L32{iScout})
-                index = Scouts((idx_L32{iScout}(j))).Vertices;
+        for iScout=1:length(idx_L)
+            for j=1:length(idx_L{iScout})
+                index = Scouts((idx_L{iScout}(j))).Vertices;
                 if ~isempty(index)
                     vertexcolor(index,:) = repmat(Scouts((iScout)).Color,  length(index), 1);
                 end
@@ -69,9 +72,9 @@ switch cfg.sel
         
     case 'right'
         % % right ROIs
-        for iScout=1:length(idx_R32)
-            for j=1:length(idx_R32{iScout})
-                index = Scouts((idx_R32{iScout}(j))).Vertices;
+        for iScout=1:length(idx_R)
+            for j=1:length(idx_R{iScout})
+                index = Scouts((idx_R{iScout}(j))).Vertices;
                 if ~isempty(index)
                     vertexcolor(index,:) = repmat(Scouts((iScout)).Color,  length(index), 1);
                 end
@@ -81,20 +84,20 @@ switch cfg.sel
     case 'roi'
         
         groups_labels_num = [];
-        for i=1:length(groups_labels)
-            groups_labels_num{i} = [num2str(i), ': ', groups_labels{i}{1}];
+        for i=1:length(group_labels)
+            groups_labels_num{i} = [num2str(i), ': ', group_labels{i}];
         end
-        disp(cell2table(groups_labels_num'));
-%         sel = input('enter rois:');
+%         disp(cell2table(groups_labels_num'));
+
         for iScout=1:length(sel)
-            for j=1:length(idx_L32{sel(iScout)})
-                index = Scouts((idx_L32{sel(iScout)}(j))).Vertices;
+            for j=1:length(idx_L{sel(iScout)})
+                index = Scouts((idx_L{sel(iScout)}(j))).Vertices;
                 if ~isempty(index)
                     vertexcolor(index,:) = repmat(Scouts((iScout)).Color,  length(index), 1);
                 end
             end
         end
-        disp((groups_labels_num(sel)'));
+%         disp((groups_labels_num(sel)'));
 end
 
 
@@ -103,10 +106,10 @@ cfg = [];
 cfg.view = [-180,-90;0,90;-90,0; 90,0; 0, 0];
 cfg.position = [800   800   1000   300];
 cfg.color = (viridis(256));
-cfg.title = ['']; 
-cfg.alpha = 1; 
+cfg.title = [''];
+cfg.alpha = 1;
 cfg.coor = [];
-cfg.surf = src; 
+cfg.surf = src;
 cfg.d_in = vertexcolor;
 do_surfplot(cfg);
 

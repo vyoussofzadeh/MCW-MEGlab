@@ -121,17 +121,10 @@ Method   = sProcess.options.method.Value;
 Modality = sProcess.options.sensortype.Value{1};
 ShowTfr  = sProcess.options.showtfr.Value;
 MaxFreq  = sProcess.options.maxfreq.Value{1};
-%     Baseline = sProcess.options.baseline.Value{1};
 PostStim = sProcess.options.poststim.Value{1};
 FOI      = sProcess.options.foi.Value{1};
 TprFreq  = sProcess.options.tpr.Value{1};
-% Output folder (for figures and FieldTrip structures)
 TmpDir = bst_get('BrainstormTmpDir');
-% Progress bar
-%     bst_progress('start', 'ft_sourceanalysis', 'Loading input files...', 0, 2*length(sInputsA));
-
-% ===== LOAD: CHANNEL FILE =====
-%     bst_progress('text', 'Loading input files...');
 
 % Load channel file
 ChannelMat = in_bst_channel(sInputsA(1).ChannelFile);
@@ -217,41 +210,6 @@ ftData_B = ftData;
 
 % ===== FIELDTRIP: ft_freqanalysis =====
 bst_progress('text', 'Calling FieldTrip function: ft_freqanalysis...');
-% Compute tfr-decomposition
-%     cfg = [];
-%     cfg.output     = 'pow';
-%     cfg.channel    = 'all';
-%     cfg.method     = 'mtmconvol';
-%     cfg.taper      = 'hanning';
-%     cfg.foi        = 1:2:MaxFreq;
-%     cfg.keeptrials = 'yes';
-%     cfg.t_ftimwin  = 3 ./ cfg.foi;
-%     cfg.tapsmofrq  = 0.8 * cfg.foi;
-% %     cfg.toi        = Baseline(1):0.05:PostStim(2);
-%     tfr            = ft_freqanalysis(cfg, ftData_A);
-%
-%     % Plot TFR
-%     cfg = [];
-%     cfg.fmax = MaxFreq;
-%     cfg.toi = [Baseline(1), PostStim(2)];
-%     cfg.baselinetime = Baseline;
-%     cfg.plotflag = ShowTfr;
-%     [time_of_interest,freq_of_interest] = do_tfr_plot(cfg, tfr);
-%     disp(['Global max: time:',num2str(time_of_interest),'sec']);
-%     disp(['Global max: freq:',num2str(freq_of_interest),'Hz']);
-
-%%
-%     idx_l = tfr.grad.chanpos(:,1) < 0;
-%     idx_r = tfr.grad.chanpos(:,1) > 0;
-%
-%     tfr_l = tfr; tfr_l.powspctrm = tfr_l.powspctrm(:,idx_l,:,:);
-%     tfr_r = tfr; tfr_r.powspctrm = tfr_r.powspctrm(:,idx_r,:,:);
-%
-%     cfg = []; cfg.fmax = MaxFreq; cfg.toi = [Baseline(1), PostStim(2)];
-%     cfg.baselinetime = Baseline; cfg.plotflag = ShowTfr;
-%
-%     do_tfr_plot(cfg, tfr_l); title('left H'), pause(0.5)
-%     do_tfr_plot(cfg, tfr_r); title('right H'), pause(0.5)
 
 %%
 % ===== FIELDTRIP: EPOCHING =====
@@ -275,23 +233,6 @@ switch sProcess.options.sensortype.Value{1}
     case {'MEG', 'MEG GRAD', 'MEG MAG'}
         cfg_main.sens = ftData.grad;
 end
-% cfg_main.outputdir = TmpDir;
-% cfg_main.freq_of_interest  = freq_of_interest; % Hz
-% 
-% cfg = [];
-% cfg.foilim    = [2 cfg_main.fmax];
-% cfg.tapsmofrq = 1;
-% cfg.taper     = 'hanning';
-% f_data.bsl = do_fft(cfg, ep_data.bsl); f_data.bsl.elec = cfg_main.sens;
-% f_data.pst = do_fft(cfg, ep_data.pst); f_data.pst.elec = cfg_main.sens;
-
-% ===== FIELDTRIP: PSD SENSOR SPACE =====
-% outputdir_dics = cfg_main.outputdir;
-% if exist(outputdir_dics, 'file') == 0, mkdir(outputdir_dics), end
-% 
-% f_sugg = round(cfg_main.freq_of_interest);
-% disp(['Suggested by TFR: ', num2str(f_sugg),'(+-3Hz)']);
-% disp(['Select foi,eg ,', num2str(f_sugg),':']);
 
 cfg = [];
 cfg.foilim = [FOI, FOI];
@@ -435,7 +376,7 @@ ResultsMat.GoodChannel   = iChannelsData;
 ResultsMat.SurfaceFile   = HeadModelMat.SurfaceFile;
 ResultsMat.nAvg          = DataMat.nAvg;
 ResultsMat.Leff          = DataMat.Leff;
-ResultsMat.Comment       = ['DICS: ' Method, ' ',num2str(FOI),'Hz ', sprintf('%1.3fs-%1.3fs', PostStim)];
+ResultsMat.Comment       = ['DICS (contrast): ' Method, ' ',num2str(FOI),'Hz ', sprintf('%1.3fs-%1.3fs', PostStim)];
 switch lower(ResultsMat.HeadModelType)
     case 'volume'
         ResultsMat.GridLoc    = HeadModelMat.GridLoc;

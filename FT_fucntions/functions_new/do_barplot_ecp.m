@@ -20,17 +20,23 @@ end
 % end
 % disp(roiid')
 
-[val,idx]  = sort(pow_parcel,'descend');
+% [val,idx]  = sort(pow_parcel,'descend');
 
-idx2 = val > thre.*max(val);
+val = pow_parcel;
+val = (val - min(val(:))) ./ (max(val(:)) - min(val(:)));
+
+idx2 = val >= thre.*max(val);
 idx3 = idx(idx2);
 
 % roiid(idx(1:nroi))'
 % zpow_parcel = zscore(pow_parcel);
 % zpow_parcel(idx(1:nroi))'
 
+pow_parcel_thre = zeros(size(pow_parcel));
+pow_parcel_thre(idx3) = pow_parcel(idx3);
+
 roi_val = [];
-roi_val.parcelval = pow_parcel(idx3)';
+roi_val.parcelval = pow_parcel_thre';
 roi_val.rois = rois(idx3)';
 
 tbl1 = table(round(pow_parcel(idx3),2)');

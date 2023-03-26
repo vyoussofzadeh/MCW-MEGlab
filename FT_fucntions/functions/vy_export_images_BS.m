@@ -31,7 +31,7 @@ disp(['suggesting name:',svname]);
 name_sel = input('1-suggested name, 2-other names:');
 
 if name_sel == 2
-    svname = input('enter saving name:');
+    svname = input('enter saving name:','s');
 else
     svname = sfile.Comment;
 end
