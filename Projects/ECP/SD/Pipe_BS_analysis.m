@@ -214,7 +214,7 @@ d3 = rdir(fullfile(BS_data_dir,'/*/EC*raw_low_clean/channel_vectorview306_acc1.m
 d = [d1;d2;d3];
 
 OPTIONS = [];
-OPTIONS.comment = 'Overlapping spheres';
+OPTIONS.Comment = 'Overlapping spheres';
 OPTIONS.MEGMethod =  'os_meg';
 OPTIONS.EEGMethod  ='';
 OPTIONS.ECOGMethod = '';
