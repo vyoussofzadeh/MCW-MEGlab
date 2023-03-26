@@ -18,7 +18,7 @@ path_tools = '/usr/local/MATLAB_Tools';
 % Last update: 07/29/2020
 % ===========================================
 
-%%
+%%clc
 disp('1: For CT-MR coreg, grid/SEEG processing')
 disp('2: For MRI segmentation (MEG processing)')
 in_sel = input(':');
@@ -30,15 +30,26 @@ switch in_sel
         indir = '/MEG_data/MRI_database/epilepsy/';
 end
 
-cd(indir)
-set_spm
-dicomfile = spm_select(1,'.*','Select one dicome file, e.g. EXP0000');
-[pathstr, name] = fileparts(dicomfile);
-cd(pathstr)
+%%
+disp('1) DICOM')
+disp('2) NII')
+DT = input('enter data type:');
+
+%%
+switch DT
+    case 1
+        cd(indir), set_spm
+        dfile = spm_select(1,'.*','Select one dicome file, e.g. EXP0000');
+        [pathstr, ~] = fileparts(dfile); cd(pathstr)
+    case 2
+        cd(indir), set_spm
+        dfile = spm_select(1,'.nii','Select nii file');
+        [pathstr, ~] = fileparts(dfile); cd(pathstr)
+end
 
 %%
 set_ft
-mri = ft_read_mri(dicomfile);
+mri = ft_read_mri(dfile);
 
 %%
 ft_sourceplot([], mri);
@@ -192,7 +203,7 @@ disp('==========')
 disp('1: Yes');
 disp('2: No');
 catask = input('Copy nii to Sqioggles for Cat analysis?');
-if catask
+if catask == 1
     % - copy data between servers
     command = (['scp -r ', fullfile(pwd,'nii'), ' vyoussofzadeh@squiggles.rcc.mcw.edu:/data/MEG/Vahab/Data_clinical/CAT_analysis/', name]);
     system(command)
