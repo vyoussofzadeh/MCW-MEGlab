@@ -20,7 +20,7 @@ end
 % end
 % disp(roiid')
 
-% [val,idx]  = sort(pow_parcel,'descend');
+[val,idx]  = sort(pow_parcel,'descend');
 
 val = pow_parcel;
 val = (val - min(val(:))) ./ (max(val(:)) - min(val(:)));

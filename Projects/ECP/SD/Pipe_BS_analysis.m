@@ -590,18 +590,22 @@ end
 cd(BS_data_dir)
 clc
 dd = rdir(fullfile('./Group_analysis/*clean/results_*.mat'));
+ft_progress('init', 'text',     'please wait ...');
 comment = [];
 for j=1:length(dd)
-    disp([num2str(j),'/',num2str(length(dd))])
-    tmp = load(dd(j).name);
-    comment{j} = tmp.Comment;
+    ft_progress(i/length(dd), 'Processing event %d from %d', j, length(dd));
+    tmp = load(dd(j).name); comment{j} = tmp.Comment;
+    pause(0.1);
 end
+ft_progress('close');
 
 %%
+% ft_progress('init', 'text',     'please wait ...');
 comm_data = [];
-for ii=500:length(dd) 
+for ii=1:length(dd) 
     cd(BS_data_dir)
     disp([num2str(ii), '/', num2str(length(dd))])
+%     ft_progress(i/length(dd), 'Processing event %d from %d', j, length(dd));
     [a, ~] = fileparts(dd(ii).name);
     tmp = load(dd(ii).name);
     comm_data_sel = tmp.Comment;
@@ -649,6 +653,8 @@ for ii=500:length(dd)
         end
     end
 end
+ft_progress('close');
+
 
 %% Intra-subject averaging
 % db_reload_database('current',1)
@@ -734,6 +740,35 @@ end
 unq_bs_subj_2 = unique(subjs_2);
 
 %%
+unq_bs_subj_3_sel = {'EC1092',  'EC1112'};
+unq_bs_subj_2_sel = {'EC1092',  'EC1112'};
+
+s_in = sFiles_name(idx_3_smooth);
+for j=1:length(unq_bs_subj_3_sel)
+    disp([num2str(j), '/', num2str(length(unq_bs_subj_3_sel))])
+    idx = contains(subjs_3, unq_bs_subj_3_sel{j})==1;
+    bst_process('CallProcess', 'process_average', s_in(idx), [], ...
+        'avgtype',         1, ...  % Everything
+        'avg_func',        1, ...  % Arithmetic average:  mean(x)
+        'weighted',        0, ...
+        'Comment', ['Anim_', unq_bs_subj_3_sel{j}], ...
+        'scalenormalized', 0);
+end
+
+s_in = sFiles_name(idx_2_smooth);
+for j=1:length(unq_bs_subj_2_sel)
+    disp([num2str(j), '/', num2str(length(unq_bs_subj_2_sel))])
+    idx = contains(subjs_2, unq_bs_subj_2_sel{j})==1;
+    bst_process('CallProcess', 'process_average', s_in(idx), [], ...
+        'avgtype',         1, ...  % Everything
+        'avg_func',        1, ...  % Arithmetic average:  mean(x)
+        'weighted',        0, ...
+        'Comment', ['Symbol_', unq_bs_subj_2_sel{j}], ...
+        'scalenormalized', 0);
+end
+
+%%
+
 s_in = sFiles_name(idx_3_smooth);
 for j=1:length(unq_bs_subj_3)
     disp([num2str(j), '/', num2str(length(unq_bs_subj_3))])
