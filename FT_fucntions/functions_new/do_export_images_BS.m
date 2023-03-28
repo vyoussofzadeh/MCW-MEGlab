@@ -11,11 +11,11 @@ disp('===========')
 
 
 disp('righ-click on the source map file/File/view file history')
-% BSpath = input('2: enter BS path:'); 
+% BSpath = input('2: enter BS path:');
 BSpath = cfg_in.BSpath;
 BSpath = strrep(BSpath, ' ', '');
 
-% fname = input('3: enter BS source FileName:'); 
+% fname = input('3: enter BS source FileName:');
 fname = cfg_in.fname;
 fname = strrep(fname, ' ', '');
 disp('===========')
@@ -25,17 +25,21 @@ cd(BSpath)
 
 
 %%
-sfile = load(fname);
-svname = sfile.Comment;
-disp(['suggesting name:',svname]);
-name_sel = input('1-suggested name, 2-other names:');
-
-if name_sel == 2
-    svname = input('enter saving name:','s');
-else
+if ~isempty(cfg_in.svname)   
+    svname = cfg_in.svname;    
+else    
+    sfile = load(fname);
     svname = sfile.Comment;
+    disp(['suggesting name:',svname]);
+    name_sel = input('1-suggested name, 2-other names:');
+    
+    if name_sel == 2
+        svname = input('enter saving name:','s');
+    else
+        svname = sfile.Comment;
+    end
+    disp('===========')
 end
-disp('===========')
 
 %%
 clc
