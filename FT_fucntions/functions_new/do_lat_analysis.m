@@ -18,11 +18,11 @@ LI = []; roi_idx = [];
 for j=1:size(wi,1)
     
     timind1 = nearest(tmp.Time, wi(j,1)); timind2 = nearest(tmp.Time, wi(j,2));
-    [parcelval,rois] = do_sourceparcell_surface(atlas,mean(tmp.ImageGridAmp(:,timind1:timind2),2));
-    [~, idx, ~] = do_barplot_ecp(parcelval,rois, thre, 2);
+    [parcelval,rois] = do_sourceparcell_surface(atlas,nanmean(tmp.ImageGridAmp(:,timind1:timind2),2));
+    [~, idx, ~] = do_barplot_ecp(parcelval,rois, thre, 0);
     
-    m_left = mean(parcelval(idx_L));
-    m_right = mean(parcelval(idx_R));
+    m_left = nanmean(parcelval(idx_L));
+    m_right = nanmean(parcelval(idx_R));
     
     LI(j) = (m_left - m_right)./ (m_left + m_right);
     roi_idx = [roi_idx, idx];
