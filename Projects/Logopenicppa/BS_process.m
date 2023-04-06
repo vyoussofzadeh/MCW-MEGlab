@@ -43,8 +43,6 @@ cfg.tag = tag;
 datafile = do_datalookup(cfg);
 
 %%
-
-
 % Input files
 sFiles = {...
     'link|32037_001_1/Run04_CRM_run2_raw_clean_low/results_PNAI_MEG_GRAD_MEG_MAG_KERNEL_220309_1220.mat|32037_001_1/Run04_CRM_run2_raw_clean_low/data_1_average_220309_1220.mat', ...

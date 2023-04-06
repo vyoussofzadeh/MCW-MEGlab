@@ -55,6 +55,9 @@ clc, close all
 cfg = []; Data_hcp_atlas = ecpfunc_hcp_atlas(cfg);
 
 %% Time intervals (window)
+cfg.strt = 0;
+cfg.spt = 2;
+cfg.overlap = 0.01;
 wi  = do_time_intervals(cfg);
 
 %%

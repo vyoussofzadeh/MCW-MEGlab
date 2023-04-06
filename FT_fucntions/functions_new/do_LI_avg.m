@@ -7,7 +7,6 @@ BS_data_dir = cfg_main.BS_data_dir;
 Data_hcp_atlas = cfg_main.Data_hcp_atlas;
 wi = cfg_main.wi;
 
-
 %%
 idx_R_whole = []; for i=1:length(idx_R), idx_R_whole = [idx_R_whole, idx_R{i}]; end
 idx_L_whole = []; for i=1:length(idx_L), idx_L_whole = [idx_L_whole, idx_L{i}]; end
