@@ -52,7 +52,7 @@ for df = 1:length(data_sel)
     subjdir = D.ss{d_sel};
     datafile = D.datafile{d_sel};
     
-    %% 4D layout
+    %% elekta layout
     cfg = [];
     cfg.layout = 'neuromag306mag.lay';
     lay = ft_prepare_layout(cfg);

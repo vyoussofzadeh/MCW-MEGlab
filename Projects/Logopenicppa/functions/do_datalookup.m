@@ -5,7 +5,7 @@ tag = cfg_main.tag;
 
 
 %%
-tag = 'Run'; %- Semantic decision
+% tag = 'Run'; %- Semantic decision
 
 % clc
 % if exist(['datalog_',tag,'.mat'], 'file') == 2
@@ -28,7 +28,7 @@ datafile_fif = vertcat(datafile_fif,datafile);
 datafile_fif = datafile_fif';
 %     save(['datalog_',tag,'.mat'],'datafile_fif','subj_all', 'sub')
 % end
-disp(datafile_fif)
+% disp(datafile_fif)
 
 %%
 datafile = [];

@@ -33,11 +33,18 @@ else
             individual_org = MRI_BC;
         end
         
-        cfg                 = [];
-        cfg.resolution      = 1;
-        cfg.dim             = [256 256 256];
-        individual_org_resliced2        = ft_volumereslice(cfg, individual_org);
-        ft_sourceplot([], individual_org_resliced2);
+        
+        disp('Yes = 1, No = 2')
+        reslice_ask = input('volumereslice?');
+        if reslice_ask == 1
+            cfg                 = [];
+            cfg.resolution      = 1;
+            cfg.dim             = [256 256 256];
+            individual_org_resliced2        = ft_volumereslice(cfg, individual_org);
+            ft_sourceplot([], individual_org_resliced2);
+        else
+            individual_org_resliced2 = individual_org;
+        end
         
         disp('Yes = 1, No = 2')
         slice_ask = input('is this looking acceptable?');
@@ -146,7 +153,8 @@ end
 if cfg_main.plotflag == 1
     %%
     figure;
-    ft_plot_vol(individual_headmodel, 'facecolor', 'cortex', 'edgecolor', 'none');alpha 0.5; camlight;
+%     ft_plot_vol(individual_headmodel, 'facecolor', 'cortex', 'edgecolor', 'none');alpha 0.5; camlight;
+    ft_plot_mesh(individual_headmodel.bnd, 'facecolor', 'cortex', 'edgecolor', 'none');alpha 0.5; camlight;
     hold on;
     ft_plot_headshape(headshape);
     ft_plot_mesh(individual_grid_10mm.pos(individual_grid_10mm.inside, :));
@@ -154,7 +162,8 @@ if cfg_main.plotflag == 1
     
     %% plotting
     sens = ft_read_sens(cfg_main.hsfile); sens = ft_convert_units(sens, 'mm');
-    figure; ft_plot_vol(individual_headmodel, 'facecolor', 'cortex', 'edgecolor', 'none'); camlight;
+%     figure; ft_plot_vol(individual_headmodel, 'facecolor', 'cortex', 'edgecolor', 'none'); camlight;
+    figure; ft_plot_mesh(individual_headmodel.bnd, 'facecolor', 'cortex', 'edgecolor', 'none');camlight;
     hold on; ft_plot_sens(sens)
     ft_plot_headshape(headshape);
     

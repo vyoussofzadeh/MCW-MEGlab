@@ -8,7 +8,8 @@ indir = '/group/bgross/work/CIDMEG/RawData/cidmeg_1/220517/tsss';
 outdir = '/group/bgross/work/CIDMEG/analysis/process';
 
 %
-ft_path = fullfile('/opt/matlab_toolboxes/ft_packages/fieldtrip_20190419');
+% ft_path = fullfile('/opt/matlab_toolboxes/ft_packages/fieldtrip_20190419');
+ft_path ='/opt/matlab_toolboxes/ft_packages/Stable_version/fieldtrip-master';
 addpath(ft_path);
 ft_defaults
 
