@@ -1,11 +1,20 @@
-function [mri_realigned,individual_headmodel,headshape, individual_grid_8mm, individual_grid_10mm, brain] = do_anatomy(cfg_main)
+function anat = do_anatomy(cfg_main)
 
-cd(cfg_main.outputmridir)
+AnatDir = cfg_main.outputmridir;
+cd(AnatDir)
 
 if exist(fullfile(cfg_main.outputmridir,['anat_',cfg_main.subj,'.mat']), 'file') == 2
     load(fullfile(cfg_main.outputmridir,['anat_',cfg_main.subj,'.mat']));
     load(fullfile(cfg_main.outputmridir,['mesh8mm_',cfg_main.subj,'.mat']));
     load(fullfile(cfg_main.outputmridir,['mesh10mm_',cfg_main.subj,'.mat']));
+    
+    anat = [];
+    anat.mri_realigned = mri_realigned;
+    anat.individual_headmodel = individual_headmodel;
+    anat.headshape = headshape;
+    anat.brain = brain;
+    anat.individual_grid_8mm = individual_grid_8mm;
+    anat.individual_grid_10mm = individual_grid_10mm;
 else
     if exist(cfg_main.mripfile,'file')== 2
         
@@ -23,16 +32,17 @@ else
         cfg.parameter       = 'anatomy';
         ft_sourceplot([], individual_org);
         
-        bc = 2;
-        if bc ==1
-            addpath(fullfile(allpath.ft_path,'/external/spm8'));
-            biasfield = spm_bias_estimate('T1.nii');
-            spm_bias_apply('T1.nii', biasfield);
-            MRI_BC = ft_read_mri('mT1.nii');
-            figure, ft_sourceplot([], MRI_BC);
+        disp('Yes = 1, No = 2')
+        bc = input('bias correction?');
+        if bc ==1 %Bias correction
+            ft_write_mri('BC.nii', individual_org, 'dataformat', 'nifti');
+            addpath(fullfile(cfg_main.all_path.ft_path,'/external/spm8'));
+            biasfield = spm_bias_estimate('BC.nii');
+            spm_bias_apply('BC.nii', biasfield);
+            MRI_BC = ft_read_mri('mBC.nii');
+            ft_sourceplot([], MRI_BC);
             individual_org = MRI_BC;
         end
-        
         
         disp('Yes = 1, No = 2')
         reslice_ask = input('volumereslice?');
@@ -113,11 +123,23 @@ else
         plot3(fid.pos(RPA_idx,1), fid.pos(RPA_idx,2), fid.pos(RPA_idx,3), 'm.','MarkerSize',80);
         
         %%
-        cfg = [];
-        cfg.output = 'brain';
-        cfg.spmversion = 'spm12';
-        cfg.coordsys  = 'neuromag';
-        brain = ft_volumesegment(cfg, individual_mri_spm);
+        disp('FT = 1, SPM = 2')
+        seg_ask = input('volume segment?');
+        switch seg_ask
+            case 1
+                %
+                cfg = [];
+                cfg.output = 'brain';
+                cfg.spmversion = 'spm12';
+                cfg.coordsys  = 'neuromag';
+                brain = ft_volumesegment(cfg, individual_mri_spm);
+            case 2
+                ft_write_mri(fullfile(AnatDir, 'in_Seg.nii'), individual_mri_spm, 'dataformat', 'nifti');
+                cfg = [];
+                cfg.spm_path = cfg_main.all_path.spmpath;
+                cfg.nii_file = 'in_Seg.nii';
+                brain = do_spm_segmentation(cfg);
+        end
         
         %%
         brain.transform = mri_realigned.transform;
@@ -143,17 +165,31 @@ else
         individual_grid_8mm     = ft_prepare_sourcemodel(cfg);
         
         %%
-        save(fullfile(cfg_main.outputmridir,['anat_',cfg_main.subj,'.mat']), 'brain','mri_realigned','individual_headmodel','headshape');
-        save(fullfile(cfg_main.outputmridir,['mesh8mm_',cfg_main.subj,'.mat']), 'individual_grid_8mm');
-        save(fullfile(cfg_main.outputmridir,['mesh10mm_',cfg_main.subj,'.mat']), 'individual_grid_10mm');
+        % Get a list of all .nii files in the directory and, loop through each .nii file and delete it
+        niiFiles = dir(fullfile(AnatDir, 'c*.nii'));
+        for i = 1:numel(niiFiles)
+            filePath = fullfile(AnatDir, niiFiles(i).name); delete(filePath); fprintf('Deleted file: %s\n', filePath);
+        end
+        
     end
+    anat = [];
+    anat.mri_realigned = mri_realigned;
+    anat.individual_headmodel = individual_headmodel;
+    anat.headshape = headshape;
+    anat.brain = brain;
+    anat.individual_grid_8mm = individual_grid_8mm;
+    anat.individual_grid_10mm = individual_grid_10mm;
+    
+    save(fullfile(cfg_main.outputmridir,['anat_',cfg_main.subj,'.mat']), 'brain','mri_realigned','individual_headmodel','headshape');
+    save(fullfile(cfg_main.outputmridir,['mesh8mm_',cfg_main.subj,'.mat']), 'individual_grid_8mm');
+    save(fullfile(cfg_main.outputmridir,['mesh10mm_',cfg_main.subj,'.mat']), 'individual_grid_10mm');
+    
 end
 
 %% Quick inspection
 if cfg_main.plotflag == 1
     %%
     figure;
-%     ft_plot_vol(individual_headmodel, 'facecolor', 'cortex', 'edgecolor', 'none');alpha 0.5; camlight;
     ft_plot_mesh(individual_headmodel.bnd, 'facecolor', 'cortex', 'edgecolor', 'none');alpha 0.5; camlight;
     hold on;
     ft_plot_headshape(headshape);
@@ -162,7 +198,6 @@ if cfg_main.plotflag == 1
     
     %% plotting
     sens = ft_read_sens(cfg_main.hsfile); sens = ft_convert_units(sens, 'mm');
-%     figure; ft_plot_vol(individual_headmodel, 'facecolor', 'cortex', 'edgecolor', 'none'); camlight;
     figure; ft_plot_mesh(individual_headmodel.bnd, 'facecolor', 'cortex', 'edgecolor', 'none');camlight;
     hold on; ft_plot_sens(sens)
     ft_plot_headshape(headshape);

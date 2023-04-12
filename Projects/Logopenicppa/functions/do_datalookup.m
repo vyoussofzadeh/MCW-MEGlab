@@ -23,6 +23,8 @@ for i=1:length(d)
     task{i} = tkz{2};
     run{i} = tkz{1};
     task_run{i} = [tkz{1},'_', tkz{2}];
+    idx = strfind(datafile{i},'_00');
+    subj{i} = datafile{i}(idx+3);
 end
 datafile_fif = vertcat(datafile_fif,datafile);
 datafile_fif = datafile_fif';
@@ -36,4 +38,5 @@ datafile.datafile_fif = datafile_fif;
 datafile.task_run = task_run;
 datafile.task = task;
 datafile.run = run;
+datafile.subj = subj;
 
