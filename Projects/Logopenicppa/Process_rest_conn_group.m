@@ -43,7 +43,6 @@ for i=1:length(ddd)
 end
 mconn_val = nanmean(conn_val,4);
 
-
 source_conn1 = conn.source_conn1;
 source_conn1.wpli_debiasedspctrm = mconn_val;
 par = conn.par;
