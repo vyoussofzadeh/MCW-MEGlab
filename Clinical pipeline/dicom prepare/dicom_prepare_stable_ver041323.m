@@ -3,7 +3,9 @@ clc, clear, close all,
 % set(0,'DefaultFigureWindowStyle','normal')
 
 %%
-% cd_org = '/MEG_data/Vahab/Github/MCW-MEGlab/FT/Clinical pipeline/dicom prepare';
+cd_org = '/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab/MCW_MEGlab_git/Clinical pipeline/dicom prepare';
+addpath(cd_org)
+
 path_tools = '/usr/local/MATLAB_Tools';
 set_ft(path_tools)
 
@@ -27,11 +29,11 @@ tkz = tokenize(dicomfile_MR,'/');
 disp(tkz');
 
 % disp('/MEG_data/Vahab/Github/MCW-MEGlab/FT/Clinical pipeline/dicom prepare/Export/Parra_J')
-savedir = '/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab/FT/Clinical pipeline/dicom prepare/Export/Hinton_Walter';
+savedir = '/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab/FT/Clinical pipeline/dicom prepare/Export/';
 % savedir = '/MEG_data/Vahab/Github/MCW-MEGlab/FT/Clinical pipeline/dicom_prepare/Export/';
 % savedir = '/MEG_data/Vahab/Github/MCW-MEGlab/FT/Clinical pipeline/dicom prepare/Export/Parra_J';
 cd(savedir)
-subname = input('enter subject name last_first:');
+subname = input('enter subject name last_first:','s');
 if exist(fullfile(savedir,subname), 'file') == 0, mkdir(fullfile(savedir,subname)); end
 % T1 = ft_read_mri('T1_BS.nii');
 
@@ -44,11 +46,12 @@ reportdir = uigetdir;
 
 % reportdir = '/MEG_data/epilepsy/parra_jocelyn/211015/report/Spikes';
 cd(reportdir);
+
 %%
 T1_nii = uigetfile ({'*.nii','T1 (*.nii)'},'select T1 nii');
-T1 = ft_read_mri(T1_nii);
+T1 = ft_read_mri(T1_nii); ft_sourceplot([], T1);
 dip_nii = uigetfile ({'*.nii','dip (*.nii)'},'select dipole nii');
-dip = ft_read_mri(dip_nii);
+dip = ft_read_mri(dip_nii); ft_sourceplot([], dip);
 
 %%
 cd(subdir)
@@ -82,12 +85,13 @@ ft_sourceplot([], T1);
 
 %% SPM coreg, estimate and reslice
 cd(subdir)
-
+addpath(cd_org)
 set_spm(path_tools)
+% set_spm
+
 nii_filename1 = 'dicom_MR.nii'; % 256x256x150
 nii_filename2 = 'T1.nii';       % 256x256x256
 nii_filename3 = 'dip.nii';      % 256x256x256
-
 
 matlabbatch{1}.spm.spatial.coreg.estwrite.ref = {[nii_filename1,',1']};
 matlabbatch{1}.spm.spatial.coreg.estwrite.source = {[nii_filename2,',1']};
@@ -125,13 +129,16 @@ ft_sourceplot([], ovT1_dip);
 
 %%
 [a,b] = fileparts(dicomfile_MR);
-addpath('/MEG_data/Vahab/Github/MCW-MEGlab/FT/functions/External');
-d = rdir(fullfile(a,'EXP*'));
+addpath('/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab/MCW_MEGlab_git/FT_fucntions/External/Miscellaneous');
+% d = rdir(fullfile(a,'EXP*'));
+d = rdir(fullfile(a,'dicom-*'));
 
 metadata_all = [];
 for i=1:length(d)
     metadata = dicominfo(d(i).name);
+%     disp(d(i).name)
     metadata_all{i}=metadata;
+%     metadata.SliceLocation
 end
 
 %%
@@ -149,8 +156,17 @@ for i=1:size(rT1.anatomy,3)
     end
     %     dicomwrite(I,dicome_name, metadata_all{i});
     dicomwrite(I,fullfile(outd,dicome_name), metadata_all{i});
-end
+    
+    metadata  = metadata_all{i};    
+    dicomImage = dicomread(fullfile(outd,dicome_name));
+    dicomInfo = dicominfo(fullfile(outd,dicome_name));
+    dicomInfo.SliceLocation = metadata.SliceLocation;
+    dicomInfo.ImagePositionPatient = metadata.ImagePositionPatient;
+    dicomInfo.ImageOrientationPatient = metadata.ImageOrientationPatient;
+    dicomInfo.PixelSpacing = metadata.PixelSpacing;
+    dicomwrite(dicomImage, fullfile(outd,dicome_name), dicomInfo, 'CreateMode', 'copy');
 
+end
 
 outd = fullfile(subdir,'dicom','dip'); if exist(outd, 'file') == 0, mkdir(outd); end
 for i=1:size(r_dip.anatomy,3)
@@ -164,6 +180,15 @@ for i=1:size(r_dip.anatomy,3)
     end
     %     dicomwrite(I,dicome_name, metadata_all{i});
     dicomwrite(I,fullfile(outd,dicome_name),metadata_all{i});
+    
+    metadata  = metadata_all{i};
+    dicomImage = dicomread(fullfile(outd,dicome_name));
+    dicomInfo = dicominfo(fullfile(outd,dicome_name));
+    dicomInfo.SliceLocation = metadata.SliceLocation;
+    dicomInfo.ImagePositionPatient = metadata.ImagePositionPatient;
+    dicomInfo.ImageOrientationPatient = metadata.ImageOrientationPatient;
+    dicomInfo.PixelSpacing = metadata.PixelSpacing;
+    dicomwrite(dicomImage, fullfile(outd,dicome_name), dicomInfo, 'CreateMode', 'copy');
 end
 
 
@@ -182,6 +207,15 @@ for i=1:size(ovT1_dip.anatomy,3)
     end
     %     dicomwrite(I,dicome_name, metadata_all{i});
     dicomwrite(I,fullfile(outd,dicome_name), metadata_all{i});
+    
+    metadata  = metadata_all{i};
+    dicomImage = dicomread(fullfile(outd,dicome_name));
+    dicomInfo = dicominfo(fullfile(outd,dicome_name));
+    dicomInfo.SliceLocation = metadata.SliceLocation;
+    dicomInfo.ImagePositionPatient = metadata.ImagePositionPatient;
+    dicomInfo.ImageOrientationPatient = metadata.ImageOrientationPatient;
+    dicomInfo.PixelSpacing = metadata.PixelSpacing;
+    dicomwrite(dicomImage, fullfile(outd,dicome_name), dicomInfo, 'CreateMode', 'copy');
 end
 
 %% CHECKING DICOM outputs
