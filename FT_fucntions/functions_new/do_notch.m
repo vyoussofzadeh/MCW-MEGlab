@@ -8,6 +8,7 @@ cfg.foilim = [2 100];
 cfg.plotflag  = 1;
 cfg.tapsmofrq = 8;
 cfg.taper     = 'hanning';
+cfg.pad = cfg_main.pad;
 [freq,ff,psd] = do_fft(cfg, datain);
 grid on
 grid minor
@@ -43,6 +44,7 @@ cfg.foilim = [2 100];
 cfg.plotflag  = 1;
 cfg.tapsmofrq = 5;
 cfg.taper     = 'hanning';
+cfg.pad = cfg_main.pad;
 do_fft(cfg, dataout);
 grid on
 grid minor

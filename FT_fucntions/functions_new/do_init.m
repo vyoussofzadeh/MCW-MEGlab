@@ -1,4 +1,4 @@
-function [allpath] = do_init(cfg)
+function [allpath, atlas] = do_init(cfg)
 
 cd_org = cd;
 addpath(genpath(cd_org));
@@ -25,8 +25,8 @@ hcp_path = fullfile(cfg.path_tools,'/megconnectome-3.0');
 addpath(genpath(hcp_path));
 
 %- atlas
-% atlas_path = fullfile(ft_path,'template','atlas');
-% atlas = ft_read_atlas(fullfile(atlas_path,'aal/ROI_MNI_V4.nii'));
+atlas_path = fullfile(ft_path,'template','atlas');
+atlas = ft_read_atlas(fullfile(atlas_path,'aal/ROI_MNI_V4.nii'));
 
 %-Grid template
 % load temp_grid_8mm % from, vy_warping()

@@ -1,7 +1,7 @@
-%% ECP Semantic decision task dataset, Medical College of Wisconsin
+%% Logopenicppa dataset, Medical College of Wisconsin
 
 % Script: BS Process (preprocessing, source analysis)
-% Project: ECP_SD
+% Project: Logopenicppa_CRM
 % Writtern by: Vahab YoussofZadeh
 % Update: 01/04/2023
 
@@ -22,7 +22,7 @@ addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/functions_new')
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/Colormaps-from-MatPlotLib2.0')
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/Miscellaneous')
-
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/Logopenicppa/functions')
 
 %%
 % adding BS path
@@ -32,11 +32,33 @@ brainstorm
 disp('choose DB from BS, then enter!');
 pause
 
-BS_dir = '/data/MEG/Research/logopenicppa/BS_process/Copy_of_Logopenicppa_CRM';
+BS_dir = '/data/MEG/Research/logopenicppa/BS_process/Logopenicppa_CRM_new';
 BS_data_dir = fullfile(BS_dir,'data');
 protocol = fullfile(BS_dir, 'data/protocol.mat');
 
-%% Project to default template
+%% Loading up raw data
+cfg = [];
+cfg.indir = indir;
+cfg.tag = tag;
+datafile = do_datalookup(cfg);
+
+%%
+% Input files
+sFiles = {...
+    'link|32037_001_1/Run04_CRM_run2_raw_clean_low/results_PNAI_MEG_GRAD_MEG_MAG_KERNEL_220309_1220.mat|32037_001_1/Run04_CRM_run2_raw_clean_low/data_1_average_220309_1220.mat', ...
+    'link|32037_001_1/Run03_CRM_run1_raw_clean_low/results_PNAI_MEG_GRAD_MEG_MAG_KERNEL_220309_1431.mat|32037_001_1/Run03_CRM_run1_raw_clean_low/data_1_average_220309_1431.mat'};
+
+% Start a new report
+bst_report('Start', sFiles);
+
+% Process: Average: Everything
+sFiles = bst_process('CallProcess', 'process_average', sFiles, [], ...
+    'avgtype',         1, ...  % Everything
+    'avg_func',        1, ...  % Arithmetic average:  mean(x)
+    'weighted',        0, ...
+    'scalenormalized', 0);
+
+%% intra sub avg.
 destSurfFile = '@default_subject/tess_cortex_pial_low.mat';
 
 load(protocol);
@@ -49,150 +71,160 @@ for i=1:length(Subj)
 end
 
 subj = ProtocolSubjects;
+tag = 'CRM*raw_clean_low'; %- Semantic decision
 
 datatag = {'1'};
 for ii = 1:length(subj)
     cd(fullfile(BS_data_dir,subj{ii}))
-    dd = rdir(['./*',tag,'*/results_PNAI*.mat']);
-    for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
-    sFiles1 = []; sFiles_name = [];
-    for jj=1:length(dd)
-        sFiles1{jj} = fullfile(subj{ii},dd(jj).name);
-        [aa,bb] = fileparts(dd(jj).name);
-        sFiles_name{jj} = aa;
+    
+    dd1 = rdir('./@intra/results_average_*.mat');
+    Comments = [];
+    for jj=1:length(dd1)
+        tmp = load(dd1(jj).name);
+        Comments{jj} = tmp.Comment;
     end
-    for j=1:length(sFiles1)
-        cd(BS_data_dir)
-        tmp  = load(sFiles1{j}); disp(tmp.Comment(1))
-        dtagsel = find(contains(datatag,tmp.Comment(1))==1);
-        d = rdir(['./',fileparts(sFiles1{j}), '/data_', datatag{dtagsel}, '_average*.mat']);
-        disp(sFiles1{j})
-        if length(d) > 1
-            for jj=1:length(d)
-                tmp2 = load(d(jj).name);
-                disp([num2str(jj), ': ', tmp2.Comment])
+    
+    if isempty(find(contains(Comments, subj{ii})==1, 1))        
+        dd = rdir(['./*',tag,'*/results_PNAI*.mat']);
+        for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
+        sFiles1 = []; sFiles_name = [];
+        for jj=1:length(dd)
+            sFiles1{jj} = fullfile(subj{ii},dd(jj).name);
+            [aa,bb] = fileparts(dd(jj).name);
+            sFiles_name{jj} = aa;
+        end
+        
+        sFiles2 = [];
+        k=1;
+        for j=1:length(sFiles1)
+            cd(BS_data_dir)
+            tmp  = load(sFiles1{j});
+            disp(tmp.Comment)
+            d = rdir(['./', fileparts(sFiles1{j}), '/data_', datatag{1}, '_average*.mat']);
+            disp(sFiles1{j})
+            if length(d) > 1
+                for jj=1:length(d)
+                    tmp2 = load(d(jj).name);
+                    disp([num2str(jj), ': ', tmp2.Comment])
+                end
+                del_sel = input('sel_del:');
+                delete(d(del_sel).name)
+                d = rdir(['./',fileparts(sFiles1{j}), '/data_', datatag{dtagsel}, '_average*.mat']);
             end
-            del_sel = input('sel_del:');
-            delete(d(del_sel).name)
-            d = rdir(['./',fileparts(sFiles1{j}), '/data_', datatag{dtagsel}, '_average*.mat']);
-        end
-        sFiles2 = ['link|',sFiles1{j}, '|',d.name(3:end)];
-        
-        tkz = tokenize(sFiles1{j},'/');
-        d_name = [];
-        dd = rdir(fullfile(BS_data_dir, '/Group_analysis', tkz{2}, 'results_*.mat'));
-        
-        for jj = 1:length(dd)
-            d_name{jj} = dd(jj).name;
-        end
-        tkz2 = tokenize(sFiles1{j},'_');
-        
-        % --- Condition OK
-        nn = d.name(3:end);
-        idd = strfind(nn,'data_');
-        
-        cond_ok = [];
-        if ~isempty(d_name)
-            tmp_comment = [];
-            for k=1:length(d_name)
-                tmp  = load(d_name{k});
-                tmp_comment{k} = tmp.Comment;
+            if ~contains(tmp.Comment, 'ms')
+                sFiles2{k} = ['link|',sFiles1{j}, '|',d.name(3:end)]; k=k+1;
             end
-            cond_ok = double(isempty(find(contains(tmp_comment,[' ',nn(idd+5),' ']), 1)));
-        else
-            cond_ok = 0;
-        end
-        %---
-        
-        if isempty(d_name)
-            run_ok =1;
-        elseif ~contains(d_name, tkz2{end}(1:end-4))
-            run_ok =1;
-        else
-            run_ok = 0;
         end
         
-        if (run_ok ==1) || (cond_ok == 1)
-            pause
-%             sFiles = bst_process('CallProcess', 'process_project_sources', sFiles2, [], ...
-%                 'headmodeltype', 'surface');  % Cortex surface
-            sFiles = bst_project_sources({sFiles2}, destSurfFile, 0, 1);
-        end
+        disp(sFiles2')
+        disp(subj{ii})
+        % Process: Average: Everything
+        bst_process('CallProcess', 'process_average', sFiles2, [], ...
+            'avgtype',         1, ...  % Everything
+            'avg_func',        1, ...  % Arithmetic average:  mean(x)
+            'weighted',        0, ...
+            'Comment',        ['Avg:', subj{ii}], ...
+            'scalenormalized', 0);
+    end
+end
+
+
+%%
+cd(BS_data_dir)
+dd = rdir(fullfile('./Group_analysis/*/results_*.mat'));
+
+Comments_all = [];
+for jj=1:length(dd)
+    tmp = load(dd(jj).name);
+    Comments_all{jj} = tmp.Comment;
+end
+
+
+for ii = 1:length(subj)
+    disp(subj{ii})
+    cd(fullfile(BS_data_dir,subj{ii}))    
+    dd1 = rdir('./@intra/results_average_*.mat');
+    Comments = [];
+    for jj=1:length(dd1)
+        tmp = load(dd1(jj).name);
+        Comments{jj} = tmp.Comment;
+    end
+    
+    if ~contains(Comments_all, subj{ii})
+        idx = contains(Comments, subj{ii})==1;
+%         pause,
+        sFiles = bst_project_sources({fullfile(subj{ii}, dd1(idx).name)}, destSurfFile, 0, 1);
     end
 end
 
 %% Loading up raw data
-cd(indir)
-tag = 'CRM'; %- Semantic decision
-
-clc
-if exist(['datalog_',tag,'.mat'], 'file') == 2
-    load(['datalog_',tag,'.mat'])
-else
-    clear datafolder datafile subj_all sub
-    datafile_fif = [];
-    d1 = rdir([indir,['/**/tsss/','*CRM*_raw.fif']]);
-%     d2 = rdir([indir,['/**/tsss/*',tag,'*_raw_tsss.fif']]);
-    d = d1;
-    for i=1:length(d)
-        [pathstr, name] = fileparts(d(i).name);
-        datafolder{i} = pathstr;
-        datafile{i} = d(i).name;
-        Index = strfind(datafile{i}, '/');
-        sub{i} = datafile{i}(Index(6)+1:Index(7)-1);
-        subj_all{i} = [num2str(i), ': ', datafile{i}(Index(6)+1:Index(7)-1)];
-    end
-    datafile_fif = vertcat(datafile_fif,datafile);
-    datafile_fif = datafile_fif';
-    save(['datalog_',tag,'.mat'],'datafile_fif','subj_all', 'sub')
-end
-disp(datafile_fif)
-
-%%
-d = rdir([BS_data_dir,'/*/Run*_low/results*KERNEL*.mat']);
-
-clear subj subj_data unq_bs_subj
-for i=1:length(d)
-    %     tmp = load(d(i).name);
-    tkz  = tokenize(d(i).name,'/');
-    subj{i} = tkz{end-2};
-    subj_data{i} = tkz{end-1};
-end
-unq_bs_subj = unique(subj);
+% cd(indir)
+% 
+% clc
+% if exist(['datalog_',tag,'.mat'], 'file') == 2
+%     load(['datalog_',tag,'.mat'])
+% else
+%     clear datafolder datafile subj_all sub
+%     datafile_fif = [];
+%     d1 = rdir([indir,['/**/tsss/','*CRM*_raw.fif']]);
+% %     d2 = rdir([indir,['/**/tsss/*',tag,'*_raw_tsss.fif']]);
+%     d = d1;
+%     for i=1:length(d)
+%         [pathstr, name] = fileparts(d(i).name);
+%         datafolder{i} = pathstr;
+%         datafile{i} = d(i).name;
+%         Index = strfind(datafile{i}, '/');
+%         sub{i} = datafile{i}(Index(6)+1:Index(7)-1);
+%         subj_all{i} = [num2str(i), ': ', datafile{i}(Index(6)+1:Index(7)-1)];
+%     end
+%     datafile_fif = vertcat(datafile_fif,datafile);
+%     datafile_fif = datafile_fif';
+%     save(['datalog_',tag,'.mat'],'datafile_fif','subj_all', 'sub')
+% end
+% disp(datafile_fif)
 
 %%
-destSurfFile = '@default_subject/tess_cortex_pial_low.mat';
-
-clc
-clear nsFiles
-for  i=1:length(unq_bs_subj)
-    idx = find(contains(subj, unq_bs_subj{i})==1);
-    if length(idx)==2
-        for j=1:length(idx)
-            D_name = d(idx(j)).name;
-            tmp = load(D_name);
-            disp(D_name);
-            idx2 = strfind(D_name,'/data/');
-            [pathstr1, name1] = fileparts(D_name);
-            d2 = rdir([pathstr1,'/data_1_average*.mat']); 
-            [pathstr2, name2] = fileparts(d2.name);
-            [pathstr3, name3] = fileparts(D_name(idx2(2)+6:end));
-            sFiles{j} = ['link|', D_name(idx2(2)+6:end),'|', pathstr3, '/', name2,'.mat'];
-            nsFiles(j) = bst_project_sources({sFiles{j}}, destSurfFile, 0, 1);
-        end
-        % Process: Average: Everything
-        bst_process('CallProcess', 'process_average', nsFiles, [], ...
-            'avgtype',         1, ...  % Everything
-            'avg_func',        1, ...  % Arithmetic average:  mean(x)
-            'weighted',        0, ...
-            'Comment', unq_bs_subj{i}, ...
-            'scalenormalized', 0);
-%         pause,
-    end
-end
+% d = rdir([BS_data_dir,'/*/Run*_low/results*KERNEL*.mat']);
+% 
+% clear subj subj_data unq_bs_subj
+% for i=1:length(d)
+%     %     tmp = load(d(i).name);
+%     tkz  = tokenize(d(i).name,'/');
+%     subj{i} = tkz{end-2};
+%     subj_data{i} = tkz{end-1};
+% end
+% unq_bs_subj = unique(subj);
 
 %%
-
+% destSurfFile = '@default_subject/tess_cortex_pial_low.mat';
+% 
+% clc
+% clear nsFiles
+% for  i=1:length(unq_bs_subj)
+%     idx = find(contains(subj, unq_bs_subj{i})==1);
+%     if length(idx)==2
+%         for j=1:length(idx)
+%             D_name = d(idx(j)).name;
+%             tmp = load(D_name);
+%             disp(D_name);
+%             idx2 = strfind(D_name,'/data/');
+%             [pathstr1, name1] = fileparts(D_name);
+%             d2 = rdir([pathstr1,'/data_1_average*.mat']); 
+%             [pathstr2, name2] = fileparts(d2.name);
+%             [pathstr3, name3] = fileparts(D_name(idx2(2)+6:end));
+%             sFiles{j} = ['link|', D_name(idx2(2)+6:end),'|', pathstr3, '/', name2,'.mat'];
+%             nsFiles(j) = bst_project_sources({sFiles{j}}, destSurfFile, 0, 1);
+%         end
+%         % Process: Average: Everything
+%         bst_process('CallProcess', 'process_average', nsFiles, [], ...
+%             'avgtype',         1, ...  % Everything
+%             'avg_func',        1, ...  % Arithmetic average:  mean(x)
+%             'weighted',        0, ...
+%             'Comment', unq_bs_subj{i}, ...
+%             'scalenormalized', 0);
+% %         pause,
+%     end
+% end
 
 %%
 db_reload_database('current',1)
@@ -216,65 +248,65 @@ no_anat = {''};
 sub_all1 = setdiff(unq_bs_subj,no_anat);
 
 %% Import raw data
-L_data =length(datafile_fif);
-not_imported = [];
-for ii=1:L_data
-    [~, name] = fileparts(datafile_fif{ii});
-    idx = strfind(name,'_'); 
-    sub_sel = name(3:idx(1)-1); 
-    run_sel = name(idx(2)+1:idx(3)-1);
-    
-    datadir_sub = fullfile(BS_dir,'data/',['32037_',sub_sel]);
-    cd(datadir_sub)
-    idx = strfind(datadir_sub,'/');
-    okrun = find(contains(no_anat,datadir_sub(idx(end)+1:end))==1);
-    if  ~isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_raw']) ...
-            && isempty(okrun) && ...
-            ~isfolder(['@rawEC',sub_sel, '_SD_', run_sel, '_raw'])...
-            && ~isfolder(['@rawEC',sub_sel, '_SD_', run_sel, '_elecfix_raw']) ...
-            && ~isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_elecfix_raw'])...
-            && ~isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_raw_tsss'])
-        iSubject = find(contains(unq_bs_subj, sub_sel)==1);
-        RawFiles = datafile_fif{ii};
-        pause(3),
-        OutputFiles = import_raw(RawFiles, 'FIF', iSubject, [], []);
-    end
-end
+% L_data =length(datafile_fif);
+% not_imported = [];
+% for ii=1:L_data
+%     [~, name] = fileparts(datafile_fif{ii});
+%     idx = strfind(name,'_'); 
+%     sub_sel = name(3:idx(1)-1); 
+%     run_sel = name(idx(2)+1:idx(3)-1);
+%     
+%     datadir_sub = fullfile(BS_dir,'data/',['32037_',sub_sel]);
+%     cd(datadir_sub)
+%     idx = strfind(datadir_sub,'/');
+%     okrun = find(contains(no_anat,datadir_sub(idx(end)+1:end))==1);
+%     if  ~isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_raw']) ...
+%             && isempty(okrun) && ...
+%             ~isfolder(['@rawEC',sub_sel, '_SD_', run_sel, '_raw'])...
+%             && ~isfolder(['@rawEC',sub_sel, '_SD_', run_sel, '_elecfix_raw']) ...
+%             && ~isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_elecfix_raw'])...
+%             && ~isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_raw_tsss'])
+%         iSubject = find(contains(unq_bs_subj, sub_sel)==1);
+%         RawFiles = datafile_fif{ii};
+%         pause(3),
+%         OutputFiles = import_raw(RawFiles, 'FIF', iSubject, [], []);
+%     end
+% end
 
 %% Preprocess raw data
-d1 = rdir(fullfile(BS_data_dir,'/EC*/@raw*/*_raw.mat'));
-d2 = rdir(fullfile(BS_data_dir,'/EC*/@raw*/*_raw_tsss.mat'));
-d = [d1;d2];
-for i=1:length(d)
-    [pathstr, name] = fileparts(d(i).name);
-    [pathstr2, name2] = fileparts(pathstr);
-    [pathstr3, name3] = fileparts(pathstr2);
-    sFiles = {fullfile(name3, name2, [name, '.mat'])};
-    idx = strfind(name,'ec');
-    if isempty(idx)
-        idx = strfind(name,'EC');
-    end
-%     idx1 = strfind(name,'_');
-    idx2 = strfind(name,'run');
-    if isempty(idx2)
-       idx2 = strfind(name,'Run'); 
-    end
-    sub_sel = name(idx+2:idx+5);
-    run_sel = name(idx2+3);
-    cd(pathstr2)
-    if  ~isfolder(['@rawec',sub_sel, '_SD_run', run_sel, '_raw_low']) ...
-            && ~isfolder(['@rawEC',sub_sel, '_SD_run', run_sel, '_raw_low'])...
-            && ~isfolder(['@rawEC',sub_sel, '_SD_run', run_sel, '_elecfix_raw_low'])...
-            && ~isfolder(['@rawec',sub_sel, '_SD_run', run_sel, '_elecfix_raw_low'])...
-            && ~isfolder(['@rawec',sub_sel, '_SD_Run', run_sel, '_raw_low'])...
-            && ~isfolder(['@rawec',sub_sel, '_SD_Run', run_sel, '_raw_tsss_low'])...
-            && ~isfolder(['@rawec',sub_sel, '_SD_run', run_sel, '_raw_tsss_low'])
-        disp(sFiles)
-%         pause,
-%         cd(BS_data_dir)
-        bs_preprocess(sFiles)
-    end
-end
+% d1 = rdir(fullfile(BS_data_dir,'/EC*/@raw*/*_raw.mat'));
+% d2 = rdir(fullfile(BS_data_dir,'/EC*/@raw*/*_raw_tsss.mat'));
+% d = [d1;d2];
+% for i=1:length(d)
+%     [pathstr, name] = fileparts(d(i).name);
+%     [pathstr2, name2] = fileparts(pathstr);
+%     [pathstr3, name3] = fileparts(pathstr2);
+%     sFiles = {fullfile(name3, name2, [name, '.mat'])};
+%     idx = strfind(name,'ec');
+%     if isempty(idx)
+%         idx = strfind(name,'EC');
+%     end
+% %     idx1 = strfind(name,'_');
+%     idx2 = strfind(name,'run');
+%     if isempty(idx2)
+%        idx2 = strfind(name,'Run'); 
+%     end
+%     sub_sel = name(idx+2:idx+5);
+%     run_sel = name(idx2+3);
+%     cd(pathstr2)
+%     if  ~isfolder(['@rawec',sub_sel, '_SD_run', run_sel, '_raw_low']) ...
+%             && ~isfolder(['@rawEC',sub_sel, '_SD_run', run_sel, '_raw_low'])...
+%             && ~isfolder(['@rawEC',sub_sel, '_SD_run', run_sel, '_elecfix_raw_low'])...
+%             && ~isfolder(['@rawec',sub_sel, '_SD_run', run_sel, '_elecfix_raw_low'])...
+%             && ~isfolder(['@rawec',sub_sel, '_SD_Run', run_sel, '_raw_low'])...
+%             && ~isfolder(['@rawec',sub_sel, '_SD_Run', run_sel, '_raw_tsss_low'])...
+%             && ~isfolder(['@rawec',sub_sel, '_SD_run', run_sel, '_raw_tsss_low'])
+%         disp(sFiles)
+% %         pause,
+% %         cd(BS_data_dir)
+%         bs_preprocess(sFiles)
+%     end
+% end
 
 %% Import epoched data
 d1 = rdir(fullfile(BS_data_dir,'/**/@raw*/*raw_low_clean.mat'));
