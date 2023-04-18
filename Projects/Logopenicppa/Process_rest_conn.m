@@ -23,7 +23,7 @@ flag.preproces.artifact = 1;
 flag.preproces.ica = 1;
 flag.ic_selection = 1;
 flag.seed_check = 1;
-flag.anatomy_check = 1;
+flag.anatomy_check = 2;
 
 %% Loading up raw data
 clc
@@ -52,23 +52,26 @@ for i=1:length(datafile.task_run)
     Index = strfind(datafile_sel, '/');
     subj = datafile_sel(Index(6)+1:Index(7)-3);
     Index = strfind(datafile_sel, '32037');
+    Index1 = strfind(datafile_sel, 'Run');
+    run = datafile_sel(Index1+4);
     %     if isempty(Index)
     %         Index = strfind(datafile_sel, 'Run');
     %     end
     %     if isempty(Index)
     %         break,
     %     else
-    run  = datafile_sel(Index+10);
+    session  = datafile_sel(Index+10);
     tkz = tokenize(subj,'_');
     mripfile = fullfile(mridir,[tkz{2}, 's01_T1w.nii']);
-    subdir = fullfile(outdir,subj, tag, run);
+    subdir = fullfile(outdir,subj, tag, session);
     if exist(subdir, 'file') == 0
         mkdir(subdir);   %create the directory
     end
     cd(subdir)
     disp(['outputdir:',subdir])
     
-    savefile_seed_conn = fullfile(subdir,['seed_conn_',subj,'_run_', run, '.mat']);
+%     savefile_seed_conn = fullfile(subdir,['seed_conn_',subj,'_session_', session, '_Run', run, '.mat']);
+    savefile_seed_conn = fullfile(subdir,['seed_conn_',subj,'_run_', run, '.mat']); 
     if exist(mripfile,'file')== 2 && exist(savefile_seed_conn,'file') ~=2
         
         disp(datafile_sel)
@@ -78,9 +81,7 @@ for i=1:length(datafile.task_run)
         %-elec/grad
         sens = ft_read_sens(datafile_sel);
         sens = ft_convert_units(sens,'mm');
-        
-        
-        
+
         %% Updating datalog
         Datalog = [];
         Datalog.subj = subj;
@@ -141,7 +142,6 @@ for i=1:length(datafile.task_run)
         
         %% Choosing mesh
         flag.meshgrid_sel = 1;
-        choose_grid = 2;
         switch flag.meshgrid_sel
             case 1
                 meshtag = 'lowres';
@@ -179,27 +179,37 @@ for i=1:length(datafile.task_run)
         cfg.Datalog = Datalog;
         seed_coor = do_seed_inspection(cfg);
         
-        %%
+        %%    
+        pflag = [];
+        pflag.allconn = 2;
+        pflag.grid = 2;
+        pflag.grid_seed = 2;
+        pflag.aal = 2;
+        
+        sflag = [];
+        sflag.seed = 1;
+        sflag.seed_map = 1;
+        sflag.seed_conn = 1;
+ 
         cd(subdir)
         cfg = [];
         cfg.cov_matrix = cov_matrix;
         cfg.seed = seed_coor;
         cfg.anat = anat;
-        cfg.foi = [1,30];
+        cfg.foi = [18,25];
+        cfg.pflag = pflag;
+        cfg.sflag = sflag;
         net_conn_seed = do_conn_seed(cfg, cln_data);
-        %         pause, close all
         
         %%
-        cfg = [];
-        cfg.cov_matrix = cov_matrix;
-        cfg.anat = anat;
-        cfg.foi = net_conn_seed.foi;
-        net_conn = do_wPLIconn1(cfg, net_conn_seed.source_active);
-        %         pause, close all
+%         cfg = [];
+%         cfg.cov_matrix = cov_matrix;
+%         cfg.anat = anat;
+%         cfg.foi = net_conn_seed.foi;
+%         net_conn = do_wPLIconn1(cfg, net_conn_seed.source_active);
         
         %%
-        savefile_seed_conn = fullfile(subdir,['seed_conn_',subj,'_run_', run, '.mat']); save(savefile_seed_conn,'net_conn_seed');
-        savefile_whole_conn = fullfile(subdir,['wholeb_conn_',subj,'_run_', run, '.mat']); save(savefile_whole_conn,'net_conn')
+        save(savefile_seed_conn,'net_conn_seed');
+%         savefile_whole_conn = fullfile(subdir,['wholeb_conn_',subj,'_run_', run, '.mat']); save(savefile_whole_conn,'net_conn')
     end
-    %     end
 end
