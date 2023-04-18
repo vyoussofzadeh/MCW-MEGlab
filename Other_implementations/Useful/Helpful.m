@@ -59,3 +59,15 @@ ft_progress('close');
 
 %% Normalize values
 tmp = (tmp - min(tmp(:))) ./ (max(tmp(:)) - min(tmp(:)));
+
+
+%% Java comments
+javaclasspath('-remove','/usr/local/MATLAB_Tools/brainstorm3/java/brainstorm.jar')
+javarmpath('/usr/local/MATLAB_Tools/brainstorm3/java/brainstorm.jar');
+pp = javaclasspath('-dynamic');
+for i=1:length(pp)
+    javarmpath(pp{i})
+end
+javaclasspath('-dynamic')
+javaclasspath
+
