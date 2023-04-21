@@ -46,7 +46,7 @@ cfg = []; cfg.layout = 'neuromag306mag.lay'; lay = ft_prepare_layout(cfg);
 mridir = '/data/MEG/Research/logopenicppa/MRI/idsc9005/stimulation_rois';
 
 %%
-for i=1:length(datafile.task_run)
+for i=47:48%length(datafile.task_run)
     close all
     datafile_sel = datafile.datafile_fif{i}; % spm_select(inf,'dir','Select MEG folder'); % e.g. H:\VNS\MEG\C-105\CRM\1
     Index = strfind(datafile_sel, '/');
@@ -70,17 +70,17 @@ for i=1:length(datafile.task_run)
     cd(subdir)
     disp(['outputdir:',subdir])
     
-%     savefile_seed_conn = fullfile(subdir,['seed_conn_',subj,'_session_', session, '_Run', run, '.mat']);
-    savefile_seed_conn = fullfile(subdir,['seed_conn_',subj,'_run_', run, '.mat']); 
-    if exist(mripfile,'file')== 2 && exist(savefile_seed_conn,'file') ~=2
+    foi = [1,30];    
+    savefile_seed_conn = fullfile(subdir,['seed_conn_',subj,'_run_', run, '_', num2str(foi(1)), ...
+        '-', num2str(foi(2)), 'Hz.mat']); 
+    if exist(mripfile,'file')== 2 
+        %&& exist(savefile_seed_conn,'file') ~=2
         
         disp(datafile_sel)
         disp(['subj:',subj])
-        disp(['Run:',run])
+        disp(['run:',run])
         
-        %-elec/grad
-        sens = ft_read_sens(datafile_sel);
-        sens = ft_convert_units(sens,'mm');
+        sens = ft_read_sens(datafile_sel); sens = ft_convert_units(sens,'mm');
 
         %% Updating datalog
         Datalog = [];
@@ -177,26 +177,20 @@ for i=1:length(datafile.task_run)
         cfg = [];
         cfg.anat = anat;
         cfg.Datalog = Datalog;
+        cfg.plot = 2;
         seed_coor = do_seed_inspection(cfg);
         
         %%    
-        pflag = [];
-        pflag.allconn = 2;
-        pflag.grid = 2;
-        pflag.grid_seed = 2;
-        pflag.aal = 2;
-        
-        sflag = [];
-        sflag.seed = 1;
-        sflag.seed_map = 1;
-        sflag.seed_conn = 1;
+        pflag = []; pflag.allconn = 2; pflag.grid = 2; pflag.grid_seed = 2; pflag.aal = 2;
+        sflag = []; sflag.seed = 1; sflag.seed_map = 1; sflag.seed_conn = 1;
  
         cd(subdir)
         cfg = [];
         cfg.cov_matrix = cov_matrix;
         cfg.seed = seed_coor;
         cfg.anat = anat;
-        cfg.foi = [18,25];
+        %         cfg.foi = [18,25];
+        cfg.foi = foi;
         cfg.pflag = pflag;
         cfg.sflag = sflag;
         net_conn_seed = do_conn_seed(cfg, cln_data);
@@ -204,12 +198,26 @@ for i=1:length(datafile.task_run)
         %%
 %         cfg = [];
 %         cfg.cov_matrix = cov_matrix;
+%         cfg.seed = seed_coor;
+%         cfg.anat = anat;
+%         %         cfg.foi = [18,25];
+%         cfg.foi = [1,30];
+%         cfg.pflag = pflag;
+%         cfg.sflag = sflag;
+%         net_conn_seed = do_conn_seed_voxel(cfg, cln_data);
+        
+        %%
+%         close all
+%         cfg = [];
+%         cfg.cov_matrix = cov_matrix;
 %         cfg.anat = anat;
 %         cfg.foi = net_conn_seed.foi;
+%         %         cfg.foi = [18,25];
 %         net_conn = do_wPLIconn1(cfg, net_conn_seed.source_active);
         
         %%
         save(savefile_seed_conn,'net_conn_seed');
+%         save(savefile_seed_conn,'net_conn');
 %         savefile_whole_conn = fullfile(subdir,['wholeb_conn_',subj,'_run_', run, '.mat']); save(savefile_whole_conn,'net_conn')
     end
 end

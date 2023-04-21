@@ -1,15 +1,15 @@
 clear
-addpath('/data/MEG/Vahab/Github/MCW-MEGlab/tools/Conn/conn');
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/tools/Conn/conn');
 h = get(0, 'Children');
 if isempty(findobj(h,'tag','CONN functional connectivity toolbox'))
     conn;
 end
-path_tools = '/data/MEG/Vahab/Github/MCW-MEGlab/tools';
+path_tools = '/data/MEG/Vahab/Github/MCW_MEGlab/tools';
 spm_path = fullfile(path_tools,'SPM/spm12');
 addpath(genpath(spm_path))
 spm_get_defaults
 
-addpath('/data/MEG/Vahab/Github/MCW-MEGlab/FT/functions/External/brewermap')
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/FT/functions/External/brewermap')
 
 tedge= 1*rand(3,3);
 mni = [1,20,10; -10,1,-20; 60,2,25];

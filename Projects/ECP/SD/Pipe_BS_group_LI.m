@@ -61,7 +61,7 @@ cfg.overlap = 0.01;
 wi  = do_time_intervals(cfg);
 
 %%
-thre = 0;
+thre = 0.5;
 
 %%
 cfg = [];
@@ -150,9 +150,10 @@ disp(Data_hcp_atlas.groups_labels)
 
 cfg = []; cfg.idx_L = idx_L; cfg.idx_R = idx_R; cfg.Data_hcp_atlas = Data_hcp_atlas; 
 cfg.export = 1; cfg.savedir = fullfile(outdir,'group');
-cfg.network_sel = [1,2,6]; do_map_HCP_net_sel(cfg);
-cfg.network_sel = [7]; do_map_HCP_net_sel(cfg);
-cfg.network_sel = [8]; do_map_HCP_net_sel(cfg);
+cfg.network_sel = [1,2,6]; do_map_HCP_net_sel(cfg); 
+cfg.network_sel = [7]; do_map_HCP_net_sel(cfg);title(Data_hcp_atlas.groups_labels{cfg.network_sel})
+cfg.network_sel = [8]; do_map_HCP_net_sel(cfg);title(Data_hcp_atlas.groups_labels{cfg.network_sel})
+cfg.network_sel = [1]; do_map_HCP_net_sel(cfg);title(Data_hcp_atlas.groups_labels{cfg.network_sel})
 
 %% LI Subjects (network ROIs)
 data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/LI_subs';
