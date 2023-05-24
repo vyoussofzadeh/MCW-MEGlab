@@ -247,7 +247,7 @@ ep_data = ft_redefinetrial(cfg, datain);
 %%
 cfg = [];
 cfg.resamplefs = 500;
-ep_data1 = ft_resampledata(cfg, ep_data);
+ep_data = ft_resampledata(cfg, ep_data);
 
 %%
 cfg = [];
