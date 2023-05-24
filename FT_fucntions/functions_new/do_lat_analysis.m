@@ -1,4 +1,4 @@
-function [LI,unq_roi_idx, LI_max] = do_lat_analysis(cfg)
+function [LI,unq_roi_idx, LI_max, pow] = do_lat_analysis(cfg)
 
 wi = cfg.wi;
 atlas = cfg.atlas;
@@ -19,14 +19,34 @@ for j=1:size(wi,1)
     
     timind1 = nearest(tmp.Time, wi(j,1)); timind2 = nearest(tmp.Time, wi(j,2));
     [parcelval,rois] = do_sourceparcell_surface(atlas,nanmean(tmp.ImageGridAmp(:,timind1:timind2),2));
+    
+%     parcelval_thresholded = parcelval >= thre*max(parcelval); % logical indexing
+    
+    parcelval_thresholded = parcelval;
+%     parcelval_thresholded(parcelval_thresholded < thre*max(parcelval_thresholded)) = 0;
+    
+%     val = parcelval;
+%     val = (val - min(val(:))) ./ (max(val(:)) - min(val(:)));
+%     idx2 = find(val >= thre.*max(val));
+%     parcelval_thresholded = zeros(size(val));
+%     parcelval_thresholded(idx2) = val(idx2);
+    
+%     parcelval_thresholded = parcelval;
+    
     [~, idx, ~] = do_barplot_ecp(parcelval,rois, thre, 0);
     
-    m_left = nanmean(parcelval(idx_L));
-    m_right = nanmean(parcelval(idx_R));
+    m_left = nanmean(abs(parcelval_thresholded(idx_L)));
+    m_right = nanmean(abs(parcelval_thresholded(idx_R)));
     
     LI(j) = (m_left - m_right)./ (m_left + m_right);
+    powl (j) = m_left; powr (j) = m_right;
     roi_idx = [roi_idx, idx];
 end
+
+pow = [];
+pow.left = powl;
+pow.right = powr;
+
 unq_roi_idx = unique(roi_idx);
 
 if cfg.fplot ==1

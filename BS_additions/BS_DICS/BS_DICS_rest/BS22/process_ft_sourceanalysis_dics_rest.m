@@ -246,6 +246,11 @@ ep_data = ft_redefinetrial(cfg, datain);
 
 %%
 cfg = [];
+cfg.resamplefs = 500;
+ep_data1 = ft_resampledata(cfg, ep_data);
+
+%%
+cfg = [];
 cfg.savefile = [];
 cfg.saveflag = 2;
 cfg.foilim = [FOI, FOI];

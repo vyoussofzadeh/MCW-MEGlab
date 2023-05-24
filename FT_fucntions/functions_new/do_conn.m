@@ -32,6 +32,6 @@ for j = 1:siz(1)
 end
 
 % size(outsum)
-figure,imagesc(outsum), colorbar, title('conn (across voxels)');
+% figure,imagesc(outsum), colorbar, title('conn (across voxels)');
 
 end

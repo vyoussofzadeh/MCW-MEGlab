@@ -45,7 +45,17 @@ colr = distinguishable_colors(nScouts);
 %% Shaded area error bar plot
 % link: 'https://brendanhasz.github.io/2019/07/03/matlab-uncertainty-viz.html'
 
-N = 60;
+N = 60;figure,
+y = rand(1,10); % your mean vector;
+x = 1:numel(y);
+std_dev = 1;
+curve1 = y + std_dev;
+curve2 = y - std_dev;
+x2 = [x, fliplr(x)];
+inBetween = [curve1, fliplr(curve2)];
+fill(x2, inBetween, 'g');
+hold on;
+plot(x, y, 'r', 'LineWidth', 2);
 X = linspace(-2, 6, N)';
 Y1 = exp(-X)-exp(-2*X);
 Y1(X<0) = 0;
@@ -87,4 +97,11 @@ legend('AutoUpdate', 'off')
 h2 = fill(x2, inBetween, colr(j,:), 'EdgeColor', 'none', 'facealpha', 0.1);
 h2.Annotation.LegendInformation.IconDisplayStyle = 'off'; % make the legend for step plot off
 
-%%
+%% Legend outside
+legend('Location', 'eastoutside');
+
+%% Adding panel labels
+text(-0.2, 1.3, '(b)', 'Units', 'normalized', 'FontSize', 14);
+
+%% replace 'banana' with 'pear'
+cell_array = strrep(cell_array, 'banana', 'pear');

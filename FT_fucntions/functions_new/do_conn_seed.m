@@ -8,6 +8,7 @@ cov_matrix = cfg_main.cov_matrix;
 seed = cfg_main.seed;
 foi = cfg_main.foi;
 pflag = cfg_main.pflag;
+method = cfg_main.method;
 
 %% Virtual sensor
 cfg = [];
@@ -154,12 +155,16 @@ vs_roi1.time = vs.time;
 vs_roi1.coor = roi_coor;
 
 %%
-seed_idx = knnsearch(vs_roi1.coor, seed);
+coor_no_cereb = vs_roi1.coor(1:90,:);
+seed_idx = knnsearch(coor_no_cereb, seed);
+
+% distances = pdist2(vs_roi1.coor, seed); [idx, val] = sort(distances);
+
 if pflag.grid_seed == 1    
     figure; hold on;
     ft_plot_mesh(individual_headmodel.bnd, 'facecolor', 'cortex', 'edgecolor', 'none');alpha 0.4;
     ft_plot_mesh(vs_roi1.coor);
-    hold on, plot3(seed(1), seed(2), seed(3), 'm.','MarkerSize',20); % Sub2
+    hold on, plot3(seed(1), seed(2), seed(3), 'm.','MarkerSize',80); % Sub2
     %
     plot3(vs_roi1.coor(seed_idx,1), vs_roi1.coor(seed_idx,2), vs_roi1.coor(seed_idx,3), 'm.','MarkerSize',80, 'color', 'b'); % Sub2
     
@@ -180,9 +185,9 @@ cfg         = [];
 cfg.method    = 'wpli_debiased';par = 'wpli_debiasedspctrm';
 source_conn = ft_connectivityanalysis(cfg, freq);
 
-% cfg         = [];
-% cfg.method    = 'amplcorr'; par = 'amplcorrspctrm';
-% source_conn = ft_connectivityanalysis(cfg, freq);
+cfg         = [];
+cfg.method    = method; par = 'amplcorrspctrm';
+source_conn = ft_connectivityanalysis(cfg, freq);
 
 % cfg         = [];
 % cfg.method  ='coh';
@@ -406,6 +411,7 @@ do_mapvis(cfg, seed_map);
 out = [];
 out.network = net;
 out.foi = foi;
+out.method = par;
 out.source_active = source_active;
 out.seed_idx = seed_idx;
 out.seed_roi = vs_roi1.label{seed_idx};

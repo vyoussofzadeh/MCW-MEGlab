@@ -64,8 +64,8 @@ fprintf('Segmentation completed successfully.\n');
 rmpath(spm_path);
 
 %%
-mri_gray = ft_read_mri(['c1', nii_file]); ft_sourceplot([], mri_gray);
-mri_csf = ft_read_mri(['c2', nii_file]); ft_sourceplot([], mri_csf);
+mri_gray  = ft_read_mri(['c1', nii_file]); ft_sourceplot([], mri_gray);
+mri_csf   = ft_read_mri(['c2', nii_file]); ft_sourceplot([], mri_csf);
 mri_white = ft_read_mri(['c3', nii_file]); ft_sourceplot([], mri_white);
 
 %%

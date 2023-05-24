@@ -60,7 +60,6 @@ ft_progress('close');
 %% Normalize values
 tmp = (tmp - min(tmp(:))) ./ (max(tmp(:)) - min(tmp(:)));
 
-
 %% Java comments
 javaclasspath('-remove','/usr/local/MATLAB_Tools/brainstorm3/java/brainstorm.jar')
 javarmpath('/usr/local/MATLAB_Tools/brainstorm3/java/brainstorm.jar');
@@ -70,4 +69,8 @@ for i=1:length(pp)
 end
 javaclasspath('-dynamic')
 javaclasspath
+
+%% Remove tool from the path
+rmpath(spm_path);
+
 
