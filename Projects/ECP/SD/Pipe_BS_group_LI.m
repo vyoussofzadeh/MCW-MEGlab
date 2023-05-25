@@ -1,4 +1,3 @@
-
 %% ECP Semantic decision task dataset, Medical College of Wisconsin
 
 % Script: BS Process (Laterality analysis)
@@ -65,7 +64,7 @@ thre = 0.5;
 
 %%
 cfg = [];
-cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data_info/cortex_pial_low.fs';
+cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Atlas/cortex_pial_low.fs';
 cfg.network_sel = [1,2,6];
 cfg.Data_hcp_atlas = Data_hcp_atlas;
 [idx_L, idx_R, src]  = do_plot_hcp_network(cfg);
@@ -137,7 +136,7 @@ cfg.BS_data_dir = BS_data_dir;
 cfg.wi = wi; 
 do_plot_pow_net_all(cfg)
 
-%- Export the figure as a PDF/fig file
+%- Export figures as a PDF/fig file
 cfg = []; 
 cfg.outdir = fullfile(outdir,'group'); 
 cfg.filename = [S_data_sel.s_tag, '-pow']; 
