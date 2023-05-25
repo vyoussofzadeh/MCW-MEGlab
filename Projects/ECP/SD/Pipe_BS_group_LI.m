@@ -3,7 +3,7 @@
 % Script: BS Process (Laterality analysis)
 % Project: ECP_SD
 % Writtern by: Vahab Youssof Zadeh
-% Update: 03/17/2023
+% Update: 05/25/2023
 
 clear; clc, close('all'); warning off,
 
@@ -32,7 +32,7 @@ sub_demog_data = ecpfunc_read_sub_demog(cfg);
 patn_neuropsych_data = ecpfunc_read_patn_neuropsych();
 
 %%
-cfg = []; 
+cfg = [];
 cfg.sub_demog_data = sub_demog_data;
 cfg.patn_neuropsych_data = patn_neuropsych_data;
 sub_TLE_sub_data = ecpfunc_read_sub_TLE_sub(cfg);
@@ -63,15 +63,19 @@ wi  = do_time_intervals(cfg);
 thre = 0.5;
 
 %%
+src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Atlas/cortex_pial_low.fs';
+data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/LI_subs';
+
+%%
 cfg = [];
-cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Atlas/cortex_pial_low.fs';
+cfg.src_fname = src_fname;
 cfg.network_sel = [1,2,6];
 cfg.Data_hcp_atlas = Data_hcp_atlas;
 [idx_L, idx_R, src]  = do_plot_hcp_network(cfg);
 
 %% Whole-brain, avg, LI
 cfg = [];
-cfg.idx_L = idx_L; 
+cfg.idx_L = idx_L;
 cfg.idx_R = idx_R;
 cfg.thre = thre;
 cfg.Data_hcp_atlas = Data_hcp_atlas;
@@ -96,10 +100,10 @@ cfg.wi = wi;
 %     case 7, net_tag = 'BTLA';
 %     case 8, net_tag = 'VWFA';
 % end
-% 
+%
 % cfg = [];
 % cfg.idx_L = idx_L; cfg.idx_R = idx_R;
-% cfg.thre = thre; 
+% cfg.thre = thre;
 % cfg.Data_hcp_atlas = Data_hcp_atlas;
 % cfg.S_data_sel = S_data_sel;
 % cfg.BS_data_dir = BS_data_dir;
@@ -111,14 +115,14 @@ cfg.wi = wi;
 %% Network (all), avg, LI
 close all
 thre = 0.5;
-cfg = []; 
-cfg.idx_L = idx_L;  
+cfg = [];
+cfg.idx_L = idx_L;
 cfg.idx_R = idx_R;
-cfg.thre = thre; 
+cfg.thre = thre;
 cfg.Data_hcp_atlas = Data_hcp_atlas;
 cfg.S_data_sel = S_data_sel;
 cfg.BS_data_dir = BS_data_dir;
-cfg.wi = wi; 
+cfg.wi = wi;
 do_plot_LI_net_all(cfg)
 
 %- Export the figure as a PDF/fig file
@@ -126,20 +130,20 @@ cfg = [];  cfg.outdir = fullfile(outdir,'group');  cfg.filename = [S_data_sel.s_
 
 %% Network (all), avg, pow
 thre = 0.5;
-cfg = []; 
-cfg.idx_L = idx_L;  
+cfg = [];
+cfg.idx_L = idx_L;
 cfg.idx_R = idx_R;
-cfg.thre = thre; 
+cfg.thre = thre;
 cfg.Data_hcp_atlas = Data_hcp_atlas;
 cfg.S_data_sel = S_data_sel;
 cfg.BS_data_dir = BS_data_dir;
-cfg.wi = wi; 
+cfg.wi = wi;
 do_plot_pow_net_all(cfg)
 
 %- Export figures as a PDF/fig file
-cfg = []; 
-cfg.outdir = fullfile(outdir,'group'); 
-cfg.filename = [S_data_sel.s_tag, '-pow']; 
+cfg = [];
+cfg.outdir = fullfile(outdir,'group');
+cfg.filename = [S_data_sel.s_tag, '-pow'];
 % cfg.type = 'pdf';
 cfg.type = 'fig';
 do_export_fig(cfg)
@@ -147,16 +151,17 @@ do_export_fig(cfg)
 %%
 disp(Data_hcp_atlas.groups_labels)
 
-cfg = []; cfg.idx_L = idx_L; cfg.idx_R = idx_R; cfg.Data_hcp_atlas = Data_hcp_atlas; 
+cfg = []; cfg.idx_L = idx_L; cfg.idx_R = idx_R; cfg.Data_hcp_atlas = Data_hcp_atlas;
+cfg.src_fname = src_fname;
+
 cfg.export = 1; cfg.savedir = fullfile(outdir,'group');
-cfg.network_sel = [1,2,6]; do_map_HCP_net_sel(cfg); 
-cfg.network_sel = [7]; do_map_HCP_net_sel(cfg);title(Data_hcp_atlas.groups_labels{cfg.network_sel})
-cfg.network_sel = [8]; do_map_HCP_net_sel(cfg);title(Data_hcp_atlas.groups_labels{cfg.network_sel})
-cfg.network_sel = [1]; do_map_HCP_net_sel(cfg);title(Data_hcp_atlas.groups_labels{cfg.network_sel})
+cfg.network_sel = [1,2,6]; do_map_HCP_net_sel(cfg);
+
+for i=1:8
+    cfg.network_sel = i; do_map_HCP_net_sel(cfg);title(Data_hcp_atlas.groups_labels{cfg.network_sel})
+end
 
 %% LI Subjects (network ROIs)
-data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/LI_subs';
-
 cfg = [];
 cfg.idx_L_whole = idx_L_whole;
 cfg.idx_R_whole = idx_R_whole;
@@ -197,48 +202,127 @@ cfg.wi_sub_max = wi_sub_max;
 cfg.src = src;
 do_sourcemap_time_sub_optimal_toi(cfg)
 
-cfg = []; 
-cfg.outdir = fullfile(outdir,'group'); 
-cfg.filename = [S_data_sel.s_tag, '-max_LI']; 
+cfg = [];
+cfg.outdir = fullfile(outdir,'group');
+cfg.filename = [S_data_sel.s_tag, '-max_LI'];
 % cfg.type = 'pdf';
 cfg.type = 'fig';
 do_export_fig(cfg)
 
-%% Subject-level LI
-data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/LI_subs';
+%%
+disp('1: all 8 networks')
+disp('2: 3 networks: Ang., Front. Temp.')
+nsel = input('net sel:');
 
-cfg = [];
-cfg.S_data_sel = S_data_sel;
-cfg.BS_data_dir = BS_data_dir;
-cfg.Data_hcp_atlas = Data_hcp_atlas;
-cfg.idx_L = idx_L;
-cfg.idx_R = idx_R;
-cfg.thre = thre;
-cfg.wi = wi;
-cfg.data_save_dir = data_save_dir;
-[net_sel_mutiple_label, LI_sub, m_LI_max_sub] = do_group_LI_net(cfg);
+switch nsel
+    case 1
+        %% Subject-level LI (all 8 networks)
+        cfg = [];
+        cfg.S_data_sel = S_data_sel;
+        cfg.BS_data_dir = BS_data_dir;
+        cfg.Data_hcp_atlas = Data_hcp_atlas;
+        cfg.idx_L = idx_L;
+        cfg.idx_R = idx_R;
+        cfg.thre = thre;
+        cfg.wi = wi;
+        cfg.data_save_dir = data_save_dir;
+        [net_sel_mutiple_label, LI_sub, m_LI_max_sub] = do_group_LI_net(cfg);
+        
+        %% Plot LI subjects
+        cfg = [];
+        cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+        cfg.LI_sub = LI_sub;
+        cfg.wi = wi;
+        cfg.subsel = 1;
+        do_plot_sub_LI(cfg)
+        
+        %% mean sub, all ROIs
+        % Run_plot_group_lat
+        close all
+        cfg = [];
+        cfg.LI_sub = LI_sub;
+        cfg.wi = wi;
+        cfg.savefig = 1;
+        cfg.outdir = fullfile(outdir,'group');
+        cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+        cfg.S_data_sel = S_data_sel;
+        cfg.network_sel = [1:3,6:8];
+        do_plot_group_lat(cfg);
+        
+        cd(fullfile(outdir,'group'))
+    case 2
+        %% Subject-level LI (all 3 networks, Ang., front, temp)
+        clc
+        cfg = [];
+        cfg.S_data_sel = S_data_sel;
+        cfg.BS_data_dir = BS_data_dir;
+        cfg.Data_hcp_atlas = Data_hcp_atlas;
+        cfg.idx_L = idx_L;
+        cfg.idx_R = idx_R;
+        cfg.thre = thre;
+        cfg.wi = wi;
+        cfg.data_save_dir = fullfile(data_save_dir,'group');
+        [label_3net, LI_sub_3net] = do_group_LI_net_selective(cfg);
+        
+        %% mean sub, all ROIs
+        t1 = 1;
+        close all
+        cfg = [];
+        cfg.LI_sub = LI_sub_3net(:,:,t1:end);
+        cfg.wi = wi(t1:end,:);
+        cfg.savefig = 1;
+        cfg.outdir = fullfile(outdir,'group');
+        cfg.net_sel_mutiple_label = label_3net;
+        cfg.network_sel = [1:size(cfg.LI_sub,1)];
+        cfg.S_data_sel = S_data_sel;
+        do_plot_group_lat(cfg);
+        cd(fullfile(outdir,'group'))
+        
+        %% Plot LI subjects
+        % close all
+        cfg = [];
+        cfg.net_sel_mutiple_label = label_3net;
+        cfg.LI_sub = LI_sub_3net(:,:,t1:end);
+        cfg.wi = wi(t1:end,:);
+        cfg.subsel = [6, 9, 27];
+        do_plot_sub_LI(cfg)
+end
 
-%% LI subjects
-% close all
-cfg = [];
-cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_sub = LI_sub;
-cfg.wi = wi;
-cfg.subsel = 1:5;
-do_plot_sub_LI(cfg)
 
-%% mean sub, all ROIs
-% Run_plot_group_lat
-close all
-cfg = [];
-cfg.LI_sub = LI_sub;
-cfg.wi = wi;
-cfg.savefig = 1;
-cfg.outdir = fullfile(outdir,'group'); 
-cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.S_data_sel = S_data_sel;
-do_plot_group_lat(cfg);
-
-cd(fullfile(outdir,'group'))
 
 %%
+disp('1: HC anim vs. Symb')
+disp('2: PT anim vs. Symb')
+cmpsel = input('net compare:');
+
+switch cmpsel
+    case 1
+        % HC Anim - Symb
+        close all
+        cd(fullfile(data_save_dir,'group'));
+        LI_anim_hc = load('LI_anim-hc');
+        LI_symb_hc = load('LI_symb-hc');
+        
+        cfg = [];
+        cfg.LI_sub = LI_anim_hc.LI_sub;
+        % - LI_symb_hc.LI_sub;
+        cfg.wi = wi;
+        cfg.savefig = 1;
+        cfg.outdir = fullfile(outdir,'group');
+        cfg.net_sel_mutiple_label = label_3net;
+        cfg.network_sel = [1:size(cfg.LI_sub,1)];
+        cfg.S_data_sel = S_data_sel;
+        do_plot_group_lat(cfg);
+        cd(fullfile(outdir,'group'))
+        
+        LI_anim_hc.sFiles_subid
+        
+        cfg = [];
+        cfg.net_sel_mutiple_label = label_3net;
+        cfg.LI_sub = LI_anim_hc.LI_sub;
+        % - LI_symb_hc.LI_sub;
+        cfg.wi = wi;
+        cfg.subsel = [9];
+        do_plot_sub_LI(cfg)
+end
+
