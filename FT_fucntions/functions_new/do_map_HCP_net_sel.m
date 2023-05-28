@@ -4,6 +4,7 @@ Data_hcp_atlas = cfg_main.Data_hcp_atlas;
 idx_R = cfg_main.idx_R;
 idx_L = cfg_main.idx_L;
 net_sel = cfg_main.network_sel;
+src_fname = cfg_main.src_fname;
 
 %%
 idx_R_all = [];
@@ -22,7 +23,7 @@ end
 % close all
 cfg = [];
 cfg.atlas = Data_hcp_atlas.atlas;
-cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data_info/cortex_pial_low.fs';
+cfg.src_fname = src_fname;
 cfg.sel = 'whole'; % 'whole', 'left', 'right', 'roi';
 cfg.index_L = idx_L_all';
 cfg.index_R = idx_R_all';

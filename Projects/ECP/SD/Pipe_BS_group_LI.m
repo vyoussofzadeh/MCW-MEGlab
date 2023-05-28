@@ -209,6 +209,8 @@ cfg.filename = [S_data_sel.s_tag, '-max_LI'];
 cfg.type = 'fig';
 do_export_fig(cfg)
 
+figure, bar(mean(wi_sub_max,2))
+
 %%
 disp('1: all 8 networks')
 disp('2: 3 networks: Ang., Front. Temp.')
@@ -288,8 +290,6 @@ switch nsel
         do_plot_sub_LI(cfg)
 end
 
-
-
 %%
 disp('1: HC anim vs. Symb')
 disp('2: PT anim vs. Symb')
@@ -304,8 +304,7 @@ switch cmpsel
         LI_symb_hc = load('LI_symb-hc');
         
         cfg = [];
-        cfg.LI_sub = LI_anim_hc.LI_sub;
-        % - LI_symb_hc.LI_sub;
+        cfg.LI_sub = LI_anim_hc.LI_sub - LI_symb_hc.LI_sub;
         cfg.wi = wi;
         cfg.savefig = 1;
         cfg.outdir = fullfile(outdir,'group');
@@ -319,8 +318,36 @@ switch cmpsel
         
         cfg = [];
         cfg.net_sel_mutiple_label = label_3net;
-        cfg.LI_sub = LI_anim_hc.LI_sub;
-        % - LI_symb_hc.LI_sub;
+        cfg.LI_sub = LI_anim_hc.LI_sub - LI_symb_hc.LI_sub;
+        cfg.wi = wi;
+        cfg.subsel = [9];
+        do_plot_sub_LI(cfg)
+    
+    case 2
+        % HC Anim - Symb
+        close all
+        cd(fullfile(data_save_dir,'group'));
+        LI_anim_pt = load('LI_anim-pt');
+        LI_symb_pt = load('LI_symb-ppt');
+        
+        [C,IA,IB] = intersect(LI_anim_pt.sFiles_subid, LI_symb_pt.sFiles_subid);
+        
+        cfg = [];
+        cfg.LI_sub = LI_anim_pt.LI_sub(:,IA,:)- LI_symb_pt.LI_sub(:,IB,:);
+        cfg.wi = wi;
+        cfg.savefig = 1;
+        cfg.outdir = fullfile(outdir,'group');
+        cfg.net_sel_mutiple_label = label_3net;
+        cfg.network_sel = [1:size(cfg.LI_sub,1)];
+        cfg.S_data_sel = S_data_sel;
+        do_plot_group_lat(cfg);
+        cd(fullfile(outdir,'group'))
+        
+        LI_anim_pt.sFiles_subid(IA)
+        
+        cfg = [];
+        cfg.net_sel_mutiple_label = label_3net;
+        cfg.LI_sub = LI_anim_pt.LI_sub(:,IA,:)- LI_symb_pt.LI_sub(:,IB,:);
         cfg.wi = wi;
         cfg.subsel = [9];
         do_plot_sub_LI(cfg)
