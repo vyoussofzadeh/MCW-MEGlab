@@ -1,5 +1,10 @@
 function Data_hcp_atlas = ecpfunc_hcp_atlas(~)
 
+% ECP functions
+% Project: ECP_SD
+% Writtern by: Vahab Youssof Zadeh
+% Update: 05/31/2023
+
 % atlas = load('/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_corr.nii_362_updated.mat');
 atlas = load('/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_symmetrical_final_updated.mat');
 groups_labels = {'Angular'; 'Frontal'; 'Occipital'; 'Other'; 'PCingPrecun';'Temporal'};
@@ -188,18 +193,18 @@ groups_labels{7} = 'BTLA';
 vw2 = [19,20]; net_sel = 6;
 vw2 = [6,14,15,81]; net_sel = 4;
 
-cfg = [];
-cfg.atlas = atlas;
-cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Atlas/cortex_pial_low.fs';
-cfg.sel = 'roi'; % 'whole', 'left', 'right', 'roi';
-cfg.rois = rois;
-cfg.group_labels = groups_labels;
-glass_net_L_label_new = glass_net_L_label;
-glass_net_L_label_new{net_sel} = glass_net_L_label_new{net_sel}(vw2);
-cfg.group_members = glass_net_L_label_new;
-cfg.roi_sel = net_sel;
-do_plot_HCP6_atlas(cfg);
-disp(glass_net_L_label_new)
+% cfg = [];
+% cfg.atlas = atlas;
+% cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Atlas/cortex_pial_low.fs';
+% cfg.sel = 'roi'; % 'whole', 'left', 'right', 'roi';
+% cfg.rois = rois;
+% cfg.group_labels = groups_labels;
+% glass_net_L_label_new = glass_net_L_label;
+% glass_net_L_label_new{net_sel} = glass_net_L_label_new{net_sel}(vw2);
+% cfg.group_members = glass_net_L_label_new;
+% cfg.roi_sel = net_sel;
+% do_plot_HCP6_atlas(cfg);
+% disp(glass_net_L_label_new)
 
 VW_L_label = [];
 VW_R_label = [];

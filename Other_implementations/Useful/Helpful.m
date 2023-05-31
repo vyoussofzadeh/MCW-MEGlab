@@ -73,4 +73,8 @@ javaclasspath
 %% Remove tool from the path
 rmpath(spm_path);
 
+%% Table
+t1 = table(m_LI_sub'); t1.Properties.VariableNames{'Var1'} = 'LI';
+
+
 
