@@ -7,6 +7,7 @@ thre = cfg_main.thre;
 BS_data_dir = cfg_main.BS_data_dir;
 idx_L_whole = cfg_main.idx_L_whole;
 idx_R_whole = cfg_main.idx_R_whole;
+method = cfg_main.method;
 
 %%
 cfg = [];
@@ -28,7 +29,12 @@ for i=1:length(sFiles_in)
     pause(0.1);
     cfg.sinput = sFiles_in{i};
     cfg.tit = ['LI, sub:', num2str(i)];
-    [LI, wi_max] = do_lat_analysis_asymetric(cfg);
+    switch method
+        case 'threshold'
+            [LI, wi_max] = do_lat_analysis_asymetric(cfg);
+        case 'counting'
+            [LI, wi_max] = do_lat_analysis_asymetric_counting(cfg);
+    end
     LI_sub{i} = LI;
     m_LI_sub(i) = nanmean(LI);
     wi_sub_max(i,:) = wi_max;

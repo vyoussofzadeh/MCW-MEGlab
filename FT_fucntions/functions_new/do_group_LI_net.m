@@ -1,4 +1,4 @@
-function [net_sel_mutiple_label, LI_sub, m_LI_max_sub] = do_group_LI_net(cfg_main)
+function [net_sel_mutiple_label, LI_sub, m_LI_max_sub, pow_sub] = do_group_LI_net(cfg_main)
 
 sFiles_in = cfg_main.S_data_sel.sFiles_in;
 BS_data_dir = cfg_main.BS_data_dir;
@@ -39,14 +39,15 @@ else
             pause(0.1);
             cfg.sinput = sFiles_in{i};
             cfg.wi = wi;
-            [LI, wi_max] = do_lat_analysis_asymetric(cfg);
+            [LI, wi_max, pow] = do_lat_analysis_asymetric(cfg);
             LI_sub(j,i,:) = LI;
+            pow_sub(j,i,:) = pow;
             m_LI_max_sub(i) = nanmean(LI);
         end
         
     end
     ft_progress('close')
-    save(savefilename,'LI_sub','m_LI_max_sub'),
+    save(savefilename,'LI_sub','m_LI_max_sub','pow_sub'),
 end
 
 end

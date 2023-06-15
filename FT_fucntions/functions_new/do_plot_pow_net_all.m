@@ -1,4 +1,4 @@
-function do_plot_pow_net_all(cfg_main)
+function pow = do_plot_pow_net_all(cfg_main)
 
 Data_hcp_atlas = cfg_main.Data_hcp_atlas;
 S_data_sel = cfg_main.S_data_sel;
@@ -9,7 +9,6 @@ wi = cfg_main.wi;
 % atlas = cfg_main.atlas;
 % net_tag = cfg_main.net_tag;
 thre = cfg_main.thre;
-
 
 %%
 colr = distinguishable_colors(length(idx_L));
@@ -50,5 +49,10 @@ set(gca,'FontSize',8,'XTickLabelRotation',90);
 xlabel('temporal windows (sec)')
 ylabel('Power')
 set(gca,'color','none');
+
+%%
+pow = [];
+pow.pow_left = pow_left_norm;
+pow.pow_right = pow_right_norm; 
 
 end

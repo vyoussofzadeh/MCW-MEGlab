@@ -6,10 +6,8 @@ BS_data_dir = cfg_main.BS_data_dir;
 idx_R = cfg_main.idx_R;
 idx_L = cfg_main.idx_L;
 wi = cfg_main.wi;
-% atlas = cfg_main.atlas;
-% net_tag = cfg_main.net_tag;
+method = cfg_main.method;
 thre = cfg_main.thre;
-
 
 %%
 colr = distinguishable_colors(length(idx_L));
@@ -17,16 +15,21 @@ colr = distinguishable_colors(length(idx_L));
 %%
 figure,
 for i=1:length(idx_L)
-    cfg = []; cfg.sinput = S_data_sel.s_avg_Input; 
+    cfg = []; cfg.sinput = S_data_sel.s_avg_Input;
     cfg.BS_data_dir = BS_data_dir;
-    cfg.atlas = Data_hcp_atlas.atlas; 
-    cfg.thre = thre; 
+    cfg.atlas = Data_hcp_atlas.atlas;
+    cfg.thre = thre;
     cfg.wi = wi;
     cfg.index_L = idx_L{i}; % glasser_lateral is not symmetric!
     cfg.index_R = idx_R{i}; % glasser_lateral is not symmetric!
-    cfg.fplot = 0; 
+    cfg.fplot = 0;
     cfg.tit = [''];
-    [LI, ~] = do_lat_analysis_asymetric(cfg);
+    switch method
+        case 'threshold'
+            [LI, ~] = do_lat_analysis_asymetric(cfg);
+        case 'counting'
+            [LI, ~] = do_lat_analysis_asymetric_counting(cfg);
+    end
     hold on
     plot(LI, 'Color', colr(i,:)),
 end

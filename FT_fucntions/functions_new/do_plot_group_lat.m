@@ -98,38 +98,38 @@ if cfg_main.savefig == 1
 end
 
 %% plot mean LI
-figure,
-for j=1:size(mm,1)
-    hold on
-    plot(mm(j,:),'LineWidth',1, 'color', colr(j,:)),
-    val = round(mean(wi(:,1),2),2);
-    set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
-    set(gca,'FontSize',8,'XTickLabelRotation',90);
-    set(gcf, 'Position', [1000   400   1100   500]);
-end
-lgnd = legend(net_sel_mutiple_label(network_sel));
-title(['subject LIs: ', S_data_sel.s_tag,])
-set(gca,'color','none');
-set(lgnd,'color','none');
-legend('AutoUpdate', 'off')
-for j=1:size(mm,1)
-    hold on
-    [peak_y, peak_x] = max(mm(j,:));
-    xline(peak_x, 'color', colr(j,:),'LineWidth',1);
-    val = round(mean(wi(:,1),2),2);
-    x = val(peak_x);
-    txt = num2str(x);
-%     text(peak_x, peak_y, txt, 'Rotation', 90)
-end
-
-if cfg_main.savefig == 1
-    cfg = [];
-    cfg.outdir = outdir;
-    filename = ['meanLIs_meanROIs_', S_data_sel.s_tag];
-    cfg.filename = filename;
-    cfg.type = 'fig';
-    do_export_fig(cfg)   
-end
+% figure,
+% for j=1:size(mm,1)
+%     hold on
+%     plot(mm(j,:),'LineWidth',1, 'color', colr(j,:)),
+%     val = round(mean(wi(:,1),2),2);
+%     set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
+%     set(gca,'FontSize',8,'XTickLabelRotation',90);
+%     set(gcf, 'Position', [1000   400   1100   500]);
+% end
+% lgnd = legend(net_sel_mutiple_label(network_sel));
+% title(['subject LIs: ', S_data_sel.s_tag,])
+% set(gca,'color','none');
+% set(lgnd,'color','none');
+% legend('AutoUpdate', 'off')
+% for j=1:size(mm,1)
+%     hold on
+%     [peak_y, peak_x] = max(mm(j,:));
+%     xline(peak_x, 'color', colr(j,:),'LineWidth',1);
+%     val = round(mean(wi(:,1),2),2);
+%     x = val(peak_x);
+%     txt = num2str(x);
+% %     text(peak_x, peak_y, txt, 'Rotation', 90)
+% end
+% 
+% if cfg_main.savefig == 1
+%     cfg = [];
+%     cfg.outdir = outdir;
+%     filename = ['meanLIs_meanROIs_', S_data_sel.s_tag];
+%     cfg.filename = filename;
+%     cfg.type = 'fig';
+%     do_export_fig(cfg)   
+% end
 
 %%
 % close all
@@ -170,14 +170,23 @@ end
 %%
 d_in = mean(mean(LI_sub,1),3); L = length(d_in);
 figure, bar(d_in,0.4)
-set(gca,'Xtick', 1:L,'XtickLabel',1:L);
-set(gca,'FontSize',10,'XTickLabelRotation',90);
-% set(gcf, 'Position', [1000   100   1500   300]);
+set(gca,'Xtick', 1:L,'XtickLabel',S_data_sel.sFiles_subid);
+set(gca,'FontSize',8,'XTickLabelRotation',90);
+set(gcf, 'Position', [1000   600   1000   300]);
 set(gca,'color','none');
 title(['mean LI'])
-axis square
+% axis square
 set(lgnd,'color','none');
 ylabel('Laterality')
-grid 
+grid
+
+if cfg_main.savefig == 1
+    cfg = [];
+    cfg.outdir = outdir;
+    filename = ['gmeanLIs_', S_data_sel.s_tag];
+    cfg.filename = filename;
+    cfg.type = 'fig';
+    do_export_fig(cfg)   
+end
 
 end
