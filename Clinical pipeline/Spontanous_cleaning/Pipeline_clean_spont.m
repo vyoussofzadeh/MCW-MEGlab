@@ -13,9 +13,10 @@ flag.sourceanalysis = 1;     % grand average analysis
 flag.speechanalysis = 2;     % speech analysis
 
 %% Initial settings
-set(0,'DefaultFigureWindowStyle','docked')
+% set(0,'DefaultFigureWindowStyle','docked')
 
-cd '/MEG_data/Vahab/Github/MCW-MEGlab/FT';
+% cd '/MEG_data/Vahab/Github/MCW-MEGlab/FT';
+cd '/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab';
 restoredefaultpath
 cd_org = cd;
 addpath(genpath(cd_org));
@@ -27,9 +28,9 @@ outdir = '/MEG_data/Vahab/Processed_data';
 
 %- Adding path
 cfg_init = [];
-cfg_init.path_tools = '/MEG_data/Vahab/Github/tools';
-[allpath, atlas] = vy_init(cfg_init);
-
+% cfg_init.path_tools = '/MEG_data/Vahab/Github/tools';
+cfg_init.path_tools = '/MEG_data/Software/';
+[allpath, atlas] = do_init(cfg_init);
 
 %%
 tag = 'spont';
@@ -41,6 +42,8 @@ cd(subjdir)
 
 %%
 d = rdir([subjdir,['/**/','sss','/*',tag,'*/*raw_tsss.fif']]); stag = 'tsss_';
+% tag = 'test'; d = rdir([subjdir,'/*.fif']); stag = 'test';
+
 % d = rdir([subjdir,['/**/','sss','/*',tag,'*/*t_sss_ecgClean_raw.fif']]); stag = 'sss_ecgClean_raw';
 
 %%
