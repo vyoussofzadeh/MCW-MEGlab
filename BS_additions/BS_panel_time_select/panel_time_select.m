@@ -1,4 +1,4 @@
-function varargout = bst_figures_select( varargin )
+function varargout = panel_time_select( varargin )
 % BST_FIGURES: Manages all the visualization figures.
 %
 % USAGE :  
