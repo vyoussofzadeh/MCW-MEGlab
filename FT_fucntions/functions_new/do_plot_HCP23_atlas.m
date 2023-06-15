@@ -85,12 +85,22 @@ switch cfg.sel
             groups_labels_num{i} = [num2str(i), ': ', groups_labels{i}{1}];
         end
         disp(cell2table(groups_labels_num'));
-%         sel = input('enter rois:');
+        %         sel = input('enter rois:');
         for iScout=1:length(sel)
             for j=1:length(idx_L32{sel(iScout)})
                 index = Scouts((idx_L32{sel(iScout)}(j))).Vertices;
                 if ~isempty(index)
-                    vertexcolor(index,:) = repmat(Scouts((iScout)).Color,  length(index), 1);
+                    vertexcolor(index,:) = repmat([0    0.8000         0],  length(index), 1);
+                    %                     vertexcolor(index,:) = repmat(Scouts((iScout)).Color,  length(index), 1);
+                end
+            end
+        end
+        for iScout=1:length(sel)
+            for j=1:length(idx_R32{sel(iScout)})
+                index = Scouts((idx_R32{sel(iScout)}(j))).Vertices;
+                if ~isempty(index)
+                    vertexcolor(index,:) = repmat([1    0.5000         0],  length(index), 1);
+                    %                     vertexcolor(index,:) = repmat(Scouts((iScout)).Color,  length(index), 1);
                 end
             end
         end
@@ -103,10 +113,10 @@ cfg = [];
 cfg.view = [-180,-90;0,90;-90,0; 90,0; 0, 0];
 cfg.position = [800   800   1000   300];
 cfg.color = (viridis(256));
-cfg.title = ['']; 
-cfg.alpha = 1; 
+cfg.title = [''];
+cfg.alpha = 1;
 cfg.coor = [];
-cfg.surf = src; 
+cfg.surf = src;
 cfg.d_in = vertexcolor;
 do_surfplot(cfg);
 

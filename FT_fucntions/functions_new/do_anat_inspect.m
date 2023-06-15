@@ -5,7 +5,8 @@ switch cfg.mtd
     case 'vol'
         %%
         figure;
-        ft_plot_vol(cfg.headmodel, 'facecolor', 'cortex', 'edgecolor', 'none');alpha 0.5; camlight;
+%         ft_plot_vol(cfg.headmodel, 'facecolor', 'cortex', 'edgecolor', 'none');alpha 0.5; camlight;
+        ft_plot_mesh(cfg.headmodel.bnd, 'facecolor', 'cortex', 'edgecolor', 'none');alpha 0.5; camlight;
         hold on;
         ft_plot_headshape(cfg.headshape);
         ft_plot_mesh(cfg.leadfield.pos(cfg.leadfield.inside, :));

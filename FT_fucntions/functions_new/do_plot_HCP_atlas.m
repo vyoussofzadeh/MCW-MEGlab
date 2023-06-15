@@ -104,18 +104,18 @@ switch cfg_main.sel
         
         %- Right
         src_R = src;
-        src_R.tri = src_R.tri(14981:end,:);
-        
-        figure
-        cfg = [];
-        cfg.view = [-180,-90; 0,90;-90,0; 90,0;];
-        cfg.position = [800   500   900   200];
-        cfg.color = (viridis(256));
-        cfg.title = ['RH: roi', cfg_main.title];
-        cfg.alpha = 1; cfg.coor = [];
-        cfg.surf = src_R;
-        cfg.d_in = vertexcolor;
-        do_surfplot(cfg);
+%         src_R.tri = src_R.tri(14981:end,:);
+%         
+%         figure
+%         cfg = [];
+%         cfg.view = [-180,-90; 0,90;-90,0; 90,0;];
+%         cfg.position = [800   500   900   200];
+%         cfg.color = (viridis(256));
+%         cfg.title = ['RH: roi', cfg_main.title];
+%         cfg.alpha = 1; cfg.coor = [];
+%         cfg.surf = src_R;
+%         cfg.d_in = vertexcolor;
+%         do_surfplot(cfg);
         
     otherwise
         figure

@@ -11,11 +11,11 @@ disp('===========')
 
 
 disp('righ-click on the source map file/File/view file history')
-% BSpath = input('2: enter BS path:'); 
+% BSpath = input('2: enter BS path:');
 BSpath = cfg_in.BSpath;
 BSpath = strrep(BSpath, ' ', '');
 
-% fname = input('3: enter BS source FileName:'); 
+% fname = input('3: enter BS source FileName:');
 fname = cfg_in.fname;
 fname = strrep(fname, ' ', '');
 disp('===========')
@@ -25,17 +25,17 @@ cd(BSpath)
 
 
 %%
-sfile = load(fname);
-svname = sfile.Comment;
-disp(['suggesting name:',svname]);
-name_sel = input('1-suggested name, 2-other names:');
-
-if name_sel == 2
-    svname = input('enter saving name:','s');
-else
-    svname = sfile.Comment;
+svname = cfg_in.sname;
+if isempty(svname)
+    sfile = load(fname); svname = sfile.Comment;
+    disp(['suggesting name:',svname]);
+    name_sel = input('1-suggested name, 2-other names:');
+    if name_sel == 2
+        svname = input('enter saving name:','s');
+    else
+        svname = sfile.Comment;
+    end
 end
-disp('===========')
 
 %%
 clc
@@ -45,6 +45,7 @@ disp('3: left;right;top;bottom;right_intern;left_intern')
 disp('4: left;bottom;right')
 disp('5: left;right;top;bottom')
 disp('6: optional, e.g, {left;right;top}')
+disp('7: left;right')
 % side_sel = input(':');
 side_sel =  cfg_in.side_sel;
 
@@ -62,6 +63,8 @@ switch side_sel
     case 6
         side_sel_man = input('enter selected views, in quotation marks');
         Orient = side_sel_man;
+    case 7
+        Orient = {'left';'right'};
 end
 
 %%
@@ -70,23 +73,42 @@ hFig = view_surface_data([], fname, [], 'NewFigure');
 set(hFig,'color','w');
 bst_colormaps('SetColorbarVisible', hFig, 0);
 axis equal
-pause,
+
+disp(cfg_in.seltime)
+panel_time('SetCurrentTime', cfg_in.seltime);
+
+% pause,
+
+printoptions={'-djpeg90','-r600','-opengl'}; imgFile = fullfile(svdir, [svname,'.jpg']);
+% printoptions={'-dpng', '-r300'}; imgFile = fullfile(svdir, [svname,'.png']);
 
 a = [];
 for i=1:length(Orient)
     figure_3d('SetStandardView', hFig, Orient{i});
-    img = out_figure_image(hFig, '', '');
-    %     imgFile = fullfile(savedir, [Orient{i},'.jpg']);
-    imgFile = fullfile(svdir, [svname,'.tif']);
-    out_image(imgFile, img);
-    b=imread(imgFile);
-    if isa(b,'uint8'), b=double(b)/255; end
-    if max(b(:))>1, b=double(b)/double(max(b(:))); end
-    a{i}=double(b);
-    %     waitbar(n1/numel(mosaic_commands),hw);
-    pause(1)
-    %     saveas(gcf,imgFile)
+    bst_colormaps('SetColorbarVisible', hFig, 0);
     
+    switch cfg_in.imgres
+        case 1
+            %% high-res (Added by VYZ, 08/28/22)
+            drawnow; print(hFig,printoptions{:},imgFile);
+            b = imread(imgFile);
+            
+        case 2
+            %% low-res print
+            %     imgFile = fullfile(svdir, [svname,'.tif']);
+            img = out_figure_image(hFig, '', '');
+            imgFile = fullfile(svdir, [svname,'.tif']);
+            out_image(imgFile, img);
+            b = imread(imgFile);
+    end
+%%
+if isa(b,'uint8'), b=double(b)/255; end
+if max(b(:))>1, b=double(b)/double(max(b(:))); end
+a{i}=double(b);
+%     waitbar(n1/numel(mosaic_commands),hw);
+pause(1)
+%     saveas(gcf,imgFile)
+
 end
 
 ncut = 16;

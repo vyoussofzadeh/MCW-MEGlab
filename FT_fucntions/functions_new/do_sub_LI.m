@@ -43,7 +43,6 @@ cfg.tit = ['LIs (network): ', S_data_sel.taskcon, '-', S_data_sel.subcon];
 do_barplot_LI(cfg)
 set(gcf, 'Position', [1000   400   1000   300]);
 
-
 figure,
 for i=1:length(LI_sub)
     plot(LI_sub{i}),

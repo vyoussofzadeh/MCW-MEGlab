@@ -43,6 +43,13 @@ cfg.tit = ['LIs (network): ', S_data_sel.taskcon, '-', S_data_sel.subcon];
 do_barplot_LI(cfg)
 set(gcf, 'Position', [1000   400   1000   300]);
 
+cfg = [];
+cfg.sub_sel = S_data_sel.sFiles_subid;
+cfg.d_in = mean(wi_sub_max,2);
+cfg.tit = ['mean WI (max LI): ', S_data_sel.taskcon, '-', S_data_sel.subcon];
+do_barplot_LI(cfg)
+set(gcf, 'Position', [1000   400   1000   300]);
+
 % figure, bar(m_LI_sub, 0.4)
 % set(gca,'Xtick', 1:length(sFiles_in),'XtickLabel',sub);
 % set(gca,'FontSize',8,'XTickLabelRotation',90);

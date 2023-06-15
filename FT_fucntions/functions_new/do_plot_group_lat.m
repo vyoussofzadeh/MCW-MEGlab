@@ -6,15 +6,11 @@ wi = cfg_main.wi;
 net_sel_mutiple_label = cfg_main.net_sel_mutiple_label;
 S_data_sel = cfg_main.S_data_sel;
 outdir = cfg_main.outdir;
+network_sel = cfg_main.network_sel;
 
 %%
-% addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/brewermap');
-% /data/MEG/Vahab/Github/MCW-MEGlab/FT/functions/External/brewermap');
-network_sel = [1:3,6:8];
 colr = distinguishable_colors(length(network_sel));
 
-% clc
-% close all
 mLI_sub = squeeze(nanmean(LI_sub,2));
 figure,
 clear LI_val
@@ -34,7 +30,7 @@ for j=1:length(network_sel)
 %     txt = num2str(x);
 %     text(peak_x, peak_y, txt, 'Rotation', 90)
 end
-plot(nanmean(LI_val),'LineWidth',3);
+plot(nanmean(LI_val(:,:)),'LineWidth',3);
 lgnd = legend([net_sel_mutiple_label(network_sel); 'mean']);
 legend('AutoUpdate', 'off')
 set(lgnd,'color','none');
@@ -64,11 +60,13 @@ if cfg_main.savefig == 1
 end
 
 %%
+nn = round(length(network_sel)/3);
+
 clear std_dev
 figure,
 for j=1:length(network_sel)
     tmp = squeeze(LI_sub(network_sel(j),:,:));
-    subplot(2,3,j)
+    subplot(nn,3,j)
     plot(tmp'),
     hold on
     mm(j,:) = nanmean(tmp);
@@ -86,13 +84,9 @@ for j=1:length(network_sel)
     x = val(peak_x);
     txt = num2str(x);
     text(peak_x, peak_y, txt, 'Rotation', 90)
-    %     xlim([0, 1.85])
-    %     legend(net_sel_mutiple_label{j})
 end
 
 set(gcf, 'Position', [800   400   1600   500]);
-% plot(mean(mLI_sub),'LineWidth',3),
-% legend([net_sel_mutiple_label; 'mean'])
 
 if cfg_main.savefig == 1
     cfg = [];
@@ -137,7 +131,6 @@ if cfg_main.savefig == 1
     do_export_fig(cfg)   
 end
 
-
 %%
 % close all
 figure,
@@ -173,5 +166,18 @@ if cfg_main.savefig == 1
     cfg.type = 'fig';
     do_export_fig(cfg)   
 end
+
+%%
+d_in = mean(mean(LI_sub,1),3); L = length(d_in);
+figure, bar(d_in,0.4)
+set(gca,'Xtick', 1:L,'XtickLabel',1:L);
+set(gca,'FontSize',10,'XTickLabelRotation',90);
+% set(gcf, 'Position', [1000   100   1500   300]);
+set(gca,'color','none');
+title(['mean LI'])
+axis square
+set(lgnd,'color','none');
+ylabel('Laterality')
+grid 
 
 end
