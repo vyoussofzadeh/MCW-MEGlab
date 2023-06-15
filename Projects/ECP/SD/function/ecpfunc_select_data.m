@@ -39,7 +39,7 @@ switch cfg.select_data
     case 3
         s_avg_Input = sFiles_symb_hc; s_tag = 'symb-hc';
     case 4
-        s_avg_Input = sFiles_symb_pt; s_tag = 'symb-ppt';
+        s_avg_Input = sFiles_symb_pt; s_tag = 'symb-pt';
 end
 
 S_data = [];
