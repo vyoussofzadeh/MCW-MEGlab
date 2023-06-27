@@ -3,7 +3,7 @@
 % Script: BS Process (Laterality analysis)
 % Project: ECP_SD
 % Writtern by: Vahab Youssof Zadeh
-% Update: 05/31/2023
+% Update: 06/27/2023
 
 clear; clc, close('all'); warning off,
 
@@ -87,8 +87,12 @@ cfg.S_data_sel = S_data_sel;
 cfg.BS_data_dir = BS_data_dir;
 cfg.wi = wi;
 cfg.method = 'counting';
+cfg.Threshtype = 3;
 [idx_R_whole, idx_L_whole]  = do_LI_avg(cfg);
 cfg.method = 'threshold';
+cfg.thre = thre;
+[idx_R_whole, idx_L_whole]  = do_LI_avg(cfg);
+cfg.method = 'bootstrapping';
 cfg.thre = thre;
 [idx_R_whole, idx_L_whole]  = do_LI_avg(cfg);
 
@@ -102,6 +106,13 @@ cfg.Data_hcp_atlas = Data_hcp_atlas;
 cfg.S_data_sel = S_data_sel;
 cfg.BS_data_dir = BS_data_dir;
 cfg.wi = wi;
+cfg.thre = 0.8;
+cfg.method = 'counting';
+do_plot_LI_net_all(cfg)
+cfg.thre = thre;
+cfg.method = 'threshold';
+do_plot_LI_net_all(cfg)
+cfg.method = 'bootstrapping';
 do_plot_LI_net_all(cfg)
 
 %- Export the figure as a PDF/fig file
@@ -153,7 +164,12 @@ cfg.BS_data_dir = BS_data_dir;
 cfg.wi = wi;
 cfg.overwrite = 0;
 cfg.data_save_dir = data_save_dir;
+cfg.method = 'threshold';
+[LI_sub, m_LI_sub, wi_sub_max] = do_sub_LI(cfg);
+cfg.thre = 0.8;
 cfg.method = 'counting';
+[LI_sub, m_LI_sub, wi_sub_max] = do_sub_LI(cfg);
+cfg.method = 'bootstrapping';
 [LI_sub, m_LI_sub, wi_sub_max] = do_sub_LI(cfg);
 
 %% Export LI values

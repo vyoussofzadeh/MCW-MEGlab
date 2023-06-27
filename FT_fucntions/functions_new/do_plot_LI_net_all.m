@@ -23,12 +23,15 @@ for i=1:length(idx_L)
     cfg.index_L = idx_L{i}; % glasser_lateral is not symmetric!
     cfg.index_R = idx_R{i}; % glasser_lateral is not symmetric!
     cfg.fplot = 0;
+    cfg.Threshtype = 3;
     cfg.tit = [''];
     switch method
         case 'threshold'
             [LI, ~] = do_lat_analysis_asymetric(cfg);
         case 'counting'
             [LI, ~] = do_lat_analysis_asymetric_counting(cfg);
+        case 'bootstrapping'
+            [~, LI] = do_LI_bootstrap(cfg);
     end
     hold on
     plot(LI, 'Color', colr(i,:)),

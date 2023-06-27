@@ -76,5 +76,14 @@ rmpath(spm_path);
 %% Table
 t1 = table(m_LI_sub'); t1.Properties.VariableNames{'Var1'} = 'LI';
 
+%% Create a folde
 
+folderPath = 'path/to/folder';
+
+if ~exist(folderPath, 'dir')
+    mkdir(folderPath);
+    disp('Folder created successfully.');
+else
+    disp('Folder already exists.');
+end
 

@@ -21,13 +21,17 @@ cfg.wi = wi;
 cfg.index_L = idx_L_whole; % glasser_lateral is not symmetric!
 cfg.index_R = idx_R_whole; % glasser_lateral is not symmetric!
 cfg.fplot = 1;
-cfg.tit = 'Whole-brain, avg';%['Whole-brain, avg:', s_tag];
+cfg.tit = [method, ' ', num2str(cfg.thre), ', Whole-brain, avg'];%['Whole-brain, avg:', s_tag];
 
 switch method
     case 'threshold'
         do_lat_analysis_asymetric(cfg);
     case 'counting'
+        cfg.Threshtype = cfg_main.Threshtype;
         do_lat_analysis_asymetric_counting(cfg);
+    case 'bootstrapping'
+        cfg.Threshtype = cfg_main.Threshtype;
+        do_LI_bootstrap(cfg);
 end
 
 end
