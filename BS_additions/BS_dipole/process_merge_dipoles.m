@@ -59,7 +59,6 @@ OutputFiles = {};
 %%
 cd_org = pwd;
 k=1;
-item = [];
 D=[];
 for i=1:length(sInput)
     sResultP = in_bst_results(sInput(i).FileName, 0);
@@ -71,7 +70,6 @@ for i=1:length(sInput)
         if isempty(D)
             D = rdir('dipoles_fit*.mat');
         end
-        item(k) = sInput(i).iItem;
         k =k+1;
     end
 end
