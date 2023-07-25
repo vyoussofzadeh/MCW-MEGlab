@@ -206,13 +206,6 @@ HeadModelMat = in_bst_headmodel(HeadModelFile);
 [ftHeadmodel, ftLeadfield, iChannelsData] = out_fieldtrip_headmodel(HeadModelMat, ChannelMat, iChannelsData, 1);
 
 %%
-OutputDir = bst_fileparts(file_fullpath(DataFile));
-Index = strfind(OutputDir, 'data_all_subjects/');
-bsdir = OutputDir(1:Index(end)-1);
-bsanatdir = fullfile(bsdir,'anat');
-sourcemodel = ft_read_headshape(fullfile(bsanatdir,HeadModelMat.SurfaceFile));
-
-%%
 % ===== LOAD: DATA =====
 % Template FieldTrip structure for all trials
 ftData = out_fieldtrip_data(sInputs(1).FileName, ChannelMat, iChannelsData, 1);
@@ -288,11 +281,11 @@ ep_data.bsl = ft_redefinetrial(cfg, ftData);
 %%
 clear dics
 for j=1:length(wi)
+    
+    disp(wi(j,:))
     % ===== FIELDTRIP: EPOCHING =====
     % Baseline
     cfg = [];
-    cfg.toilim = wi(j,:);
-    ep_data.bsl = ft_redefinetrial(cfg, ftData);
     % Post-stim
     cfg.toilim = wi(j,:); %PostStim;
     ep_data.pst = ft_redefinetrial(cfg, ftData);
@@ -300,35 +293,8 @@ for j=1:length(wi)
     cfg = [];
     ep_data.app = ft_appenddata(cfg, ep_data.bsl, ep_data.pst);
     
-    % ===== FIELDTRIP: SPECTRAL ANALYSIS =====
-%     cfg_main = [];
-%     cfg_main.fmax = MaxFreq;
-%     switch sProcess.options.sensortype.Value{1}
-%         case {'EEG', 'SEEG', 'ECOG'}
-%             cfg_main.sens = ftData.elec;
-%         case {'MEG', 'MEG GRAD', 'MEG MAG'}
-%             cfg_main.sens = ftData.grad;
-%     end
-%     cfg_main.outputdir = TmpDir;
-%     cfg_main.freq_of_interest  = freq_of_interest; % Hz
-%     
-%     cfg = [];
-%     cfg.foilim    = [2 cfg_main.fmax];
-%     cfg.tapsmofrq = 1;
-%     cfg.taper     = 'hanning';
-%     f_data.bsl = do_fft(cfg, ep_data.bsl); f_data.bsl.elec = cfg_main.sens;
-%     f_data.pst = do_fft(cfg, ep_data.pst); f_data.pst.elec = cfg_main.sens;
     
     %%
-    
-    % ===== FIELDTRIP: PSD SENSOR SPACE =====
-%     outputdir_dics = cfg_main.outputdir;
-%     if exist(outputdir_dics, 'file') == 0, mkdir(outputdir_dics), end
-    
-%     f_sugg = round(cfg_main.freq_of_interest);
-%     disp(['Suggested by TFR: ', num2str(f_sugg),'(+-3Hz)']);
-%     disp(['Select foi,eg ,', num2str(f_sugg),':']);
-
     switch sProcess.options.sensortype.Value{1}
         case {'EEG', 'SEEG', 'ECOG'}
             sens = ftData.elec;
@@ -348,8 +314,6 @@ for j=1:length(wi)
     
     f_data.app = do_fft(cfg, ep_data.app); f_data.app.elec = sens;
     f_data.pst = do_fft(cfg, ep_data.pst); f_data.pst.elec = sens;
-    %     cfg.foilim = [10, 10];
-    cfg.tapsmofrq = TprFreq+1;
     f_data.bsl = do_fft(cfg, ep_data.bsl); f_data.bsl.elec = sens;
     
     %%
@@ -398,7 +362,6 @@ for j=1:length(wi)
                     source_diff_dics = ft_math(cfg,s_data.pst,s_data.bsl);
                     source_diff_dics.pow(isnan(source_diff_dics.pow))=0;
             end
-
             
 %             figure
 %             m = source_diff_dics.pow;
@@ -448,24 +411,24 @@ end
 
 dics1 = dics;
 
-if simaps == 1
-    switch HeadModelMat.HeadModelType
-        case 'surface'
-            for i=1:size(dics1,1)
-                source1 = [];
-                source1.pow = dics1(i,:);
-                
-                figure
-                m = source1.pow';
-                bnd.pnt = sourcemodel.pos;
-                bnd.tri = sourcemodel.tri;
-                ft_plot_mesh(bnd, 'vertexcolor', abs(m));
-                colorbar
-                view([-180,0])
-                title(['source:', num2str((i))])
-            end
-    end
-end
+% if simaps == 1
+%     switch HeadModelMat.HeadModelType
+%         case 'surface'
+%             for i=1:size(dics1,1)
+%                 source1 = [];
+%                 source1.pow = dics1(i,:);
+%                 
+%                 figure
+%                 m = source1.pow';
+%                 bnd.pnt = sourcemodel.pos;
+%                 bnd.tri = sourcemodel.tri;
+%                 ft_plot_mesh(bnd, 'vertexcolor', abs(m));
+%                 colorbar
+%                 view([-180,0])
+%                 title(['source:', num2str((i))])
+%             end
+%     end
+% end
 
 if size(dics, 1) > 1
     for jj = 1:size(dics,1)

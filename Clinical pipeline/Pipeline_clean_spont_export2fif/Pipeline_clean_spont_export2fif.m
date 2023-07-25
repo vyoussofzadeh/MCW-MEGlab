@@ -34,16 +34,19 @@ cd(subjdir)
 %%
 disp('1: Spont')
 disp('2: SSEF')
+disp('3: other')
 dcon = input('sel data condition:');
 
 switch dcon
     case 1
         tag = 'spont';
-%         d = rdir([subjdir,['/**/','sss','/*',tag,'*/*raw.fif']]);
+        %         d = rdir([subjdir,['/**/','sss','/*',tag,'*/*raw.fif']]);
         d = rdir([subjdir,['/**/','sss','/*',tag,'*/*.fif']]);
     case 2
         tag = 'SSEF';
         d = rdir([subjdir,['/**/','sss','/*',tag,'*/*raw*.fif']]);
+    case 3
+        d = rdir([subjdir,'/*sss.fif']);
 end
 
 %%
