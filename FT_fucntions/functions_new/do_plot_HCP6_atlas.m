@@ -100,7 +100,6 @@ switch cfg.sel
 %         disp((groups_labels_num(sel)'));
 end
 
-
 figure,
 cfg = [];
 cfg.view = [-180,-90;0,90;-90,0; 90,0; 0, 0];

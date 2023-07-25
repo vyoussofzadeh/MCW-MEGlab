@@ -4,9 +4,9 @@ wi = cfg_main.wi;
 atlas = cfg_main.atlas;
 idx_L = cfg_main.index_L;
 idx_R = cfg_main.index_R;
-
 thre = cfg_main.thre;
 sinput = cfg_main.sinput;
+% Threshtype = cfg_main.Threshtype;
 
 %% Parcel_based (mean parcels) LI analysis
 tmp = load(fullfile(cfg_main.BS_data_dir, sinput));

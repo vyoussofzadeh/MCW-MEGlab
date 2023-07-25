@@ -31,6 +31,9 @@ switch method
         do_lat_analysis_asymetric_counting(cfg);
     case 'bootstrapping'
         cfg.Threshtype = cfg_main.Threshtype;
+        cfg.divs = cfg_main.divs;
+        cfg.n_resampling = cfg_main.n_resampling;
+        cfg.RESAMPLE_RATIO = cfg_main.RESAMPLE_RATIO;
         do_LI_bootstrap(cfg);
 end
 

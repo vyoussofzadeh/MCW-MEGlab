@@ -19,6 +19,7 @@ cfg.fplot = 0;
 cfg.wi = wi;
 cfg.index_L = idx_L_whole;
 cfg.index_R = idx_R_whole;
+cfg.Threshtype = cfg_main.Threshtype;
 
 ft_progress('init', 'text',     'please wait ...');
 
@@ -34,6 +35,9 @@ for i=1:length(sFiles_in)
             [LI, wi_max] = do_lat_analysis_asymetric(cfg);
         case 'counting'
             [LI, wi_max] = do_lat_analysis_asymetric_counting(cfg);
+        case 'bootstrapping'
+            cfg.divs = 10;
+            [LI, wi_max] = do_LI_bootstrap(cfg);
     end
     LI_sub{i} = LI;
     m_LI_sub(i) = nanmean(LI);

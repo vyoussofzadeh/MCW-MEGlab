@@ -31,7 +31,9 @@ for i=1:length(idx_L)
         case 'counting'
             [LI, ~] = do_lat_analysis_asymetric_counting(cfg);
         case 'bootstrapping'
-            [~, LI] = do_LI_bootstrap(cfg);
+            cfg.divs = cfg_main.divs; cfg.n_resampling = cfg_main.n_resampling; 
+            cfg.RESAMPLE_RATIO = cfg_main.RESAMPLE_RATIO;
+            [LI, ~, ~] = do_LI_bootstrap(cfg);
     end
     hold on
     plot(LI, 'Color', colr(i,:)),
