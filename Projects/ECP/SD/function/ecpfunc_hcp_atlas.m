@@ -38,21 +38,46 @@ load(fullfile(glass_dir, 'LI_glasser_manual_net_12.mat'), 'glass_net_L_label', '
 glass_net_L_label{2} = [glass_net_L_label{2}; rois(all_idx_L(idx_sel_L))'];
 glass_net_R_label{2} = [glass_net_R_label{2}; rois(all_idx_R(idx_sel_R))'];
 
-% Update BTLA labels
-btla = [2, 3, 5, 8, 9, 16, 17, 18, 21, 22];
-glass_net_L_label{6} = glass_net_L_label{6}(btla);
-glass_net_R_label{6} = glass_net_R_label{6}(btla);
+% Add BTLA labels
+btla = [2, 3, 5, 8, 9, 16, 17, 18, 21, 22]; net_sel = 6;
+% glass_net_L_label{6} = glass_net_L_label{6}(btla);
+% glass_net_R_label{6} = glass_net_R_label{6}(btla);
 
-% Update VWFA labels
-vw2 = [6, 14, 15, 81];
-glass_net_L_label{4} = glass_net_L_label{4}(vw2);
-glass_net_R_label{4} = glass_net_R_label{4}(vw2);
+BTLA_L_label = [];
+BTLA_R_label = [];
+for i=1:length(btla)
+    BTLA_L_label = [BTLA_L_label; glass_net_L_label{net_sel}(btla(i))];
+    BTLA_R_label = [BTLA_R_label; glass_net_R_label{net_sel}(btla(i))];
+end
 
-% Update LT and RT region labels
-idx_sel_L = strcmp(region(all_idx_L), 'LT');
-idx_sel_R = strcmp(region(all_idx_R), 'RT');
-glass_net_L_label{7} = rois(all_idx_L(idx_sel_L));
-glass_net_R_label{7} = rois(all_idx_R(idx_sel_R));
+glass_net_L_label{7} = BTLA_L_label;
+glass_net_R_label{7} = BTLA_R_label;
+
+groups_labels{7} = 'BTLA';
+
+% Add VWFA labels
+vw2 = [6, 14, 15, 81]; net_sel = 4;
+% glass_net_L_label{4} = glass_net_L_label{4}(vw2);
+% glass_net_R_label{4} = glass_net_R_label{4}(vw2);
+
+VW_L_label = [];
+VW_R_label = [];
+for i=1:length(vw2)
+    VW_L_label = [VW_L_label; glass_net_L_label{net_sel}(vw2(i))];
+    VW_R_label = [VW_R_label; glass_net_R_label{net_sel}(vw2(i))];
+end
+
+glass_net_L_label{8} = VW_L_label;
+glass_net_R_label{8} = VW_R_label;
+
+groups_labels{8} = 'VWFA';
+
+% Add LT and RT region labels
+% idx_sel_L = strcmp(region(all_idx_L), 'LT');
+% idx_sel_R = strcmp(region(all_idx_R), 'RT');
+% glass_net_L_label{7} = rois(all_idx_L(idx_sel_L));
+% glass_net_R_label{7} = rois(all_idx_R(idx_sel_R));
+
 
 Data_hcp_atlas.glass_net_L_label = glass_net_L_label;
 Data_hcp_atlas.glass_net_R_label = glass_net_R_label;

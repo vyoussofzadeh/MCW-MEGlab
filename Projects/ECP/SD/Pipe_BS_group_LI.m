@@ -51,7 +51,8 @@ S_data_sel = ecpfunc_select_data(cfg);
 
 %% HCP Atlas
 clc, close all
-cfg = []; Data_hcp_atlas = ecpfunc_hcp_atlas(cfg);
+cfg = []; Data_hcp_atlas2 = ecpfunc_hcp_atlas2(cfg);
+% cfg = []; Data_hcp_atlas = ecpfunc_hcp_atlas(cfg);
 
 %% Time intervals (window)
 cfg.strt = 0;
@@ -72,7 +73,8 @@ data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/S
 cfg = [];
 cfg.src_fname = src_fname;
 cfg.network_sel = [1,2,6];
-cfg.Data_hcp_atlas = Data_hcp_atlas;
+% cfg.network_sel = [10];
+cfg.Data_hcp_atlas = Data_hcp_atlas2;
 [idx_L, idx_R, src]  = do_plot_hcp_network(cfg);
 net_rois = 'ftp';
 
@@ -93,7 +95,7 @@ cfg.method = 'threshold';
 cfg.thre = thre;
 [idx_R_whole, idx_L_whole]  = do_LI_avg(cfg);
 cfg.method = 'bootstrapping';
-cfg.thre = thre;
+cfg.divs = 12; cfg.n_resampling = 2; cfg.RESAMPLE_RATIO = 0.8;
 [idx_R_whole, idx_L_whole]  = do_LI_avg(cfg);
 
 %% Network (all), avg, LI
@@ -113,6 +115,8 @@ cfg.thre = thre;
 cfg.method = 'threshold';
 do_plot_LI_net_all(cfg)
 cfg.method = 'bootstrapping';
+cfg.divs = 5; cfg.n_resampling = 2; 
+cfg.RESAMPLE_RATIO = 1;
 do_plot_LI_net_all(cfg)
 
 %- Export the figure as a PDF/fig file
@@ -149,7 +153,7 @@ cfg.network_sel = [1,2,6]; do_map_HCP_net_sel(cfg);
 net_label = 'Fronto_tempro_pri';
 
 % Inspecting atlas areas.
-for i=1:8
+for i=9:9
     cfg.network_sel = i; do_map_HCP_net_sel(cfg);title(Data_hcp_atlas.groups_labels{cfg.network_sel})
 end
 
@@ -164,12 +168,14 @@ cfg.BS_data_dir = BS_data_dir;
 cfg.wi = wi;
 cfg.overwrite = 0;
 cfg.data_save_dir = data_save_dir;
+cfg.Threshtype = 3;
 cfg.method = 'threshold';
 [LI_sub, m_LI_sub, wi_sub_max] = do_sub_LI(cfg);
 cfg.thre = 0.8;
 cfg.method = 'counting';
 [LI_sub, m_LI_sub, wi_sub_max] = do_sub_LI(cfg);
 cfg.method = 'bootstrapping';
+cfg.divs = 10;
 [LI_sub, m_LI_sub, wi_sub_max] = do_sub_LI(cfg);
 
 %% Export LI values
@@ -191,7 +197,7 @@ set(gcf, 'Position', [1000   400   1200   300]);
 title('mean LI')
 
 cfg = []; cfg.outdir = fullfile(outdir,'group');
-cfg.filename = [S_data_sel.s_tag, '-mean_LI']; 
+cfg.filename = [S_data_sel.s_tag, '-mean_LI'];
 cfg.type = 'fig';
 do_export_fig(cfg)
 
@@ -203,7 +209,7 @@ do_barplot_LI(cfg)
 set(gcf, 'Position', [1000   400   1000   300]);
 
 cfg = []; cfg.outdir = fullfile(outdir,'group');
-cfg.filename = [S_data_sel.s_tag, '-sub_LI']; 
+cfg.filename = [S_data_sel.s_tag, '-sub_LI'];
 cfg.type = 'fig';
 do_export_fig(cfg)
 
@@ -227,7 +233,7 @@ do_sub_optimal_roi(cfg);
 % cfg.src = src;
 % do_sourcemap_time_sub(cfg);
 
-%% time intervals of max LI 
+%% time intervals of max LI
 cfg = []; cfg.S_data_sel = S_data_sel; cfg.BS_data_dir = BS_data_dir;
 cfg.wi_sub_max = wi_sub_max; cfg.src = src; do_sourcemap_time_sub_optimal_toi(cfg)
 
@@ -239,12 +245,12 @@ do_export_fig(cfg)
 
 % figure, bar(mean(wi_sub_max,2)), title('window')
 
-%% mean intervals of max LI 
+%% mean intervals of max LI
 tmp = mean(wi_sub_max);
 cfg = []; cfg.S_data_sel = S_data_sel; cfg.BS_data_dir = BS_data_dir;
-cfg.wi_sub_max = repmat(tmp, length(wi_sub_max), 1); 
-% cfg.wi_sub_max = repmat([250,650], length(wi_sub_max), 1); 
-cfg.src = src; 
+cfg.wi_sub_max = repmat(tmp, length(wi_sub_max), 1);
+% cfg.wi_sub_max = repmat([250,650], length(wi_sub_max), 1);
+cfg.src = src;
 do_sourcemap_time_sub_optimal_toi(cfg)
 
 cfg = []; cfg.outdir = fullfile(outdir,'group');
@@ -254,81 +260,61 @@ cfg.type = 'fig';
 do_export_fig(cfg)
 
 %%
-disp('1: all 8 networks')
-disp('2: 3 networks: Ang., Front. Temp.')
-nsel = input('net sel:');
-
-switch nsel
+disp('1: threshold')
+disp('2: counting')
+disp('3: bootstrapping')
+LI_method = input('LI_method sel:');
+switch LI_method
     case 1
-        %% Subject-level LI (all 8 networks)
-        cfg = [];
-        cfg.S_data_sel = S_data_sel;
-        cfg.BS_data_dir = BS_data_dir;
-        cfg.Data_hcp_atlas = Data_hcp_atlas;
-        cfg.idx_L = idx_L;
-        cfg.idx_R = idx_R;
-        cfg.thre = thre;
-        cfg.wi = wi;
-        cfg.data_save_dir = fullfile(data_save_dir,'group_8net_300ms');
-        [label_8net, LI_sub, m_LI_max_sub, pow_sub] = do_group_LI_net(cfg);
-        
-        %% Plot LI subjects
-        cfg = [];
-        cfg.net_sel_mutiple_label = label_8net;
-        cfg.LI_sub = LI_sub;
-        cfg.wi = wi;
-        cfg.subsel = 1;
-        cfg.plotflag = 1;
-        do_plot_sub_LI(cfg)
-        
-        %% mean sub, all ROIs
-        % Run_plot_group_lat
-        cfg = [];
-        cfg.LI_sub = LI_sub;
-        cfg.wi = wi;
-        cfg.savefig = 1;
-        cfg.outdir = fullfile(outdir,'group_8net');
-        cfg.net_sel_mutiple_label = label_8net;
-        cfg.S_data_sel = S_data_sel;
-        cfg.network_sel = [1:3,6:8];
-        do_plot_group_lat(cfg);
-        
-        cd(fullfile(outdir,'group_8net'))
+        mlabel = 'threshold';
     case 2
-        %% Subject-level LI (all 3 networks, Ang., front, temp)
-        clc
-        cfg = [];
-        cfg.S_data_sel = S_data_sel;
-        cfg.BS_data_dir = BS_data_dir;
-        cfg.Data_hcp_atlas = Data_hcp_atlas;
-        cfg.idx_L = idx_L;
-        cfg.idx_R = idx_R;
-        cfg.thre = thre;
-        cfg.wi = wi;
-        cfg.data_save_dir = fullfile(data_save_dir,'group_3net');
-        [label_3net, LI_sub_3net] = do_group_LI_net_selective(cfg);
-        
-        %% mean sub, all ROIslabel_3net
-        t1 = 1;
-%         close all
-        cfg = [];
-        cfg.LI_sub = LI_sub_3net(:,:,t1:end);
-        cfg.wi = wi(t1:end,:);
-        cfg.savefig = 1;
-        cfg.outdir = fullfile(outdir,'group_3net');
-        cfg.net_sel_mutiple_label = label_3net;
-        cfg.network_sel = [1:size(cfg.LI_sub,1)];
-        cfg.S_data_sel = S_data_sel;
-        do_plot_group_lat(cfg);
-        cd(fullfile(outdir,'group_3net'))
-        
-        %% Plot LI subjects
-        % close all
-%         cfg = [];
-%         cfg.net_sel_mutiple_label = label_3net;
-%         cfg.LI_sub = LI_sub_3net(:,:,t1:end);
-%         cfg.wi = wi(t1:end,:);
-%         cfg.subsel = [6, 9, 27];
-%         do_plot_sub_LI(cfg)
+        mlabel = 'counting';
+    case 3
+        mlabel = 'bootstrapping';
 end
+
+%%
+save_dir = fullfile(data_save_dir,'group_8net_300ms', mlabel);
+
+if ~exist(save_dir, 'dir')
+    mkdir(save_dir);
+    disp('Folder created successfully.');
+else
+    disp('Folder already exists.');
+end
+
+%% Subject-level LI (all 8 networks)
+cfg = [];
+cfg.S_data_sel = S_data_sel;
+cfg.BS_data_dir = BS_data_dir;
+cfg.Data_hcp_atlas = Data_hcp_atlas;
+cfg.idx_L = idx_L;
+cfg.idx_R = idx_R;
+cfg.thre = thre;
+cfg.wi = wi;
+cfg.data_save_dir = save_dir;
+[label_8net, LI_sub, m_LI_max_sub, pow_sub] = do_group_LI_net(cfg);
+
+%% Plot LI subjects
+cfg = [];
+cfg.net_sel_mutiple_label = label_8net;
+cfg.LI_sub = LI_sub;
+cfg.wi = wi;
+cfg.subsel = 1;
+cfg.plotflag = 1;
+do_plot_sub_LI(cfg)
+
+%% mean sub, all ROIs
+cfg = [];
+cfg.LI_sub = LI_sub;
+cfg.wi = wi;
+cfg.savefig = 1;
+cfg.outdir = save_dir;
+cfg.net_sel_mutiple_label = label_8net;
+cfg.S_data_sel = S_data_sel;
+cfg.network_sel = [1:3,6:8];
+do_plot_group_lat(cfg);
+
+cd(save_dir)
+
 
