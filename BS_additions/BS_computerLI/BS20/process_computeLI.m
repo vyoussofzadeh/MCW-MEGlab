@@ -29,7 +29,7 @@ end
 function sProcess = GetDescription() %#ok<DEFNU>
 
 % Description the process
-sProcess.Comment     = 'Compute LI';
+sProcess.Comment     = 'Compute LI (counting-based)';
 sProcess.Category    = 'Custom';
 sProcess.SubGroup    = 'Sources';
 sProcess.Index       = 337;
@@ -205,12 +205,12 @@ RoiIndices = {AngSmg, Front,LatFront,LatTemp, PeriSyl, Tanaka, Temp,Whole};
 s1='LI_';
 Summ_LI=zeros(1,TotROI); % initialize the vector that summarizes the final LIs  % added JL 11212014
 Summ_LI_Label='ROI Labels: '; % initialize the string that summarizes the ROI labels  % added JL 11212014
-
 switch time_interval
     case {2; 1}
         figure
 end
 plot_ind=1;
+LI_label_out={};
 
 for ii = 1:8
     
@@ -237,7 +237,7 @@ for ii = 1:8
     end
     LHscout = Ltemp_region;
     RHscout = Rtemp_region;
-        
+    
     switch time_interval % modified by VY
         case 3
             %First parse the maps into separate space-times maps for each side
@@ -254,7 +254,7 @@ for ii = 1:8
             RH_max = max(max(RHvals));
             ROIMax = max(LH_max,RH_max);
     end
-
+    
     switch Threshtype %modified by vy@09/08/22
         case 1
             threshold = Ratio4Threshold*GlobalMax;  % dSPM threshold to get rid of non-significant voxels. Added JL@10/30/14
@@ -276,6 +276,7 @@ for ii = 1:8
     LI_ROIcount = 100*((L_ROIcount-R_ROIcount)/(L_ROIcount+R_ROIcount));
     Summ_LI(ii)=LI_ROIcount;  % added JL 11212014
     Summ_LI_Label=[Summ_LI_Label  sprintf('\t') s2];   % added JL 11212014
+    LI_label_out=[LI_label_out, s2];
     
     % ROI average --- above threshold voxels only
     LHvals_aboveThreshold = LHvals(ind_L); % a 1-D matrix, no need for mean(mean()) later
@@ -283,7 +284,7 @@ for ii = 1:8
     L_ROIavg=mean(LHvals_aboveThreshold);
     R_ROIavg=mean(RHvals_aboveThreshold);
     ROIavg = mean([L_ROIavg,R_ROIavg]);
-    LI_ROIavg = 100*((L_ROIavg-R_ROIavg)/(L_ROIavg+R_ROIavg));    
+    LI_ROIavg = 100*((L_ROIavg-R_ROIavg)/(L_ROIavg+R_ROIavg));
     
     % Run a loop to plot LIs based on space-time voxel count as a function of threshold
     k=0;
@@ -351,19 +352,47 @@ for ii = 1:8
 end
 set(gcf, 'Position', [500   500   1000   800]);
 
+%%
+[name, ~, ~] = fileparts(sResultP.SurfaceFile);
+
+% Split the name into first name and last name
+name_parts = split(name, '_');
+
+% Convert the first letter of each name to uppercase
+first_name = [upper(name_parts{1}(1)) , name_parts{1}(2:end)];
+last_name = upper(name_parts{2}(1));
+
+% Combine the names and format as per requirement
+formatted_name = [first_name '_' last_name];
+
+folderPath = fullfile('/MEG_data/LanguageLI',formatted_name);
+
+disp(folderPath)
+if ~exist(folderPath, 'dir')
+    mkdir(folderPath);
+    disp('Folder created successfully.');
+else
+    disp('Folder already exists.');
+end
+
 %% Write out data to excel file  JS 09/28/15
-% if time_interval == 3
-%     tempfile=fopen(strcat('./v11_ROI_table_',name,'_thresh',num2str(Ratio4Threshold),'.xls'),'w') ;
-% else
-%     tempfile=fopen(strcat('./v11_ROI_table_',name,'_','time',num2str(timerange(1)),'-',num2str(timerange(2)),'_thresh',num2str(Ratio4Threshold),'.xls'),'w') ;
-% end
-% fprintf(tempfile,'%s\t',LI_label_out{:});
-% fprintf(tempfile,'\n');
-% fprintf(tempfile,'%f\t',Summ_LI);
-% fprintf(tempfile,'\n\nThreshold');
-% fprintf(tempfile,'%f\t',threshold);
-% fclose(tempfile);
-% threshold
+disp('enter saving file, e.g., DFNM_LCVM or PN_dSPM')
+sname = input('','s');
+if time_interval == 3
+    tempfile=fopen(strcat(fullfile(folderPath, ['/LI_ROItable_',sname,'_thresh',num2str(Ratio4Threshold),'.xls'])),'w') ;
+else
+    tempfile=fopen(strcat(fullfile(folderPath,['/LI_ROItable_',sname,'_','time',num2str(timerange(1)),'-',num2str(timerange(2)),'_thresh',num2str(Ratio4Threshold),'.xls'])),'w') ;
+end
+
+fprintf(tempfile,'%s\t',LI_label_out{:});
+fprintf(tempfile,'\n');
+fprintf(tempfile,'%f\t',Summ_LI);
+fprintf(tempfile,'\n\nThreshold');
+fprintf(tempfile,'%f\t',threshold);
+fclose(tempfile);
+threshold
+
+cd(folderPath)
 
 %% Added by VZ, display LI values
 disp('=================')
@@ -374,5 +403,8 @@ c = table([L_count;R_count]'); c.Properties.VariableNames{'Var1'} = 'Left_vs_rig
 d = [a,b,c];
 disp(d)
 
+disp('============')
+disp('To edit the LI script, first ensure Brainstorm is running. Then, open process_computeLI.m in Matlab.')
+disp('Pipeline update: 08/01/23')
 
 end
