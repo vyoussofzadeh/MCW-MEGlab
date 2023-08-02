@@ -29,7 +29,7 @@ end
 function sProcess = GetDescription() %#ok<DEFNU>
 
 % Description the process
-sProcess.Comment     = 'Export screenshot (report)';
+sProcess.Comment     = 'Export screenshot (MEG reports)';
 sProcess.Category    = 'Custom';
 sProcess.SubGroup    = 'File';
 sProcess.Index       = 981;
@@ -94,6 +94,7 @@ disp('3: left;right;top;bottom;right_intern;left_intern')
 disp('4: left;bottom;right')
 disp('5: left;right;top;bottom')
 disp('6: optional, e.g, {left;right;top}')
+disp('select views')
 side_sel = input(':');
 
 switch side_sel
@@ -108,7 +109,8 @@ switch side_sel
     case 5
         Orient = {'left'; 'right';'top';'bottom'};
     case 6
-        side_sel_man = input('enter selected views, in quotation marks');
+        disp('enter selected views, in quotation marks')
+        side_sel_man = input('');
         Orient = side_sel_man;
 end
 
