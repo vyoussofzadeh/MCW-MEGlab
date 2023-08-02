@@ -29,7 +29,7 @@ end
 function sProcess = GetDescription() %#ok<DEFNU>
 
 % Description the process
-sProcess.Comment     = 'Export screenshot (MEG reports)';
+sProcess.Comment     = 'Export screenshot (avg. source maps)';
 sProcess.Category    = 'Custom';
 sProcess.SubGroup    = 'File';
 sProcess.Index       = 981;
@@ -71,23 +71,23 @@ else
     fileBase = file_win2unix(strrep(FileName, filePath, ''));
 end
 
-%%
-disp('Where the map is goingn to be exported to ...')
-svdir = input('1: enter saving dir:','s');svdir = strrep(svdir, ' ', '');
+disp('------------------')
+disp ('Where the map is goingn to be exported to ...')
+disp ('enter saving dir:')
+svdir = input('','s');svdir = strrep(svdir, ' ', '');
 
 BSpath = ProtocolInfo.STUDIES;
 fname = fileBase;
 cd(BSpath)
 
-%%
+disp('------------------')
 sfile = load(fname);
 svname = sfile.Comment;
 disp(['suggesting name:',svname]);
-svname = input('enter saving name:', 's');
-disp('===========')
+disp('enter saving name:')
+svname = input('', 's');
 
-
-clc
+disp('------------------')
 disp('1: left;right;top;bottom;left_intern;right_intern')
 disp('2: bottom;top;left;right;left_intern;right_intern')
 disp('3: left;right;top;bottom;right_intern;left_intern')
@@ -114,12 +114,12 @@ switch side_sel
         Orient = side_sel_man;
 end
 
-
-clc
+disp('------------------')
 disp('1: White background')
 disp('2: Black background')
 backg_sel = input(':');
 
+disp('------------------')
 disp('adjust the surface theshold (in BS GUI)')
 disp('then hit enter')
 
@@ -158,7 +158,6 @@ if domosaiccrop
     end
 end
 
-
 if domosaiccrop
     cropt_idx1234=cropt_idx{1,1}; for n=2:numel(a), cropt_idx1234=union(cropt_idx1234,cropt_idx{n,1}); end
     ta=[]; for n=1:numel(a), ta=cat(2,ta,a{n}(cropt_idx1234,cropt_idx{n,2},:)); end; a=ta;
@@ -167,6 +166,7 @@ else
 end
 
 imwrite(a,imgFile);
+disp('------------------')
 disp('Completed!, images were saved at,')
 disp(fullfile(svdir, svdir))
 cd(svdir)
@@ -174,4 +174,3 @@ cd(svdir)
 bst_progress('stop');
 
 end
-
