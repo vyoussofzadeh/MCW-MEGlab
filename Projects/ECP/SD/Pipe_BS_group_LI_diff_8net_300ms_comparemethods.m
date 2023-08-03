@@ -59,10 +59,14 @@ cfg = []; cfg.strt = 0; cfg.spt = 2; cfg.overlap = 0.01; cfg.linterval = 0.3;
 wi  = do_time_intervals(cfg);
 
 %%
-net_sel_mutiple_label = {'Angular'; 'Frontal'; 'Occipital'; 'Other'; 'PCingPrecun';'Temporal'; 'BTLA'; 'VWFA'};
+net_sel_mutiple_label = {'Angular'; 'Frontal'; 'Occipital'; 'Other'; ...
+    'PCingPrecun';'Temporal'; 'BTLA'; 'VWFA'};
+
+cfg = []; Data_hcp_atlas = ecpfunc_hcp_atlas2(cfg);
+net_sel_mutiple_label = Data_hcp_atlas.groups_labels';
 
 %%
-network_sel = [1:3,6:8];
+network_sel = [1:3,6:10];
 colr = distinguishable_colors(length(network_sel));
 
 %%
@@ -76,7 +80,7 @@ disp('3: bootstrapping')
 LI_method = input('LI_method sel:');
 switch LI_method
     case 1
-        mlabel = 'threshold';
+        mlabel = 'threshold_1';
     case 2
         mlabel = 'counting';
     case 3
@@ -373,8 +377,6 @@ end
 figure, plot(mean(wi'),cr), title('Lateral');
 ylabel('LIs corr (MEG , fMRI)')
 
-[mx, idx] = max(cr);
-
 mLI_sub1 = mean(LI_anim_pt_val_new([1,2,6],:,idx));
 mLI_sub2 = mean(LI_symb_pt_val_new([1,2,6],:,idx));
 mLI_sub_pt = (mLI_sub1 - mLI_sub2)';
@@ -385,35 +387,93 @@ figure, plot(mLI_sub_pt, fmri_LIs_val,'*')
 corr2(mLI_sub_pt, fmri_LIs_val)
 
 %%
-clc
 close all
+y = cr;
+t =  mean(wi');
+% Find the global peak and its index
+[max_val, idx] = max(y);
+
+% Define an interval of 10 samples centered around the peak
+interval_length = 15;
+interval_start = max(1, idx - interval_length/2);
+interval_end = min(length(y), idx + interval_length/2);
+
+% Get the interval containing the peak
+peak_interval = y(interval_start:interval_end);
+
+% Plot the original signal
+plot(t, y)
+hold on
+
+% Highlight the interval containing the peak
+plot(t(interval_start:interval_end), peak_interval, 'r')
+hold off
+
+%% Ternary classification
+close all
+
+%- MEG
+% cfg = []; cfg.thre = 10;
+% cfg.LI = LI_anim_pt_val_new; LI_anim_pt_trn = do_ternary_classification(cfg);
+% cfg.LI = LI_symb_pt_val_new; LI_symb_pt_trn = do_ternary_classification(cfg);
+% 
+% size(LI_symb_pt_trn);
+
+% figure, plot(squeeze(LI_anim_pt_val_new(1,1,:)))
+% figure, plot(squeeze(LI_anim_pt_trn(1,1,:)),'r')
+
+%- fMRI
+cfg = [];
+cfg.thre = 30;
+cfg.LI = fmri_LIs_val;
+fmri_LIs_trn = do_ternary_classification(cfg);
+
+size(fmri_LIs_trn);
+
+% figure, bar((fmri_LIs_val))
+% figure, bar(fmri_LIs_trn,'r')
+
+%%
+%- MEG vs. fMRI (ternary)
+dd = [];
+for i=1:length(wi)
+    %     for j=1:size(LI_anim_pt_val_new,2)
+    mLI_sub1 = mean(LI_anim_pt_val_new([1,2,6],:,i));
+    mLI_sub2 = mean(LI_symb_pt_val_new([1,2,6],:,i));
+    %     mLI_sub_pt = round(mLI_sub1 - mLI_sub2)';
+    mLI_sub_pt = (mLI_sub1 - mLI_sub2)';
+    
+    cfg = []; cfg.thre = 10;
+    cfg.LI = mLI_sub_pt; mLI_sub_pt_trn = do_ternary_classification(cfg);
+    
+    %     mLI_sub_pt = mLI_sub1';
+    dd(i,:) = (mLI_sub_pt_trn .* fmri_LIs_trn);
+    %     end
+end
+figure, plot(mean(wi'),mean(dd,2)), title('Lateral');
+ylabel('LIs (MEG * fMRI)')
+
+%% Corr.
+clc, close all
 
 LI_anim_pt_val_new = LI_anim_pt_val(:,IA,:);
 LI_symb_pt_val_new = LI_symb_pt_val(:,IA,:);
 
 fmri_LIs_val = str2double(fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
 fmri_LIs_val = str2double(fmri_LIs.val.language_Angular(IB)); net_sel = 1;
-fmri_LIs_val = str2double(fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
+% fmri_LIs_val = str2double(fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
 % 
-% fmri_LIs_val = str2double(fmri_LIs.val.semantic_Frontal(IB)); net_sel = 2;
-% fmri_LIs_val = str2double(fmri_LIs.val.semantic_Angular(IB)); net_sel = 1;
-% fmri_LIs_val = str2double(fmri_LIs.val.semantic_Temporal(IB)); net_sel = 6;
 
-cr = [];
-for i=1:length(wi)
-    %     for j=1:size(LI_anim_pt_val_new,2)
-    mLI_sub1 = (LI_anim_pt_val_new(net_sel,:,i));
-    mLI_sub2 = (LI_symb_pt_val_new(net_sel,:,i));
-    mLI_sub_pt = (mLI_sub1 - mLI_sub2)';
-%     mLI_sub_pt = mLI_sub1
-    cr(i,:) = corr2(mLI_sub_pt, fmri_LIs_val);
-    %     end
-end
+cfg = []; cfg.wi = wi;
+cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
+cfg.fmri_LIs_val = fmri_LIs_val; cfg.net_sel = net_sel;
+crr = do_MEG_fMRI_corr(cfg);
 
-figure, plot(mean(wi'),cr), title([net_sel_mutiple_label{net_sel}]);
+
+figure, plot(mean(wi'),crr), title([net_sel_mutiple_label{net_sel}]);
 ylabel('LIs corr (MEG , fMRI)')
 
-[mx, idx] = max(cr);
+[mx, idx] = max(crr);
 
 mLI_sub1 = (LI_anim_pt_val_new(net_sel,:,idx));
 mLI_sub2 = (LI_symb_pt_val_new(net_sel,:,idx));
@@ -424,7 +484,26 @@ figure, plot(mLI_sub_pt, fmri_LIs_val,'*')
 
 corr2(mLI_sub_pt, fmri_LIs_val)
 
-%%
+%% Tern, concordance (similarity)
+clc, close all
+
+LI_anim_pt_val_new = LI_anim_pt_val(:,IA,:);
+LI_symb_pt_val_new = LI_symb_pt_val(:,IA,:);
+
+% fmri_LIs_val = str2double(fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
+fmri_LIs_val = str2double(fmri_LIs.val.language_Angular(IB)); net_sel = 1;
+% fmri_LIs_val = str2double(fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
+
+cfg = [];
+cfg.wi = wi;
+cfg.LI_anim_val = LI_anim_pt_val_new;
+cfg.LI_symb_val = LI_symb_pt_val_new;
+cfg.fmri_LIs_val = fmri_LIs_val;
+cfg.net_sel = net_sel;
+conc = do_MEG_fMRI_concordance(cfg);
+
+figure, plot(mean(wi'),mean(conc,2)), title([net_sel_mutiple_label{net_sel}]);
+ylabel('LIs corr (MEG , fMRI)')
 
 
 

@@ -1,4 +1,3 @@
-
 %% ECP Semantic decision task dataset, Medical College of Wisconsin
 
 % Script: BS Process (Laterality analysis)
