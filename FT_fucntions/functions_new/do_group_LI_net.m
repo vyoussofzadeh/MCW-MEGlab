@@ -15,7 +15,8 @@ method = cfg_main.method;
 Threshtype = cfg_main.Threshtype;
 
 %%
-net_sel_mutiple_label = {'Angular'; 'Frontal'; 'Occipital'; 'Other'; 'PCingPrecun';'Temporal'; 'BTLA'; 'VWFA'};
+% net_sel_mutiple_label = {'Angular'; 'Frontal'; 'Occipital'; 'Other'; 'PCingPrecun';'Temporal'; 'BTLA'; 'VWFA'};
+net_sel_mutiple_label = Data_hcp_atlas.groups_labels';
 % net_sel_mutiple_label = {'Angular'; 'Frontal'; 'Occipital'; 'Other'; 'PCingPrecun';'Temporal'; 'Whole'};
 % idx_L{end+1} = idx_L_whole;idx_R{end+1} = idx_R_whole;
 

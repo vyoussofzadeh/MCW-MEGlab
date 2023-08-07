@@ -39,7 +39,7 @@ sub_TLE_sub_data = ecpfunc_read_sub_TLE_sub(cfg);
 
 %% HCP Atlas
 clc, close all
-cfg = []; Data_hcp_atlas = ecpfunc_hcp_atlas(cfg);
+cfg = []; Data_hcp_atlas = ecpfunc_hcp_atlas2(cfg);
 
 %% Time intervals (window)
 cfg.strt = 0;
@@ -75,7 +75,7 @@ cfg.network_sel = [1,2,6]; do_map_HCP_net_sel(cfg);
 net_label = 'Fronto_tempro_pri';
 
 % Inspecting atlas areas.
-for i=1:8
+for i=1:10
     cfg.network_sel = i; do_map_HCP_net_sel(cfg);title(Data_hcp_atlas.groups_labels{cfg.network_sel})
 end
 
@@ -144,7 +144,7 @@ cfg.savefig = 1;
 cfg.outdir = save_dir;
 cfg.net_sel_mutiple_label = label_8net;
 cfg.S_data_sel = S_data_sel;
-cfg.network_sel = [1:3,6:8];
+cfg.network_sel = [1:3,6:10];
 do_plot_group_lat(cfg);
 
 cd(save_dir)

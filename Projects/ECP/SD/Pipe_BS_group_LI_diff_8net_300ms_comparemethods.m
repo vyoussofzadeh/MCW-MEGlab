@@ -59,10 +59,14 @@ cfg = []; cfg.strt = 0; cfg.spt = 2; cfg.overlap = 0.01; cfg.linterval = 0.3;
 wi  = do_time_intervals(cfg);
 
 %%
-net_sel_mutiple_label = {'Angular'; 'Frontal'; 'Occipital'; 'Other'; 'PCingPrecun';'Temporal'; 'BTLA'; 'VWFA'};
+net_sel_mutiple_label = {'Angular'; 'Frontal'; 'Occipital'; 'Other'; ...
+    'PCingPrecun';'Temporal'; 'BTLA'; 'VWFA'};
+
+cfg = []; Data_hcp_atlas = ecpfunc_hcp_atlas2(cfg);
+net_sel_mutiple_label = Data_hcp_atlas.groups_labels';
 
 %%
-network_sel = [1:3,6:8];
+network_sel = [1:3,6:10];
 colr = distinguishable_colors(length(network_sel));
 
 %%
@@ -76,7 +80,7 @@ disp('3: bootstrapping')
 LI_method = input('LI_method sel:');
 switch LI_method
     case 1
-        mlabel = 'threshold';
+        mlabel = 'threshold_1';
     case 2
         mlabel = 'counting';
     case 3
@@ -313,7 +317,6 @@ set(lgnd,'color','none');
 mLI_sub_diff = mLI_sub_hc - mLI_sub_pt_left; tag = [mlabel,'; hc - pt-left'];
 
 figure,
-% subplot(3,1,3)
 clear LI_val
 for j=1:length(network_sel)
     hold on
@@ -343,88 +346,139 @@ tag = [mlabel,'; anim vs. symb, hc'];
 
 figure, plot(mLI_sub_hc(IA), str2double(fmri_LIs.val.language_Lateral(IB)),'*')
 
-%%
+%% MEG vs. fMRI lat analysis (PT)
 [sub_MF_pt,IA,IB] = intersect(LI_pt_ID, fmri_LIs.ID.language_Lateral);
+
+LI_anim_pt_val_new = LI_anim_pt_val(:,IA,:);
+LI_symb_pt_val_new = LI_symb_pt_val(:,IA,:);
+fmri_LIs_val = str2double(fmri_LIs.val.language_Lateral(IB));
 
 %% MEG LI vs fMRI LI (language_Lateral)
 close all
 clc
 
-LI_anim_pt_val_new = LI_anim_pt_val(:,IA,:);
-LI_symb_pt_val_new = LI_symb_pt_val(:,IA,:);
+% Corr, MEG-fMRI
+cfg = []; cfg.wi = wi;
+cfg.ID = sub_MF_pt;
+cfg.ternary = 0;
+cfg.thre = .2;
+cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
+cfg.fmri_LIs_val = fmri_LIs_val; cfg.net_sel = [1,2,6];
+crr = do_MEG_fMRI_corr(cfg);
 
-fmri_LIs_val = str2double(fmri_LIs.val.language_Lateral(IB));
-% fmri_LIs_val = str2double(fmri_LIs.val.semantic_Lateral(IB));
+% concordance, MEG-fMRI
+cfg = [];
+cfg.wi = wi;
+cfg.ID = sub_MF_pt;
+cfg.ternary = 0;
+cfg.thre = .2;
+cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
+cfg.fmri_LIs_val = fmri_LIs_val; cfg.net_sel = [1,2,6];
+conc = do_MEG_fMRI_concordance(cfg);
 
-
-% san_check = [LI_pt_ID(IA); fmri_LIs.ID.language_Lateral(IB)']';
-
-cr = [];
-for i=1:length(wi)
-    %     for j=1:size(LI_anim_pt_val_new,2)
-    mLI_sub1 = mean(LI_anim_pt_val_new([1,2,6],:,i));
-    mLI_sub2 = mean(LI_symb_pt_val_new([1,2,6],:,i));
-    mLI_sub_pt = (mLI_sub1 - mLI_sub2)';
-%     mLI_sub_pt = mLI_sub1
-    cr(i,:) = corr2(mLI_sub_pt, fmri_LIs_val);
-    %     end
-end
-
-figure, plot(mean(wi'),cr), title('Lateral');
-ylabel('LIs corr (MEG , fMRI)')
-
-[mx, idx] = max(cr);
-
-mLI_sub1 = mean(LI_anim_pt_val_new([1,2,6],:,idx));
-mLI_sub2 = mean(LI_symb_pt_val_new([1,2,6],:,idx));
-mLI_sub_pt = (mLI_sub1 - mLI_sub2)';
-
-figure, bar([mLI_sub_pt, fmri_LIs_val])
-figure, plot(mLI_sub_pt, fmri_LIs_val,'*')
-
-corr2(mLI_sub_pt, fmri_LIs_val)
-
-%%
-clc
+%% MEG LI vs fMRI LI (Ternary language_Lateral)
 close all
+clc
+
+cfg = [];
+cfg.thre = .2; cfg.LI = fmri_LIs_val;
+fmri_LIs_trn = do_ternary_classification(cfg);
+size(fmri_LIs_trn);
+
+% Corr, MEG-fMRI
+cfg = []; cfg.wi = wi;
+cfg.ID = sub_MF_pt;
+cfg.ternary = 1;
+cfg.thre = 0.2;
+cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
+cfg.fmri_LIs_val = fmri_LIs_trn; cfg.net_sel = [1,2,6];
+conc = do_MEG_fMRI_corr(cfg);
+
+% concordance, MEG-fMRI
+cfg = [];
+cfg.wi = wi;
+cfg.ID = sub_MF_pt;
+cfg.ternary = 1;
+cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
+cfg.fmri_LIs_val = fmri_LIs_trn; cfg.net_sel = [1,2,6];
+cfg.thre = 0.2;
+[megLIs_trn, fmri_LIs_trn]  = do_MEG_fMRI_concordance(cfg);
+
+% disp([megLIs_trn, fmri_LIs_trn])
+
+
+%% Corr.
+clc, close all
 
 LI_anim_pt_val_new = LI_anim_pt_val(:,IA,:);
 LI_symb_pt_val_new = LI_symb_pt_val(:,IA,:);
 
 fmri_LIs_val = str2double(fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
-fmri_LIs_val = str2double(fmri_LIs.val.language_Angular(IB)); net_sel = 1;
-fmri_LIs_val = str2double(fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
+% fmri_LIs_val = str2double(fmri_LIs.val.language_Angular(IB)); net_sel = 1;
+% fmri_LIs_val = str2double(fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
 % 
-% fmri_LIs_val = str2double(fmri_LIs.val.semantic_Frontal(IB)); net_sel = 2;
-% fmri_LIs_val = str2double(fmri_LIs.val.semantic_Angular(IB)); net_sel = 1;
-% fmri_LIs_val = str2double(fmri_LIs.val.semantic_Temporal(IB)); net_sel = 6;
 
-cr = [];
-for i=1:length(wi)
-    %     for j=1:size(LI_anim_pt_val_new,2)
-    mLI_sub1 = (LI_anim_pt_val_new(net_sel,:,i));
-    mLI_sub2 = (LI_symb_pt_val_new(net_sel,:,i));
-    mLI_sub_pt = (mLI_sub1 - mLI_sub2)';
-%     mLI_sub_pt = mLI_sub1
-    cr(i,:) = corr2(mLI_sub_pt, fmri_LIs_val);
-    %     end
-end
+cfg = []; cfg.wi = wi;
+cfg.ID = sub_MF_pt;
+cfg.thre = 0.2;
+cfg.ternary = 0;
+cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
+cfg.fmri_LIs_val = fmri_LIs_val; cfg.net_sel = net_sel;
+crr = do_MEG_fMRI_corr(cfg);
 
-figure, plot(mean(wi'),cr), title([net_sel_mutiple_label{net_sel}]);
-ylabel('LIs corr (MEG , fMRI)')
+%- concordance (similarity)
+cfg = [];
+cfg.wi = wi;
+cfg.thre = 0.2;
+cfg.ternary = 0;
+cfg.ID = sub_MF_pt;
+cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+cfg.LI_anim_val = LI_anim_pt_val_new;
+cfg.LI_symb_val = LI_symb_pt_val_new;
+cfg.fmri_LIs_val = fmri_LIs_val;
+cfg.net_sel = net_sel;
+conc = do_MEG_fMRI_concordance(cfg);
 
-[mx, idx] = max(cr);
+%% Corr.(tern)
+clc, close all
 
-mLI_sub1 = (LI_anim_pt_val_new(net_sel,:,idx));
-mLI_sub2 = (LI_symb_pt_val_new(net_sel,:,idx));
-mLI_sub_pt = (mLI_sub1 - mLI_sub2)';
+% fmri_LIs_val = str2double(fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
+% fmri_LIs_val = str2double(fmri_LIs.val.language_Angular(IB)); net_sel = 1;
+fmri_LIs_val = str2double(fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
 
-figure, bar([mLI_sub_pt, fmri_LIs_val])
-figure, plot(mLI_sub_pt, fmri_LIs_val,'*')
+cfg = [];
+cfg.thre = .2; cfg.LI = fmri_LIs_val;
+fmri_LIs_trn = do_ternary_classification(cfg);
+size(fmri_LIs_trn);
 
-corr2(mLI_sub_pt, fmri_LIs_val)
+cfg = []; cfg.wi = wi;
+cfg.ID = sub_MF_pt;
+cfg.thre = 0.2;
+cfg.ternary = 1;
+cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
+cfg.fmri_LIs_val = fmri_LIs_trn; cfg.net_sel = net_sel;
+crr = do_MEG_fMRI_corr(cfg);
 
-%%
+%- concordance (similarity)
+cfg = [];
+cfg.wi = wi;
+cfg.thre = 0.2;
+cfg.ternary = 1;
+cfg.ID = sub_MF_pt;
+cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+cfg.LI_anim_val = LI_anim_pt_val_new;
+cfg.LI_symb_val = LI_symb_pt_val_new;
+cfg.fmri_LIs_val = fmri_LIs_trn;
+cfg.net_sel = net_sel;
+conc = do_MEG_fMRI_concordance(cfg);
+
+
 
 
 
