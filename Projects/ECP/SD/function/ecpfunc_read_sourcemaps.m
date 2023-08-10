@@ -1,10 +1,10 @@
-function S_data = ecpfunc_read_sourcemaps(cfg)
+function S_data = ecpfunc_read_sourcemaps(cfg_main)
 
-protocol = cfg.protocol;
+protocol = cfg_main.protocol;
+data_info_dir = cfg_main.datadir;
+BS_data_dir = cfg_main.BS_data_dir;
 
 %%
-
-% db_reload_database('current',1)
 load(protocol);
 Subj_bs = ProtocolSubjects.Subject;
 
@@ -20,6 +20,27 @@ for i=1:length(Subj_bs)
 end
 unq_bs_subj = unique(subjs_bs);
 %%
+% no_anat = {'EC1036'
+%     'EC1037'
+%     'EC1038'
+%     'EC1040'
+%     'EC1045'
+%     'EC1049'
+%     'EC1061'
+%     'EC1065'
+%     'EC1085'
+%     'EC1092'
+%     'EC1094'
+%     'EC1096'
+%     'EC1110'
+%     'EC1111'
+%     'EC1112'
+%     'EC1141'
+%     'EC1153'
+%     'EC1162'
+%     'EC1090'};
+
+
 no_anat = {'EC1036'
     'EC1037'
     'EC1038'
@@ -29,22 +50,16 @@ no_anat = {'EC1036'
     'EC1061'
     'EC1065'
     'EC1085'
-    'EC1092'
     'EC1094'
     'EC1096'
     'EC1110'
     'EC1111'
-    'EC1112'
-    'EC1141'
-    'EC1153'
-    'EC1162'
-    'EC1090'};
+    'EC1090'
+    };
 
 sub_all1 = setdiff(unq_bs_subj,no_anat);
 
 %%
-data_info_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Atlas';
-
 cd(data_info_dir)
 if exist(fullfile(data_info_dir,'comments_subject.mat'),'file') == 2
     load(fullfile(data_info_dir,'comments_subject.mat')),

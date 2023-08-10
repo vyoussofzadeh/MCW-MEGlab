@@ -87,20 +87,23 @@ no_anat = {'EC1036'
     'EC1049'
     'EC1061'
     'EC1065'
-    'EC1085'    
+    'EC1085'
     'EC1094'
     'EC1096'
     'EC1110'
-    'EC1111'   
-    'EC1141'
-    'EC1153'
-    'EC1162'
-    'EC1090'};
+    'EC1111'
+    };
+
+temp_anat = {'EC1090'};
 
 % 'EC1092'
 %  'EC1112'
+%     'EC1141'
+% 'EC1162'
+% 'EC1153'
 
 sub_all1 = setdiff(unq_bs_subj,no_anat);
+sub_all1 = setdiff(sub_all1,temp_anat);
 
 %% Import raw data
 L_data =length(datafile_fif);
@@ -111,7 +114,7 @@ for ii=1:L_data
     datadir_sub = fullfile(BS_dir,'data_all_subjects/',['EC',sub_sel]);
     cd(datadir_sub)
     idx = strfind(datadir_sub,'/');
-    okrun = find(contains(no_anat,datadir_sub(idx(end)+1:end))==1);
+    okrun = find(contains([no_anat; temp_anat],datadir_sub(idx(end)+1:end))==1);
     if  ~isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_raw']) ...
             && isempty(okrun) && ...
             ~isfolder(['@rawEC',sub_sel, '_SD_', run_sel, '_raw'])...
@@ -120,7 +123,8 @@ for ii=1:L_data
             && ~isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_raw_tsss'])
         iSubject = find(contains(unq_bs_subj, sub_sel)==1);
         RawFiles = datafile_fif{ii};
-        pause(3),
+        disp(RawFiles)
+%         pause,
         OutputFiles = import_raw(RawFiles, 'FIF', iSubject, [], []);
     end
 end
@@ -138,7 +142,6 @@ for i=1:length(d)
     if isempty(idx)
         idx = strfind(name,'EC');
     end
-%     idx1 = strfind(name,'_');
     idx2 = strfind(name,'run');
     if isempty(idx2)
        idx2 = strfind(name,'Run'); 
@@ -238,7 +241,7 @@ for ii=1:length(d)
 end
 db_reload_database('current',1)
 
-%% Clean-up (ICA + reject trials)
+%% Clean-up (ICA + reject trials) - this part is optional
 addpath(ft_path);
 ft_defaults
 
@@ -487,10 +490,10 @@ for ii = 1:length(subj)
     end
 end
 
-%% delete extra smoothed files
+%% delete extra smoothed files - Optional
 cd(BS_data_dir)
 clc
-dd = rdir(fullfile('./Group_analysis/*/results_*.mat'));
+dd = rdir(fullfile('./Group_analysis/*_clean/results_*.mat'));
 
 for ii=1:length(dd)
     disp([num2str(ii), '/', num2str(length(dd))])
@@ -516,7 +519,7 @@ for ii=1:length(dd)
     end
 end
 
-%% delete extra avg file
+%% delete extra avg file - Optional
 cd(BS_data_dir)
 clc
 dd = rdir(fullfile('./Group_analysis/*/results_*.mat'));
@@ -553,7 +556,7 @@ for ii=1:length(dd)
     end
 end
 
-%% delete short epochs
+%% delete short epochs - Optional
 cd(BS_data_dir)
 clc
 dd = rdir(fullfile('./EC*/*/results_*.mat'));
@@ -896,120 +899,4 @@ bst_process('CallProcess', 'process_ft_sourcestatistics_VY', sFiles_A, sFiles_B,
 %     'timewindow', toi, ...
 %     'Comment', ['FT ttest, ', ' [', num2str(toi(1)),',', num2str(toi(2)),']ms: ', stag1, '-', stag2], ...
 
-%% Source modelling, DICS-BF
-% addpath('/data/MEG/Vahab/Github/MCW_MEGlab/Projects/ECP/SM/Surface_based/progression_analysis/function');
-
-% disp('1: 1st');
-% disp('2: 2nd');
-% disp('3: 3rd');
-% disp('4: 4th');
-% disp('5: 5th');
-% anal_sel = input(':');
-%
-% func = 'process_ft_sourceanalysis_DICS_BF_5intervals';
-%
-% datalog = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/datalog';
-%
-% switch anal_sel
-%     case 1
-%         datatag = '1st'; t_sel = 1;
-%     case 2
-%         datatag = '2nd'; t_sel = 2;
-%     case 3
-%         datatag = '3rd'; t_sel = 3;
-%     case 4
-%         datatag = '4th'; t_sel = 4;
-%     case 5
-%         datatag = '5th'; t_sel = 5;
-% end
-%
-%
-% for ii = 1:length(BS_chan.datafile)
-%     [a, ~] = fileparts(BS_chan.datafile{ii});[c,d] = fileparts(a); [e,f] = fileparts(c);
-%     tkz = tokenize(d,'_');
-%     ee = [tkz{1},'_',tkz{2},'_',tkz{3}];
-%     cd(a);
-%     dd1 = rdir('./results_dics*.mat');
-%
-%     %     if any(strcmp(HCs,tkz{2}))
-%     disp('======')
-%     disp(ee)
-%     %         pause,
-%     run = [];
-%     if ~isempty(dd1)
-%         for jj=1:length(dd1)
-%             tmp = load(dd1(jj).name);
-%             disp(tmp.Comment);
-%             run(jj) = contains(tmp.Comment, datatag);
-%         end
-%     end
-%     runval  = isempty(find(run==1, 1));
-%
-%     %         if runval && ~exist(fullfile(datalog, [ee,'_', num2str(t_sel),'.mat']),'file')
-%     disp(ii)
-%     db_reload_studies(ii, 1);
-%     %             dd = rdir('./*_IC*.mat');
-%     dd = rdir('./data*.mat');
-%
-%     sFiles1 = [];
-%     clear d_tag
-%     for jj=1:length(dd)
-%         sFiles1{jj} = fullfile(f,d,dd(jj).name);
-%         tkz = tokenize(dd(jj).name, '_');
-%         d_tag(jj) = str2num(tkz{2});
-%     end
-%
-%     sFiles_2 = sFiles1(d_tag == 2); sFiles_3 = sFiles1(d_tag == 3);
-%
-%
-%     w1 = 0.4; l = 1; ov = l.*1; j=1; wi=[];
-%     %         w1 = 0.4; l = 0.8; ov = l.*0.2; j=1; wi=[];
-%     while w1+l < 2
-%         wi(j,:) = [w1, w1+l]; j=j+1; w1 = w1 + ov;
-%     end
-%
-%     for jj = 1:length(wi)
-%
-%         sFiles = bst_process('CallProcess', 'process_ft_sourceanalysis_dics', sFiles_2, [], ...
-%             'sensortype', 'MEG', ...  % MEG
-%             'poststim',   wi(jj,:), ...
-%             'baseline',   [-0.3, -0.0005], ...
-%             'foi',        20, ...
-%             'tpr',        4, ...
-%             'method',     'subtraction', ...  % Subtraction (post-pre)
-%             'erds',       'erd', ...  % ERD
-%             'effect',     'abs', ...  % abs
-%             'Comment', [ee,'_2_', num2str(t_sel),'.mat'], ...
-%             'maxfreq',    40, ...
-%             'showtfr',    1);
-%
-%
-%         sFiles = bst_process('CallProcess', 'process_ft_sourceanalysis_dics', sFiles_3, [], ...
-%             'sensortype', 'MEG', ...  % MEG
-%             'poststim',   wi(jj,:), ...
-%             'baseline',   [-0.3, -0.0005], ...
-%             'foi',        20, ...
-%             'tpr',        4, ...
-%             'method',     'subtraction', ...  % Subtraction (post-pre)
-%             'erds',       'erd', ...  % ERD
-%             'effect',     'abs', ...  % abs
-%             'Comment', [ee,'_3_', num2str(t_sel),'.mat'], ...
-%             'maxfreq',    40, ...
-%             'showtfr',    1);
-%
-%     end
-%
-%     %                         pause,
-%     save(fullfile(datalog, [ee,'_Sybl_', num2str(t_sel),'.mat']),'t_sel'); % prevent conflict with other running scripts
-%     bst_process('CallProcess', func, sFiles_2, [], ...
-%         'method',     'dics', ...  % DICS beamformer
-%         'sensortype', 'MEG', ...
-%         't_sel', t_sel, 'progressbar', 0);  % MEG
-%     disp('done');
-%     delete(fullfile(datalog, [ee,'_', num2str(t_sel),'.mat'])); % delete tmp file
-%     clc,
-%     %         end
-%     %     end
-% end
-%
-% subj_all1 = unique(subj_all);
+%%

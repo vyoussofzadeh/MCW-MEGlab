@@ -105,3 +105,11 @@ text(-0.2, 1.3, '(b)', 'Units', 'normalized', 'FontSize', 14);
 
 %% replace 'banana' with 'pear'
 cell_array = strrep(cell_array, 'banana', 'pear');
+
+%% Export a figure
+cfg = [];
+cfg.outdir = outdir;
+filename = ['meanLIs_', S_data_sel.s_tag];
+cfg.filename = filename;
+cfg.type = 'fig';
+do_export_fig(cfg)

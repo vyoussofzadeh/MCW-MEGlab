@@ -77,7 +77,6 @@ rmpath(spm_path);
 t1 = table(m_LI_sub'); t1.Properties.VariableNames{'Var1'} = 'LI';
 
 %% Create a folde
-
 folderPath = 'path/to/folder';
 
 if ~exist(folderPath, 'dir')
@@ -86,4 +85,26 @@ if ~exist(folderPath, 'dir')
 else
     disp('Folder already exists.');
 end
+
+%% Finding peaks
+y = cr;
+t =  mean(wi');
+% Find the global peak and its index
+[max_val, idx] = max(y);
+
+% Define an interval of 10 samples centered around the peak
+interval_length = 15;
+interval_start = max(1, idx - interval_length/2);
+interval_end = min(length(y), idx + interval_length/2);
+
+% Get the interval containing the peak
+peak_interval = y(interval_start:interval_end);
+
+% Plot the original signal
+plot(t, y)
+hold on
+
+% Highlight the interval containing the peak
+plot(t(interval_start:interval_end), peak_interval, 'r')
+hold off
 
