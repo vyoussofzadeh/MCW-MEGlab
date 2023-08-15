@@ -4,7 +4,7 @@
 % Script: BS Process (Laterality analysis)
 % Project: ECP_SD
 % Writtern by: Vahab Youssof Zadeh
-% Update: 05/31/2023
+% Update: 08/09/2023
 
 clear; clc, close('all'); warning off,
 
@@ -24,7 +24,10 @@ Run_load_surface_template
 fmri_LIs = ecpfunc_read_fmri_lat();
 
 %%
-cfg = []; cfg.protocol = protocol;
+clc
+cfg = []; 
+cfg.protocol = protocol;
+cfg.datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data';
 S_data = ecpfunc_read_sourcemaps(cfg);
 
 %% Subject demog details
@@ -59,10 +62,14 @@ cfg = []; cfg.strt = 0; cfg.spt = 2; cfg.overlap = 0.01; cfg.linterval = 0.3;
 wi  = do_time_intervals(cfg);
 
 %%
-net_sel_mutiple_label = {'Angular'; 'Frontal'; 'Occipital'; 'Other'; ...
-    'PCingPrecun';'Temporal'; 'BTLA'; 'VWFA'};
+clc
+glass_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_symmetrical_final_updated.mat';
+cfg = []; 
+cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/cortex_pial_low.fs';
+cfg.glass_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/Glasser';
+cfg.glass_atlas = glass_atlas;
+Data_hcp_atlas = ecpfunc_hcp_atlas2(cfg);
 
-cfg = []; Data_hcp_atlas = ecpfunc_hcp_atlas2(cfg);
 net_sel_mutiple_label = Data_hcp_atlas.groups_labels';
 
 %%
@@ -70,7 +77,7 @@ network_sel = [1:3,6:10];
 colr = distinguishable_colors(length(network_sel));
 
 %%
-data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/LI_subs/group_8net_300ms';
+data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/';
 cd(data_save_dir)
 
 %%
@@ -80,13 +87,15 @@ disp('3: bootstrapping')
 LI_method = input('LI_method sel:');
 switch LI_method
     case 1
-        mlabel = 'threshold_1';
+        mlabel = 'threshold';
     case 2
         mlabel = 'counting';
     case 3
         mlabel = 'bootstrapping';
 end
+
 %%
+outdir = fullfile(data_save_dir, mlabel, 'figs');
 cd(fullfile(data_save_dir, mlabel))
 
 LI_anim_hc = load('LI_anim-hc');
@@ -151,11 +160,9 @@ switch LI_method
         xlabel('time')
         set(gca,'color','none');
         set(lgnd,'color','none');
-        
 end
 
 %% Anim HC
-% close all
 mLI_sub1 = squeeze(nanmean(LI_anim_hc.LI_sub,2)); tag = [mlabel, '; anim hc'];
 
 clc, mLI_sub_hc = mLI_sub1;
@@ -176,6 +183,14 @@ ylabel('LI')
 xlabel('time')
 set(gca,'color','none');
 set(lgnd,'color','none');
+
+% - export figs
+cfg = [];
+cfg.outdir = outdir;
+filename = tag;
+cfg.filename = filename;
+cfg.type = 'fig';
+do_export_fig(cfg)
 
 %% anim vs. symb - HC
 % close all
@@ -202,6 +217,15 @@ ylabel('LI')
 xlabel('time')
 set(gca,'color','none');
 set(lgnd,'color','none');
+
+
+% - export figs
+cfg = [];
+cfg.outdir = outdir;
+filename = tag;
+cfg.filename = filename;
+cfg.type = 'fig';
+do_export_fig(cfg)
 
 %%
 [sub_pt,IA,IB] = intersect(S_data_anim_pt.sFiles_subid, S_data_symb_pt.sFiles_subid);
@@ -236,6 +260,14 @@ xlabel('time')
 set(gca,'color','none');
 set(lgnd,'color','none');
 
+% - export figs
+cfg = [];
+cfg.outdir = outdir;
+filename = tag;
+cfg.filename = filename;
+cfg.type = 'fig';
+do_export_fig(cfg)
+
 %%
 mLI_sub_diff = mLI_sub_hc - mLI_sub_pt; tag = [mlabel,'; hc - pt'];
 
@@ -259,18 +291,12 @@ set(lgnd,'color','none');
 
 set(gcf, 'Position', [1000   400   1000   900]);
 
-%%
-% mLI_sub_mdiff = mean(mLI_sub_hc,1) - mean(mLI_sub_pt,1); tag = 'hc - pt, mean';
-%
-% figure,
-% plot(mLI_sub_mdiff,'LineWidth',3, 'color','k'),
-% val = round(mean(wi(:,1),2),2);
-% set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
-% set(gca,'FontSize',8,'XTickLabelRotation',90);
-% set(gcf, 'Position', [1000   400   1100   300]);
-% title(tag)
-% set(gca,'color','none');
-% set(lgnd,'color','none');
+% - export figs
+cfg = [];
+cfg.outdir = outdir;
+cfg.filename = tag;
+cfg.type = 'fig';
+do_export_fig(cfg)
 
 %%
 patn_neuropsych_tle = ecpfunc_read_patn_neuropsych_tle();
@@ -313,6 +339,13 @@ xlabel('time')
 set(gca,'color','none');
 set(lgnd,'color','none');
 
+% - export figs
+cfg = [];
+cfg.outdir = outdir;
+cfg.filename = tag;
+cfg.type = 'fig';
+do_export_fig(cfg)
+
 %%
 mLI_sub_diff = mLI_sub_hc - mLI_sub_pt_left; tag = [mlabel,'; hc - pt-left'];
 
@@ -335,6 +368,10 @@ set(lgnd,'color','none');
 
 set(gcf, 'Position', [1000   400   1000   900]);
 
+% - export figs
+cfg = []; cfg.outdir = outdir; cfg.filename = tag;
+cfg.type = 'fig'; do_export_fig(cfg)
+
 %% MEG vs. fMRI lat analysis (HC)
 [sub_MF_hc,IA,IB] = intersect(S_data_anim_hc.sFiles_subid, fmri_LIs.ID.language_Lateral);
 
@@ -344,7 +381,11 @@ mLI_sub_hc = mLI_sub1 - mLI_sub2;
 
 tag = [mlabel,'; anim vs. symb, hc'];
 
-figure, plot(mLI_sub_hc(IA), str2double(fmri_LIs.val.language_Lateral(IB)),'*')
+% figure, plot(mLI_sub_hc(IA), str2double(fmri_LIs.val.language_Lateral(IB)),'*')
+
+% missing from fMRI 
+difference = setdiff(S_data_anim_hc.sFiles_subid, sub_MF_hc');
+disp(difference');
 
 %% MEG vs. fMRI lat analysis (PT)
 [sub_MF_pt,IA,IB] = intersect(LI_pt_ID, fmri_LIs.ID.language_Lateral);
@@ -353,65 +394,91 @@ LI_anim_pt_val_new = LI_anim_pt_val(:,IA,:);
 LI_symb_pt_val_new = LI_symb_pt_val(:,IA,:);
 fmri_LIs_val = str2double(fmri_LIs.val.language_Lateral(IB));
 
+% missing from fMRI 
+difference = setdiff(LI_pt_ID, sub_MF_pt');
+disp(difference');
+
 %% MEG LI vs fMRI LI (language_Lateral)
-close all
-clc
+% close all
+% clc
 
 % Corr, MEG-fMRI
 cfg = []; cfg.wi = wi;
 cfg.ID = sub_MF_pt;
 cfg.ternary = 0;
 cfg.thre = .2;
+cfg.savefig = 1;
+cfg.outdir = outdir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
+cfg.LI_anim_val = LI_anim_pt_val_new; 
+cfg.LI_symb_val = LI_symb_pt_val_new;
 cfg.fmri_LIs_val = fmri_LIs_val; cfg.net_sel = [1,2,6];
-crr = do_MEG_fMRI_corr(cfg);
-
-% concordance, MEG-fMRI
-cfg = [];
-cfg.wi = wi;
-cfg.ID = sub_MF_pt;
-cfg.ternary = 0;
-cfg.thre = .2;
-cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
-cfg.fmri_LIs_val = fmri_LIs_val; cfg.net_sel = [1,2,6];
-conc = do_MEG_fMRI_concordance(cfg);
+[megLI_sub_pt, fmri_LIs_val, crr] = do_MEG_fMRI_corr(cfg);
 
 %% MEG LI vs fMRI LI (Ternary language_Lateral)
 close all
 clc
 
 cfg = [];
-cfg.thre = .2; cfg.LI = fmri_LIs_val;
+cfg.thre = .5; cfg.LI = fmri_LIs_val;
 fmri_LIs_trn = do_ternary_classification(cfg);
 size(fmri_LIs_trn);
-
-% Corr, MEG-fMRI
-cfg = []; cfg.wi = wi;
-cfg.ID = sub_MF_pt;
-cfg.ternary = 1;
-cfg.thre = 0.2;
-cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
-cfg.fmri_LIs_val = fmri_LIs_trn; cfg.net_sel = [1,2,6];
-conc = do_MEG_fMRI_corr(cfg);
 
 % concordance, MEG-fMRI
 cfg = [];
 cfg.wi = wi;
 cfg.ID = sub_MF_pt;
 cfg.ternary = 1;
+cfg.savefig = 1;
+cfg.outdir = outdir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
 cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
 cfg.fmri_LIs_val = fmri_LIs_trn; cfg.net_sel = [1,2,6];
 cfg.thre = 0.2;
-[megLIs_trn, fmri_LIs_trn]  = do_MEG_fMRI_concordance(cfg);
+[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance(cfg);
 
-% disp([megLIs_trn, fmri_LIs_trn])
+disp([megLIs_trn, fmri_LIs_trn])
 
+% figure, imagesc([megLIs_trn - fmri_LIs_trn])
+% colorbar
 
-%% Corr.
+%%
+close all
+clc
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/other/')
+
+cfg = [];
+cfg.DataArray = [megLIs_trn, fmri_LIs_trn]; 
+cfg.savefig = 1;
+cfg.outdir = outdir; 
+cfg.title = 'SD task, 58 PTs, ternary class';
+do_plot_LIs(cfg)
+
+cfg = [];
+cfg.DataArray = [megLI_sub_pt, fmri_LIs_val]; 
+cfg.savefig = 1;
+cfg.outdir = outdir; 
+cfg.title = 'SD task, 58 PTs, raw LIs';
+do_plot_LIs(cfg)
+
+%%
+[C, order] = confusionmat(megLIs_trn, fmri_LIs_trn);
+% Visualize the confusion matrix
+figure;
+h = heatmap(C);
+h.XDisplayLabels = {'-1','0', '1'};
+h.YDisplayLabels = {'-1','0', '1'};
+xlabel('MEG');
+ylabel('fMRI');
+title('Confusion Matrix');
+
+% - export figs
+cfg = []; cfg.outdir = outdir; cfg.filename = ['Confusion Matrix']; 
+cfg.type = 'fig'; do_export_fig(cfg)
+
+cd(outdir)
+
+%% Corr. ROIs
 clc, close all
 
 LI_anim_pt_val_new = LI_anim_pt_val(:,IA,:);
@@ -426,50 +493,32 @@ cfg = []; cfg.wi = wi;
 cfg.ID = sub_MF_pt;
 cfg.thre = 0.2;
 cfg.ternary = 0;
+cfg.savefig = 0;
+cfg.outdir = outdir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
 cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
 cfg.fmri_LIs_val = fmri_LIs_val; cfg.net_sel = net_sel;
 crr = do_MEG_fMRI_corr(cfg);
 
-%- concordance (similarity)
-cfg = [];
-cfg.wi = wi;
-cfg.thre = 0.2;
-cfg.ternary = 0;
-cfg.ID = sub_MF_pt;
-cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_anim_val = LI_anim_pt_val_new;
-cfg.LI_symb_val = LI_symb_pt_val_new;
-cfg.fmri_LIs_val = fmri_LIs_val;
-cfg.net_sel = net_sel;
-conc = do_MEG_fMRI_concordance(cfg);
-
 %% Corr.(tern)
 clc, close all
 
-% fmri_LIs_val = str2double(fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
-% fmri_LIs_val = str2double(fmri_LIs.val.language_Angular(IB)); net_sel = 1;
+fmri_LIs_val = str2double(fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
+fmri_LIs_val = str2double(fmri_LIs.val.language_Angular(IB)); net_sel = 1;
 fmri_LIs_val = str2double(fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
 
 cfg = [];
-cfg.thre = .2; cfg.LI = fmri_LIs_val;
+cfg.thre = .5; cfg.LI = fmri_LIs_val;
 fmri_LIs_trn = do_ternary_classification(cfg);
 size(fmri_LIs_trn);
-
-cfg = []; cfg.wi = wi;
-cfg.ID = sub_MF_pt;
-cfg.thre = 0.2;
-cfg.ternary = 1;
-cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
-cfg.fmri_LIs_val = fmri_LIs_trn; cfg.net_sel = net_sel;
-crr = do_MEG_fMRI_corr(cfg);
 
 %- concordance (similarity)
 cfg = [];
 cfg.wi = wi;
 cfg.thre = 0.2;
 cfg.ternary = 1;
+cfg.savefig = 0;
+cfg.outdir = outdir;
 cfg.ID = sub_MF_pt;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
 cfg.LI_anim_val = LI_anim_pt_val_new;

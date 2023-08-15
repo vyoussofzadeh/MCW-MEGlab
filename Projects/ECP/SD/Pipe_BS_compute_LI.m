@@ -20,7 +20,10 @@ Run_BS
 Run_load_surface_template
 
 %%
-cfg = []; cfg.protocol = protocol;
+cfg = []; 
+cfg.protocol = protocol;
+cfg.datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data';
+cfg.BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data_all_subjects';
 S_data = ecpfunc_read_sourcemaps(cfg);
 
 %% Subject demog details
@@ -37,9 +40,19 @@ cfg.sub_demog_data = sub_demog_data;
 cfg.patn_neuropsych_data = patn_neuropsych_data;
 sub_TLE_sub_data = ecpfunc_read_sub_TLE_sub(cfg);
 
+%%
+src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/cortex_pial_low.fs';
+data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/';
+glass_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_symmetrical_final_updated.mat';
+glass_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/Glasser';
+
 %% HCP Atlas
 clc, close all
-cfg = []; Data_hcp_atlas = ecpfunc_hcp_atlas2(cfg);
+cfg = []; 
+cfg.src_fname = src_fname;
+cfg.glass_dir = glass_dir;
+cfg.glass_atlas = glass_atlas;
+Data_hcp_atlas = ecpfunc_hcp_atlas2(cfg);
 
 %% Time intervals (window)
 cfg.strt = 0;
@@ -51,10 +64,6 @@ wi  = do_time_intervals(cfg);
 
 %%
 thre = 0.5;
-
-%%
-src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Atlas/cortex_pial_low.fs';
-data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/LI_subs';
 
 %%
 cfg = [];
@@ -94,7 +103,7 @@ switch LI_method
 end
 
 %%
-save_dir = fullfile(data_save_dir,'group_8net_300ms', mlabel);
+save_dir = fullfile(data_save_dir,mlabel);
 
 if ~exist(save_dir, 'dir')
     mkdir(save_dir);

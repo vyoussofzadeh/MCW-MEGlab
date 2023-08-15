@@ -9,7 +9,7 @@ wi = []; w1 = strt; l = linterval; ov = overlap; j=1; %ov = l.*0.3
 while w1+l < spt
     wi(j,:) = [w1, w1+l]; j=j+1; w1 = w1 + ov;
 end
-disp(wi)
+% disp(wi)
 % length(wi)
 
 end
