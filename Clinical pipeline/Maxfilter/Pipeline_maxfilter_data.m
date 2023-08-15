@@ -41,9 +41,12 @@ dcon = input('sel data condition:');
 switch dcon
     case 1
         tag = 'spont';
+        %         d = rdir([subjdir,['/**/','sss','/*',tag,'*/*raw.fif']]);
          d = rdir([subjdir,['/*',tag,'*.fif']]);
     case 2
         tag = 'spont';
+        %         d = rdir([subjdir,['/**/','sss','/*',tag,'*/*raw.fif']]);
+%         d = rdir([subjdir,['/**/*',tag,'*/*.fif']]);
         d = rdir([subjdir,['/**/','sss','/*',tag,'*/*.fif']]);
     case 3
         tag = 'SSEF';
@@ -85,6 +88,37 @@ cfg.layout = 'neuromag306mag.lay';
 lay = ft_prepare_layout(cfg);
 % ft_layoutplot(cfg);
 disp('============');
+
+%%
+% Define the input and output file names
+input_file = datafile;
+output_file = [datafile(1:end-4), '_sss_new.fif'];
+
+% Define the path to MaxFilter
+maxfilter_cmd = '/opt/neuromag/bin/util/maxfilter';
+
+% Construct the full MaxFilter command with desired arguments
+command = sprintf('%s -f %s -o %s ', maxfilter_cmd, input_file, output_file); % SSS
+% command = sprintf('%s -f %s -o %s -st 10 -corr 0.9', maxfilter_cmd, input_file, output_file); % tSSS
+
+% Execute the command in MATLAB
+[status, cmdout] = system(command);
+
+% Optionally, you can check 'status' to see if the command executed successfully
+if status == 0
+    disp('MaxFilter ran successfully');
+else
+    disp('Error running MaxFilter');
+    disp(cmdout);  % This will show the output (or error message) from MaxFilter
+end
+
+[pathstr, name, ext] = fileparts(datafile);
+cd(pathstr)
+
+%%
+command = (['mbrowse ', datafile])
+[status, cmdout] = system(command);
+
 
 %% ICA preprocesssing
 % ft_read_header(datafile);
