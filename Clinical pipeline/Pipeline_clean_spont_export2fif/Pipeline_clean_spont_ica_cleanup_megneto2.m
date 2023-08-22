@@ -1,30 +1,27 @@
+
+% ICA Cleanup Pipeline for Neuromag .fif Files
+% Purpose: This script applies Independent Component Analysis (ICA) cleanup
+% on neuromag .fif files typically used in MEG analysis.
+% Author: MCW group, Vahab Youssof Zadeh <vyoussofzadeh@mcw.edu>
+% Last Updated: 08/22/2023
+
+%% Reset MATLAB environment
+clear; clc; close('all');
+warning('off');
 clear; clc, close('all'); warning off
 
-%% Flags
-flag.preprocessing.filtering = 1;
-flag.preprocessing.artifact = 1;
-flag.preprocessing.ica = 1;
-flag.notch = 1;
-flag.freq = 1;     % TFR & FFT
-flag.time = 1;     % Time-locked & Cov estimation
-flag.gave = 0;     % grand average analysis
-flag.anatomy = 1;     % grand average analysis
-flag.sourceanalysis = 1;     % grand average analysis
-flag.speechanalysis = 2;     % speech analysis
-
 %% Initial settings
-cd '/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab/FT';
-restoredefaultpath
-cd_org = cd;
-addpath(genpath(cd_org));
-
 %- Input dir
 indir = '/MEG_data/epilepsy';
+funcpath = '/MEG_data/MCW_pipeline/ICAcleanup_for_fif_files/func';
+mnepath = '/usr/local/MATLAB_Tools/fieldtrip_20190419/external/mne';
+
+addpath(funcpath)
 
 %- Adding path
 cfg_init = [];
-cfg_init.path_tools = '/MEG_data/LAB_MEMBERS/Vahab/Github/tools';
-[allpath, atlas] = vy_init(cfg_init);
+cfg_init.path_tools = '/usr/local/MATLAB_Tools';
+allpath = do_init(cfg_init);
 
 %%
 cd(indir)
@@ -32,16 +29,16 @@ cd(indir)
 cd(subjdir)
 
 %%
-disp('1: Spont- Raw')
-disp('2: Spont- SSS')
-disp('3: SSEF')
-disp('4: other')
-dcon = input('sel data condition:');
+dataConditions = {'Spont- Raw', 'Spont- SSS', 'SSEF', 'Other'};
+for idx = 1:length(dataConditions)
+    disp([num2str(idx), ': ', dataConditions{idx}]);
+end
+dcon = input('Select data condition (e.g., 1 for Spont-Raw): ');
 
 switch dcon
     case 1
         tag = 'spont';
-         d = rdir([subjdir,['/*',tag,'*.fif']]);
+        d = rdir([subjdir,['/*',tag,'*.fif']]);
     case 2
         tag = 'spont';
         d = rdir([subjdir,['/**/','sss','/*',tag,'*/*.fif']]);
@@ -65,71 +62,68 @@ end
 datafile1 = datafile';
 disp(data_disp')
 if length(datafile1) > 1
-    datasel = input('choose data to analyze:');
+    disp('Enter data number to process:')
+    datasel = input('');
 else
     datasel = 1;
 end
 disp([subj, ' and,'])
 disp(datafile1{datasel})
 disp('was selected for the analysis.')
-disp('============');
 
 datafile = datafile1{datasel};
 
-%%
-epoch_type = 'STI101';
-
-%% 4D layout
+%% neuromag306mag layout
 cfg = [];
 cfg.layout = 'neuromag306mag.lay';
 lay = ft_prepare_layout(cfg);
 % ft_layoutplot(cfg);
-disp('============');
 
-%% ICA preprocesssing
-% ft_read_header(datafile);
-
-cfg = []; cfg.channel = {'MEG'}; 
+%% read data
+cfg = []; cfg.channel = {'MEG'};
 cfg.datafile  = datafile;
-% cfg.hpfreq = 0.1;
-% cfg.lpfreq = 40;
 f_data  = ft_preprocessing(cfg);
 
-%%
+%% ICA
 cfg = []; cfg.savepath = []; cfg.savefile = []; cfg.saveflag = 2; cfg.overwrite = 2;
 cfg.lay = lay; cfg.n   = 5; cfg.subj = subj; cfg.allpath = allpath; cfg.select = 1;
-cln_data = vy_ica_cleaning_light(cfg, f_data);
+[cln_data, bic] = do_ica(cfg, f_data);
 
-%% Export to fif format
-addpath('/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab/MCW_MEGlab_git/FT_fucntions/functions_new')
-addpath('/usr/local/MATLAB_Tools/fieldtrip_20190419/external/mne')
-
-tkz = tokenize(datafile,'/');
-str = strfind(datafile,'/'); savedir = datafile(1:str(end)-1);
-str_idx = strfind(tkz{end},'_raw');
-name = [tkz{end}(1:str_idx(end)), 'ic_raw.fif'];
-% name = [tkz{end}(1:end-4), '_ic.fif'];l
-outfile = fullfile(savedir, name);
-
-disp(outfile)
-sok = input('name looking ok (yes=1, no=0)?');
-
-if sok == 1
-    %-
-    cfg = [];
-    cfg.infile = datafile;
-    cfg.outfile = outfile;
-    cfg.cln_data = cln_data;
-    do_mne_ex_read_write_raw(cfg);
-    cd(savedir)
+if ~isempty(bic)
     
-    disp('completed, data are ready to review in MEG_clinic!')
-    disp(outfile);    
+    % Export to fif format and Inspect it!
+    addpath(mnepath)
+    addpath(funcpath)
+    
+    tkz = tokenize(datafile,'/');
+    str = strfind(datafile,'/'); savedir = datafile(1:str(end)-1);
+    str_idx = strfind(tkz{end},'_raw');
+    name = [tkz{end}(1:str_idx(end)), 'ic_raw.fif'];
+    outfile = fullfile(savedir, name);
+    
+    disp(outfile)
+    sok = input('name looking ok (yes=1, no=0)?');
+    
+    if sok == 1
+        cfg = [];
+        cfg.infile = datafile;
+        cfg.outfile = outfile;
+        cfg.cln_data = cln_data;
+        do_mne_ex_read_write_raw(cfg);
+        cd(savedir)
+        disp('completed, data are ready to review in MEG_clinic!')
+        disp(outfile);
+        
+        % Inspect cleaned data
+        command = ['mbrowse ', outfile];
+        system(command)
+    end
+    
+    %% Check the header file
+    % dataheader = ft_read_header(datafile);
+    
 end
 
-%% Check the header file
-% dataheader = ft_read_header(datafile);
-
-%% Inspect data
-command = ['mbrowse ', outfile];  
-system(command)
+% Indicate the end of script execution
+disp('Script execution completed.');
+close all
