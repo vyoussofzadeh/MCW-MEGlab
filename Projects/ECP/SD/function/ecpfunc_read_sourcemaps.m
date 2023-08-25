@@ -67,7 +67,7 @@ else
     subj_del = [];
     
     cd(BS_data_dir)
-    dd = rdir(fullfile('./Group_analysis/1_LCMV_Subjects/results_average*.mat'));
+    dd = rdir(fullfile('./Group_analysis/2_LCMV_Subjects/results_average*.mat'));
     for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
     
     sFiles_name = [];
