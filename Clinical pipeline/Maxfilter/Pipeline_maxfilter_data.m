@@ -32,25 +32,31 @@ cd(indir)
 cd(subjdir)
 
 %%
-disp('1: Spont')
-disp('2: SSEF')
-disp('3: other')
+disp('1: Spont- Raw')
+disp('2: Spont- SSS')
+disp('3: SSEF')
+disp('4: other')
 dcon = input('sel data condition:');
 
 switch dcon
     case 1
         tag = 'spont';
         %         d = rdir([subjdir,['/**/','sss','/*',tag,'*/*raw.fif']]);
-        d = rdir([subjdir,['/**/','sss','/*',tag,'*/*.fif']]);
+         d = rdir([subjdir,['/*',tag,'*.fif']]);
     case 2
+        tag = 'spont';
+        %         d = rdir([subjdir,['/**/','sss','/*',tag,'*/*raw.fif']]);
+%         d = rdir([subjdir,['/**/*',tag,'*/*.fif']]);
+        d = rdir([subjdir,['/**/','sss','/*',tag,'*/*.fif']]);
+    case 3
         tag = 'SSEF';
         d = rdir([subjdir,['/**/','sss','/*',tag,'*/*raw*.fif']]);
-    case 3
+    case 4
         d = rdir([subjdir,'/*sss.fif']);
 end
 
 %%
-clear subj datafolder datafile datafile1
+clear subj datafolder datafile datafile1 data_disp
 for i=1:length(d)
     [pathstr, ~] = fileparts(d(i).name);
     datafolder{i} = pathstr;
@@ -83,9 +89,42 @@ lay = ft_prepare_layout(cfg);
 % ft_layoutplot(cfg);
 disp('============');
 
-%% ICA preprocesssing 
+%%
+% Define the input and output file names
+input_file = datafile;
+output_file = [datafile(1:end-4), '_sss_new.fif'];
+
+% Define the path to MaxFilter
+maxfilter_cmd = '/opt/neuromag/bin/util/maxfilter';
+
+% Construct the full MaxFilter command with desired arguments
+command = sprintf('%s -f %s -o %s ', maxfilter_cmd, input_file, output_file); % SSS
+% command = sprintf('%s -f %s -o %s -st 10 -corr 0.9', maxfilter_cmd, input_file, output_file); % tSSS
+
+% Execute the command in MATLAB
+[status, cmdout] = system(command);
+
+% Optionally, you can check 'status' to see if the command executed successfully
+if status == 0
+    disp('MaxFilter ran successfully');
+else
+    disp('Error running MaxFilter');
+    disp(cmdout);  % This will show the output (or error message) from MaxFilter
+end
+
+[pathstr, name, ext] = fileparts(datafile);
+cd(pathstr)
+
+%%
+command = (['mbrowse ', datafile])
+[status, cmdout] = system(command);
+
+
+%% ICA preprocesssing
+% ft_read_header(datafile);
+
 cfg = []; cfg.channel = {'MEG'}; 
-cfg.datafile  = datafile;
+cfg.datafile  = output_file;
 % cfg.hpfreq = 0.1;
 % cfg.lpfreq = 40;
 f_data  = ft_preprocessing(cfg);
