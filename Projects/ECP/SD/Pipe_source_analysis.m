@@ -604,7 +604,7 @@ ft_progress('close');
 %%
 % ft_progress('init', 'text',     'please wait ...');
 comm_data = [];
-for ii=1:length(dd) 
+for ii=684:length(dd) 
     cd(BS_data_dir)
     disp([num2str(ii), '/', num2str(length(dd))])
 %     ft_progress(i/length(dd), 'Processing event %d from %d', j, length(dd));
@@ -655,7 +655,7 @@ for ii=1:length(dd)
         end
     end
 end
-ft_progress('close');
+% ft_progress('close');
 
 
 %% Intra-subject averaging
@@ -677,17 +677,24 @@ cd(BS_data_dir)
 dd = rdir(fullfile('./Group_analysis/*/results_*.mat'));
 for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
 
+
+ft_progress('init', 'text',     'please wait ...');
 sFiles_name = [];
 for jj=1:length(dd)
+    ft_progress(jj/length(dd), 'Processing source files %d from %d', j, length(dd));
     sFiles_name{jj} = fullfile(dd(jj).name(3:end));
 end
+ft_progress('close');
 
+ft_progress('init', 'text',     'please wait ...');
 Comment = [];
 for jj=1:length(sFiles_name)
+    ft_progress(jj/length(dd), 'Processing source files %d from %d', j, length(dd));
     cd(BS_data_dir)
     tmp  = load(sFiles_name{jj});
     Comment{jj} = tmp.Comment;
 end
+ft_progress('close');
 
 idx_31 = find(contains(Comment, '3_')==1); idx_32 = find(contains(Comment, '3 (')==1);
 idx_21 = find(contains(Comment, '2_')==1); idx_22 = find(contains(Comment, '2 (')==1);

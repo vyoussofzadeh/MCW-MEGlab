@@ -24,10 +24,10 @@ Run_load_surface_template
 fmri_LIs = ecpfunc_read_fmri_lat();
 
 %%
-clc
 cfg = []; 
 cfg.protocol = protocol;
 cfg.datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data';
+cfg.BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data_all_subjects';
 S_data = ecpfunc_read_sourcemaps(cfg);
 
 %% Subject demog details
@@ -420,7 +420,7 @@ close all
 clc
 
 cfg = [];
-cfg.thre = .5; cfg.LI = fmri_LIs_val;
+cfg.thre = .2; cfg.LI = fmri_LIs_val;
 fmri_LIs_trn = do_ternary_classification(cfg);
 size(fmri_LIs_trn);
 
@@ -434,7 +434,7 @@ cfg.outdir = outdir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
 cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
 cfg.fmri_LIs_val = fmri_LIs_trn; cfg.net_sel = [1,2,6];
-cfg.thre = 0.2;
+cfg.thre = 0.1;
 [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance(cfg);
 
 disp([megLIs_trn, fmri_LIs_trn])

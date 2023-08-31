@@ -8,7 +8,11 @@ src_fname = cfg_main.src_fname;
 glass_dir = cfg_main.glass_dir;
 glass_atlas = cfg_main.glass_atlas;
 
+%%
 
+'/group/jbinder/ECP/MEG/laterality_index/bilateral_glasser_lateral.tsv'
+
+%%
 % Load atlas
 % atlas = load('/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_symmetrical_final_updated.mat');
 atlas = load(glass_atlas);
@@ -23,7 +27,7 @@ all_idx_R = find(startsWith(rois, 'R_'))';
 % Plot HCP atlas
 cfg = struct();
 cfg.atlas = atlas;
-cfg.src_fname = src_fname
+cfg.src_fname = src_fname;
 % '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Atlas/cortex_pial_low.fs';
 cfg.sel = 'roi'; % 'whole', 'left', 'right', 'roi';
 cfg.index_L = all_idx_L;
