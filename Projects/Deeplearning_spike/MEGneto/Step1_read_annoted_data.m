@@ -41,7 +41,7 @@ cfg_init.path_tools = '/MEG_data/LAB_MEMBERS/Vahab/Github/tools';
 
 
 %%
-[~, ~, raw] = xlsread('/MEG_data/Research_studies/MEG in Epilepsy Surgery/PRO00015813_Consented Patient Registry_8-17-2020.xls','Sheet1');
+[~, ~, raw] = xlsread('/MEG_data/Research_studies/MEG_in_Epilepsy_Surgery/PRO00015813_Consented Patient Registry_8-17-2020.xls','Sheet1');
 
 clear consented_sub
 k=1;
@@ -70,10 +70,9 @@ for i=1:length(d)
     st1 = strfind(pathstr,'/epilepsy/'); st2 = strfind(pathstr,'/brainstorm_db/');
     disp(pathstr(st1+10:st2-1))
     if ~isempty(find(contains(lower(consented_sub), lower(pathstr(st1+10:st2-1)))==1, 1))
-        subj{k} = pathstr(st1+10:st2-1); %tkz{end-4};
+        subj{k} = pathstr(st1+10:st2-1); 
         run{i} = tkz2{1};
         disp(subj{k})
-        %     pause,
         sub_run{k,:} = [subj{k}, '_', run{i}];
         k=k+1;
     end
@@ -82,10 +81,19 @@ end
 disp(sub_run_unq);
 
 %%
+clc
 if exist(savedir, 'file') == 0, mkdir(savedir), end
 
 clear D_annot;
 for i=1:length(sub_run_unq)
+    disp(sub_run_unq(i))
+    if exist(fullfile(savedir, [sub_run_unq{i}, '.mat']),'file') ==2
+        A = load(fullfile(savedir, [sub_run_unq{i}, '.mat']));
+        if isempty(A.Anot.T_tint)
+            delete(fullfile(savedir, [sub_run_unq{i}, '.mat']))
+            disp([[sub_run_unq{i}, '.mat'], ' was deleted and saved again!'])
+        end
+    end
     if ~exist(fullfile(savedir, [sub_run_unq{i}, '.mat']),'file')
         
         [pathstr, name] = fileparts(d(IA(i)).name);
