@@ -2,7 +2,7 @@
 
 % Spike detection MEG pipline
 % Writtern by MCW group, Youssofzadeh, Vahab <vyoussofzadeh@mcw.edu>
-% Lastest update: 08/09/2022
+% Lastest update: 08/31/2023
 
 clear; clc, close('all'); warning off
 
@@ -68,7 +68,6 @@ for i=1:length(d)
         disp('preprocessing ...')
         cfg = [];
         cfg.dataset = Anot.filename;
-        %     cfg.channel = {'megmag', 'meggrad', 'eeg','eog','ecg'};
         cfg.channel = {'megmag', 'meggrad', 'eeg'};
         raw_data = ft_preprocessing(cfg);
         
@@ -80,7 +79,6 @@ for i=1:length(d)
         for j=1:size(Anot.T_tint,1)
             cfg = [];
             if  Anot.T_tint(j,2) -  Anot.T_tint(j,1) > 0.2 && Anot.T_tint(j,1) > 5
-%                 cfg.toilim = Anot.T_tint(j,:)./(raw_data.fsample/dsample_data.fsample); % spike
                 cfg.toilim = [Anot.T_tint(j,1)-2, Anot.T_tint(j,1)-1.6]./(raw_data.fsample/dsample_data.fsample); % no spike
                 anot_data = ft_selectdata(cfg,dsample_data);
                 anot_data_all{k} = anot_data;
@@ -91,53 +89,3 @@ for i=1:length(d)
         save(fullfile(outdir,name), 'anot_data_all', 'Anot')
     end
 end
-
-%% Save orignal MEG data
-outdir_rawMEG = '/MEG_data/Research_studies/Epil_annotated_data/raw_data_nospike';
-
-if exist(outdir_rawMEG, 'file') == 0, mkdir(outdir_rawMEG), end
-
-flag.plot = 0;
-
-for i=1:length(d)
-    disp([num2str(i),'/',num2str(length(d))])
-    [pathstr, name] = fileparts(d(i).name);
-    load(d(i).name);
-    [pathstr2, name2] = fileparts(Anot.filename);
-    if ~exist(fullfile(outdir_rawMEG,name,[name2,'.fif']), 'file')
-        if exist(fullfile(outdir_rawMEG,name), 'file') == 0, mkdir(fullfile(outdir_rawMEG,name)), end
-        copyfile(Anot.filename, fullfile(outdir_rawMEG,name,[name2,'.fif']));
-        hdr = ft_read_header(Anot.filename);
-        fs = hdr.orig.sfreq;
-        first_samp = double(hdr.orig.raw.first_samp);
-        
-        savefile  = 'evt.txt';
-        textfile = fullfile(outdir_rawMEG,name,savefile);
-        fid=fopen(textfile,'w');
-        event = [first_samp, first_samp/fs, 0, 0];
-        fprintf(fid, '%d\t', event); % marker value
-        fprintf(fid,'%6s %12s\n','test');
-        for j=1:length(Anot.T_tint)
-            event(j+1,1) = round(Anot.T_tint(j)*fs) + event(1,1);
-            event(j+1,2) = Anot.T_tint(j) + event(1,2);
-            event(j+1,3) = 0;
-            event(j+1,4) = 5555;
-            fprintf(fid,'\n');
-            fprintf(fid, '%d\t', event(j+1,:)); % marker value
-            fprintf(fid,'%6s %12s\n', 'spk');
-        end
-        fclose(fid);true
-    end
-    
-    if flag.plot == 1
-        %- mne-browse
-        cd(fullfile(outdir_rawMEG,name))
-        command = ['mbrowse ',[name2,'.fif']];
-        system(command);
-    end
-end
-
-%% Copy to Squiggles
-% cd ('/MEG_data/Research_studies/Epil_annotated_data')
-% command = 'scp -r /MEG_data/Research_studies/Epil_annotated_data vyoussofzadeh@squiggles.rcc.mcw.edu:/data/MEG/Research/awang';
-% system(command)
