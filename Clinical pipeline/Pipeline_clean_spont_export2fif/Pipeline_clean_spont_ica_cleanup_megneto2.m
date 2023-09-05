@@ -3,7 +3,7 @@
 % Purpose: This script applies Independent Component Analysis (ICA) cleanup
 % on neuromag .fif files typically used in MEG analysis.
 % Author: MCW group, Vahab Youssof Zadeh <vyoussofzadeh@mcw.edu>
-% Last Updated: 08/22/2023
+% Last Updated: 09/05s/2023
 
 %% Reset MATLAB environment
 clear; clc; close('all');
@@ -12,9 +12,11 @@ clear; clc, close('all'); warning off
 
 %% Initial settings
 %- Input dir
+restoredefaultpath
+
 indir = '/MEG_data/epilepsy';
 funcpath = '/MEG_data/MCW_pipeline/ICAcleanup_for_fif_files/func';
-mnepath = '/usr/local/MATLAB_Tools/fieldtrip_20190419/external/mne';
+mnepath = '/usr/local/MATLAB_Tools/fieldtrip_2022/external/mne';
 
 addpath(funcpath)
 
@@ -29,7 +31,7 @@ cd(indir)
 cd(subjdir)
 
 %%
-dataConditions = {'Spont- Raw', 'Spont- SSS', 'SSEF', 'Other'};
+dataConditions = {'Spont- Raw', 'Spont- (t)SSS', 'SSEF', 'Other'};
 for idx = 1:length(dataConditions)
     disp([num2str(idx), ': ', dataConditions{idx}]);
 end
@@ -102,22 +104,26 @@ if ~isempty(bic)
     outfile = fullfile(savedir, name);
     
     disp(outfile)
-    sok = input('name looking ok (yes=1, no=0)?');
+    sok = input('name looking ok (Yes=1, No=0)?');
     
-    if sok == 1
-        cfg = [];
-        cfg.infile = datafile;
-        cfg.outfile = outfile;
-        cfg.cln_data = cln_data;
-        do_mne_ex_read_write_raw(cfg);
-        cd(savedir)
-        disp('completed, data are ready to review in MEG_clinic!')
-        disp(outfile);
-        
-        % Inspect cleaned data
-        command = ['mbrowse ', outfile];
-        system(command)
+    if sok == 0
+        disp('enter the new file name (e.g., xxx.fif):')
+        name = input('','s');
+        outfile = fullfile(savedir, name);
     end
+    
+    cfg = [];
+    cfg.infile = datafile;
+    cfg.outfile = outfile;
+    cfg.cln_data = cln_data;
+    do_mne_ex_read_write_raw(cfg);
+    cd(savedir)
+    disp('completed, data are ready to review in MEG_clinic!')
+    disp(outfile);
+    
+    % Inspect cleaned data
+    command = ['mbrowse ', outfile];
+    system(command)
     
     %% Check the header file
     % dataheader = ft_read_header(datafile);
