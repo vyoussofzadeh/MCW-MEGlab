@@ -73,7 +73,7 @@ Data_hcp_atlas = ecpfunc_hcp_atlas2(cfg);
 net_sel_mutiple_label = Data_hcp_atlas.groups_labels';
 
 %%
-network_sel = [1:3,6:10];
+network_sel = [1:3,6:11];
 colr = distinguishable_colors(length(network_sel));
 
 %%
@@ -183,6 +183,14 @@ ylabel('LI')
 xlabel('time')
 set(gca,'color','none');
 set(lgnd,'color','none');
+
+%%
+if ~exist(outdir, 'dir')
+    mkdir(outdir);
+    disp('Folder created successfully.');
+else
+    disp('Folder already exists.');
+end
 
 % - export figs
 cfg = [];
@@ -388,11 +396,12 @@ difference = setdiff(S_data_anim_hc.sFiles_subid, sub_MF_hc');
 disp(difference');
 
 %% MEG vs. fMRI lat analysis (PT)
-[sub_MF_pt,IA,IB] = intersect(LI_pt_ID, fmri_LIs.ID.language_Lateral);
+[sub_MF_pt,IA,IB] = intersect(LI_pt_ID, fmri_LIs.ID.language_Lateral');
 
 LI_anim_pt_val_new = LI_anim_pt_val(:,IA,:);
 LI_symb_pt_val_new = LI_symb_pt_val(:,IA,:);
-fmri_LIs_val = str2double(fmri_LIs.val.language_Lateral(IB));
+% fmri_LIs_val = str2double(fmri_LIs.val.language_Lateral(IB));
+fmri_LIs_val = (fmri_LIs.val.language_Lateral(IB)); % Lateral regions was used.
 
 % missing from fMRI 
 difference = setdiff(LI_pt_ID, sub_MF_pt');
@@ -412,7 +421,12 @@ cfg.outdir = outdir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
 cfg.LI_anim_val = LI_anim_pt_val_new; 
 cfg.LI_symb_val = LI_symb_pt_val_new;
-cfg.fmri_LIs_val = fmri_LIs_val; cfg.net_sel = [1,2,6];
+cfg.fmri_LIs_val = fmri_LIs_val; 
+% cfg.net_sel = [1,2,6];
+cfg.net_sel = [11];
+% cfg.net_sel = [6];
+% cfg.net_sel = [1];
+% cfg.net_sel = [2];
 [megLI_sub_pt, fmri_LIs_val, crr] = do_MEG_fMRI_corr(cfg);
 
 %% MEG LI vs fMRI LI (Ternary language_Lateral)
@@ -433,8 +447,11 @@ cfg.savefig = 1;
 cfg.outdir = outdir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
 cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
-cfg.fmri_LIs_val = fmri_LIs_trn; cfg.net_sel = [1,2,6];
+cfg.fmri_LIs_val = fmri_LIs_trn; 
+% cfg.net_sel = [1,2,6];
+cfg.net_sel = [11];
 cfg.thre = 0.1;
+cfg.buffervalue = 5;
 [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance(cfg);
 
 disp([megLIs_trn, fmri_LIs_trn])
@@ -484,10 +501,13 @@ clc, close all
 LI_anim_pt_val_new = LI_anim_pt_val(:,IA,:);
 LI_symb_pt_val_new = LI_symb_pt_val(:,IA,:);
 
-fmri_LIs_val = str2double(fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
+% fmri_LIs_val = str2double(fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
 % fmri_LIs_val = str2double(fmri_LIs.val.language_Angular(IB)); net_sel = 1;
 % fmri_LIs_val = str2double(fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
-% 
+
+fmri_LIs_val = (fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
+% fmri_LIs_val = (fmri_LIs.val.language_Angular(IB)); net_sel = 1;
+% fmri_LIs_val = (fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
 
 cfg = []; cfg.wi = wi;
 cfg.ID = sub_MF_pt;
@@ -503,9 +523,10 @@ crr = do_MEG_fMRI_corr(cfg);
 %% Corr.(tern)
 clc, close all
 
-fmri_LIs_val = str2double(fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
-fmri_LIs_val = str2double(fmri_LIs.val.language_Angular(IB)); net_sel = 1;
-fmri_LIs_val = str2double(fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
+fmri_LIs_val = (fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
+fmri_LIs_val = (fmri_LIs.val.language_Angular(IB)); net_sel = 1;
+fmri_LIs_val = (fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
+fmri_LIs_val = (fmri_LIs.val.language_Temporal(IB)); net_sel = 11;
 
 cfg = [];
 cfg.thre = .5; cfg.LI = fmri_LIs_val;
@@ -515,7 +536,7 @@ size(fmri_LIs_trn);
 %- concordance (similarity)
 cfg = [];
 cfg.wi = wi;
-cfg.thre = 0.2;
+cfg.thre = 0.1;
 cfg.ternary = 1;
 cfg.savefig = 0;
 cfg.outdir = outdir;
@@ -525,11 +546,10 @@ cfg.LI_anim_val = LI_anim_pt_val_new;
 cfg.LI_symb_val = LI_symb_pt_val_new;
 cfg.fmri_LIs_val = fmri_LIs_trn;
 cfg.net_sel = net_sel;
+cfg.buffervalue = 5;
 conc = do_MEG_fMRI_concordance(cfg);
 
-
-
-
+%%
 
 
 

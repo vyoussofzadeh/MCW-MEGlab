@@ -604,7 +604,7 @@ ft_progress('close');
 %%
 % ft_progress('init', 'text',     'please wait ...');
 comm_data = [];
-for ii=684:length(dd) 
+for ii=1:length(dd) 
     cd(BS_data_dir)
     disp([num2str(ii), '/', num2str(length(dd))])
 %     ft_progress(i/length(dd), 'Processing event %d from %d', j, length(dd));
@@ -681,18 +681,20 @@ for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
 ft_progress('init', 'text',     'please wait ...');
 sFiles_name = [];
 for jj=1:length(dd)
-    ft_progress(jj/length(dd), 'Processing source files %d from %d', j, length(dd));
+    ft_progress(jj/length(dd), 'Processing source files %d from %d', jj, length(dd));
     sFiles_name{jj} = fullfile(dd(jj).name(3:end));
+    pause(0.1);
 end
 ft_progress('close');
 
 ft_progress('init', 'text',     'please wait ...');
 Comment = [];
 for jj=1:length(sFiles_name)
-    ft_progress(jj/length(dd), 'Processing source files %d from %d', j, length(dd));
+    ft_progress(jj/length(dd), 'Processing source files %d from %d', jj, length(dd));
     cd(BS_data_dir)
     tmp  = load(sFiles_name{jj});
     Comment{jj} = tmp.Comment;
+    pause(0.1);
 end
 ft_progress('close');
 

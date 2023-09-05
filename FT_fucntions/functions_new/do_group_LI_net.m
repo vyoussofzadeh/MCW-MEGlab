@@ -22,6 +22,7 @@ net_sel_mutiple_label = Data_hcp_atlas.groups_labels';
 
 cd(data_save_dir)
 savefilename = fullfile(data_save_dir,['LI_',S_data_sel.s_tag, '.mat']);
+
 if exist(savefilename,'file') == 2
     load(savefilename),
 else
