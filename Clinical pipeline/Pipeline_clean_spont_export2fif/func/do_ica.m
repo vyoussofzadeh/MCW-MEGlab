@@ -54,7 +54,7 @@ cfg = [];
 cfg.updatesens = 'no';
 bic = input(['Select bad ICs for ',num2str(cfg_main.subj),':']);
 
-if isempty(bic)
+if ~isempty(bic)
     cfg.component = comp.label(bic);
     dataout = ft_rejectcomponent(cfg, comp, data);
 else
