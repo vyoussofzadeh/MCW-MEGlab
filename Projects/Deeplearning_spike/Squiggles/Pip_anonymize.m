@@ -2,7 +2,7 @@
 
 % Spike Detection MEG pipline
 % Writtern by MCW group, Youssofzadeh, Vahab <vyoussofzadeh@mcw.edu>
-% Lastest update: 08/09/2022
+% Lastest update: 08/31/2023
 
 
 clear; clc, close('all'); warning off
@@ -16,12 +16,19 @@ addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/helper')
 
 ddir = '/data/MEG/Research/SpikeDectection/Epil_annotated_data';
 
-datadir = fullfile(ddir,'annotated_data');
-savedir = fullfile(ddir,'annotated_data_anonymized');
+%%
+disp('1) Spike data')
+disp('2) no-Spike data')
+datasel = input('');
 
-datadir = fullfile(ddir,'annotated_data_nospike');
-savedir = fullfile(ddir,'annotated_data_nospike_anonymized');
-
+switch datasel
+    case 1
+        datadir = fullfile(ddir,'annotated_data');
+        savedir = fullfile(ddir,'annotated_data_anonymized');
+    case 2
+        datadir = fullfile(ddir,'annotated_data_nospike');
+        savedir = fullfile(ddir,'annotated_data_nospike_anonymized');
+end
 if exist(savedir, 'file') == 0, mkdir(savedir);  end
 
 %%
