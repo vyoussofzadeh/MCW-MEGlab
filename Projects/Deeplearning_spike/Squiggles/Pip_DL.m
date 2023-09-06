@@ -59,10 +59,11 @@ for i=1:length(sub_run_unq)
 end
 disp(sub_run_unq_nospike')
 
-%% Spike data
-baddata = [12];
-ndata = [1:11,13:89,91:length(d_spike)];
+%% BAD DATA?
+% baddata = [12];
+% ndata = [1:11,13:89,91:length(d_spike)];
 
+%% Spike data
 ft_progress('init', 'text',     'please wait ...');
 
 anot_spike_apd = [];

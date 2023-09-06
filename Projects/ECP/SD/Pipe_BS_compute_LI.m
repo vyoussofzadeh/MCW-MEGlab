@@ -46,9 +46,6 @@ data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/S
 glass_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_symmetrical_final_updated.mat';
 glass_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/Glasser';
 
-%%
-% Run_bilateralglasserlateral
-
 %% HCP Atlas
 clc, close all
 cfg = []; 
@@ -87,7 +84,7 @@ cfg.network_sel = [1,2,6]; do_map_HCP_net_sel(cfg);
 net_label = 'Fronto_tempro_pri';
 
 % Inspecting atlas areas.
-for i=1:10
+for i=1:11
     cfg.network_sel = i; do_map_HCP_net_sel(cfg);title(Data_hcp_atlas.groups_labels{cfg.network_sel})
 end
 

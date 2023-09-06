@@ -1,8 +1,13 @@
 function fmri_LIs = ecpfunc_read_fmri_lat()
 
 
+% language_Frontal is the laterality index for the language task (also known as the semantic decision tone decision task) for the Frontal ROI.
+% semantic_Frontal is the laterality index for the semantic task (also known as the storymath task) for the Frontal ROI.
+
 %%
-filename = '/group/jbinder/ECP/alternate/derivatives/laterality_indices/censor/all_volume_li.tsv'; % please replace with your actual path
+% filename = '/group/jbinder/ECP/alternate/derivatives/laterality_indices/censor/all_volume_li.tsv'; % please replace with your actual path
+filename = '/group/jbinder/ECP/alternate/derivatives/laterality_indices/censor/all_cifti_li.tsv';
+
 T = readtable(filename, 'FileType', 'text', 'Delimiter', '\t');
 
 % get unique tasks and regions
@@ -25,7 +30,8 @@ for i = 1:length(tasks)
         
         idx = strcmp(T.task, task) & strcmp(T.region, region);
         % select the 'li' values for the current task and region
-        li_values = T.li(idx);
+%         li_values = T.li(idx);
+        li_values = T.thresh_li(idx);
         
         % assign the 'li' values to the variable
         eval([var_name ' = li_values;']);

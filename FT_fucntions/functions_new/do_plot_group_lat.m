@@ -51,6 +51,10 @@ for j=1:length(network_sel)
 end
 
 if cfg_main.savefig == 1
+    
+    
+    
+    
     cfg = [];
     cfg.outdir = outdir;
     filename = ['meanLIs_', S_data_sel.s_tag];

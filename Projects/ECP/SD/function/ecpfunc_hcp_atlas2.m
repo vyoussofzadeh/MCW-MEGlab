@@ -10,7 +10,7 @@ glass_atlas = cfg_main.glass_atlas;
 
 %%
 
-'/group/jbinder/ECP/MEG/laterality_index/bilateral_glasser_lateral.tsv'
+% '/group/jbinder/ECP/MEG/laterality_index/bilateral_glasser_lateral.tsv'
 
 %%
 % Load atlas
@@ -97,7 +97,7 @@ ATG_labels = {'L_TGv_ROI', 'L_TGd_ROI'};
 ATG_L_label = [];
 ATG_R_label = [];
 for i=1:length(ATG_labels)
-    ATG_L_label = [ATG_L_label; rois(strcmp(rois, ATG_labels{i}))]; 
+    ATG_L_label = [ATG_L_label; rois(strcmp(rois, ATG_labels{i}))];
     ATG_R_label = [ATG_R_label; rois(strcmp(rois, strrep(ATG_labels{i}, 'L_', 'R_')))];
 end
 
@@ -113,7 +113,7 @@ PSTG_labels = {'L_TE1p_ROI'};
 PSTG_L_label = [];
 PSTG_R_label = [];
 for i=1:length(PSTG_labels)
-    PSTG_L_label = [PSTG_L_label; rois(strcmp(rois, PSTG_labels{i}))]; 
+    PSTG_L_label = [PSTG_L_label; rois(strcmp(rois, PSTG_labels{i}))];
     PSTG_R_label = [PSTG_R_label; rois(strcmp(rois, strrep(PSTG_labels{i}, 'L_', 'R_')))];
 end
 
@@ -125,27 +125,37 @@ groups_labels{10} = 'PSTG'; %Post. STG
 %%
 % ATG_L_label = rois(all_idx_L(ATG_indices));
 % ATG_R_label = rois(all_idx_R(ATG_indices));
-% 
+%
 % glass_net_L_label{9} = ATG_L_label;
 % glass_net_R_label{9} = ATG_R_label;
 % groups_labels{9} = 'ATG'; %Anterior temporal G.
-% 
+%
 % % Add STG labels
 % STG_indices = ... % Fill this with indices or identifiers for the STG region
 % STG_L_label = rois(all_idx_L(STG_indices));
 % STG_R_label = rois(all_idx_R(STG_indices));
-% 
+%
 % glass_net_L_label{10} = STG_L_label;
 % glass_net_R_label{10} = STG_R_label;
 % groups_labels{10} = 'STG'; %Superior temporal G.
 
+%% Lateral rois
+% see, /data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Pipe_check_atlas.m for details
+LI_glasser_lateral_rois = load(fullfile(glass_dir,'LI_glasser_lateral_rois.mat'));
+groups_labels = [groups_labels, 'lateral'];
 
+glass_net_L_label{11} = LI_glasser_lateral_rois.glass_roi_lat_L_name;
+glass_net_R_label{11} = LI_glasser_lateral_rois.glass_roi_lat_R_name;
+
+
+%%
 Data_hcp_atlas.glass_net_L_label = glass_net_L_label;
 Data_hcp_atlas.glass_net_R_label = glass_net_R_label;
 Data_hcp_atlas.groups_labels = groups_labels;
 Data_hcp_atlas.atlas = atlas;
 Data_hcp_atlas.rois = rois;
 
+end
 
 % roi =     {'L_V1_ROI'    }
 %     {'R_V1_ROI'    }
@@ -508,8 +518,8 @@ Data_hcp_atlas.rois = rois;
 %     {'L_43_ROI'    }
 %     {'R_43_ROI'    }
 
-% 
-% region = 
+%
+% region =
 %     {'LO' }
 %     {'RO' }
 %     {'LC' }
@@ -870,5 +880,3 @@ Data_hcp_atlas.rois = rois;
 %     {'RF' }
 %     {'LC' }
 %     {'RC' }
-
-end

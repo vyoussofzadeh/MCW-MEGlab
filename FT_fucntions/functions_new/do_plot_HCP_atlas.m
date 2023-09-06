@@ -63,25 +63,25 @@ switch cfg_main.sel
         % % left_sel ROIs
         sel = cfg_main.rois_sel; %input('enter rois (1-180):');
         idx_L_Sel = idx_L(sel);
-%         disp(rois(idx_L_Sel)')
-        
-        %         idx_R_Sel = idx_R(sel);
-        %         disp(rois(idx_R_Sel)')
-        
-        
+        %         disp(rois(idx_L_Sel)')
+
+        vertexcolor_L = vertexcolor;
         for iScout=1:length(idx_L_Sel)
             index = Scouts(idx_L_Sel(iScout)).Vertices;
             if ~isempty(index)
-                vertexcolor(index,:) = repmat(Scouts(idx_L_Sel(iScout)).Color,  length(index), 1);
+                vertexcolor_L(index,:) = repmat(Scouts(idx_L_Sel(iScout)).Color,  length(index), 1);
             end
         end
         
-        %         for iScout=1:length(idx_R_Sel)
-        %             index = Scouts(idx_R_Sel(iScout)).Vertices;
-        %             if ~isempty(index)
-        %                 vertexcolor(index,:) = repmat(Scouts(idx_R_Sel(iScout)).Color,  length(index), 1);
-        %             end
-        %         end
+        idx_R_Sel = idx_R(sel);
+        %         disp(rois(idx_R_Sel)')
+        vertexcolor_R = vertexcolor;
+        for iScout=1:length(idx_R_Sel)
+            index = Scouts(idx_R_Sel(iScout)).Vertices;
+            if ~isempty(index)
+                vertexcolor_R(index,:) = repmat(Scouts(idx_R_Sel(iScout)).Color,  length(index), 1);
+            end
+        end
         
 end
 
@@ -99,23 +99,23 @@ switch cfg_main.sel
         cfg.title = ['LH: roi', cfg_main.title];
         cfg.alpha = 1; cfg.coor = [];
         cfg.surf = src_L;
-        cfg.d_in = vertexcolor;
+        cfg.d_in = vertexcolor_L;
         do_surfplot(cfg);
         
         %- Right
         src_R = src;
-%         src_R.tri = src_R.tri(14981:end,:);
-%         
-%         figure
-%         cfg = [];
-%         cfg.view = [-180,-90; 0,90;-90,0; 90,0;];
-%         cfg.position = [800   500   900   200];
-%         cfg.color = (viridis(256));
-%         cfg.title = ['RH: roi', cfg_main.title];
-%         cfg.alpha = 1; cfg.coor = [];
-%         cfg.surf = src_R;
-%         cfg.d_in = vertexcolor;
-%         do_surfplot(cfg);
+        src_R.tri = src_R.tri(14981:end,:);
+        
+        figure
+        cfg = [];
+        cfg.view = [-180,-90; 0,90;-90,0; 90,0;];
+        cfg.position = [800   500   900   200];
+        cfg.color = (viridis(256));
+        cfg.title = ['RH: roi', cfg_main.title];
+        cfg.alpha = 1; cfg.coor = [];
+        cfg.surf = src_R;
+        cfg.d_in = vertexcolor_R;
+        do_surfplot(cfg);
         
     otherwise
         figure
