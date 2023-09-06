@@ -3,14 +3,14 @@
 % Purpose: This script applies Independent Component Analysis (ICA) cleanup
 % on neuromag .fif files typically used in MEG analysis.
 % Author: MCW group, Vahab Youssof Zadeh <vyoussofzadeh@mcw.edu>
-% Last Updated: 09/05s/2023
+% Last Updated: 09/05/2023
 
 %% Reset MATLAB environment
 clear; clc; close('all');
 warning('off');
 clear; clc, close('all'); warning off
 
-%% Initial settings
+%% Initial setup
 %- Input dir
 restoredefaultpath
 
@@ -81,12 +81,12 @@ cfg.layout = 'neuromag306mag.lay';
 lay = ft_prepare_layout(cfg);
 % ft_layoutplot(cfg);
 
-%% read data
+%% Read fif file
 cfg = []; cfg.channel = {'MEG'};
 cfg.datafile  = datafile;
 f_data  = ft_preprocessing(cfg);
 
-%% ICA
+%% apply ICA with n components
 cfg = []; cfg.savepath = []; cfg.savefile = []; cfg.saveflag = 2; cfg.overwrite = 2;
 cfg.lay = lay; cfg.n   = 5; cfg.subj = subj; cfg.allpath = allpath; cfg.select = 1;
 [cln_data, bic] = do_ica(cfg, f_data);
@@ -131,5 +131,5 @@ if ~isempty(bic)
 end
 
 % Indicate the end of script execution
-disp('Script execution completed.');
+disp('Script execution completed!');
 close all
