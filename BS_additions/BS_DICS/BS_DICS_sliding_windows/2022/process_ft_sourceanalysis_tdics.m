@@ -125,7 +125,7 @@ PostStim = sProcess.options.poststim.Value{1};
 FOI      = sProcess.options.foi.Value{1};
 TprFreq  = sProcess.options.tpr.Value{1};
 % Output folder (for figures and FieldTrip structures)
-TmpDir = bst_get('BrainstormTmpDir');
+% TmpDir = bst_get('BrainstormTmpDir');
 % Progress bar
 bst_progress('start', 'ft_sourceanalysis', 'Loading input files...', 0, 2*length(sInputs));
 
@@ -198,38 +198,40 @@ end
 
 % ===== FIELDTRIP: ft_freqanalysis =====
 bst_progress('text', 'Calling FieldTrip function: ft_freqanalysis...');
-% Compute tfr-decomposition
-cfg = [];
-cfg.output     = 'pow';
-cfg.channel    = 'all';
-cfg.method     = 'mtmconvol';
-cfg.taper      = 'hanning';
-cfg.foi        = 1:2:MaxFreq;
-cfg.keeptrials = 'yes';
-cfg.t_ftimwin  = 3 ./ cfg.foi;
-cfg.tapsmofrq  = 0.8 * cfg.foi;
-cfg.toi        = Baseline(1):0.05:PostStim(2);
-tfr            = ft_freqanalysis(cfg, ftData);
-% Plot TFR
-cfg = [];
-cfg.fmax = MaxFreq;
-cfg.toi = [Baseline(1), PostStim(2)];
-cfg.baselinetime = Baseline;
-cfg.plotflag = ShowTfr;
-[time_of_interest,freq_of_interest] = do_tfr_plot(cfg, tfr);
-disp(['Global max: time:',num2str(time_of_interest),'sec']);
-disp(['Global max: freq:',num2str(freq_of_interest),'Hz']);
+
+if ShowTfr == 1
+    % Compute tfr-decomposition
+    cfg = [];
+    cfg.output     = 'pow';
+    cfg.channel    = 'all';
+    cfg.method     = 'mtmconvol';
+    cfg.taper      = 'hanning';
+    cfg.foi        = 1:2:MaxFreq;
+    cfg.keeptrials = 'yes';
+    cfg.t_ftimwin  = 3 ./ cfg.foi;
+    cfg.tapsmofrq  = 0.8 * cfg.foi;
+    cfg.toi        = Baseline(1):0.05:PostStim(2);
+    tfr            = ft_freqanalysis(cfg, ftData);
+    % Plot TFR
+    cfg = [];
+    cfg.fmax = MaxFreq;
+    cfg.toi = [Baseline(1), PostStim(2)];
+    cfg.baselinetime = Baseline;
+    cfg.plotflag = ShowTfr;
+    [time_of_interest,freq_of_interest] = do_tfr_plot(cfg, tfr);
+    disp(['Global max: time:',num2str(time_of_interest),'sec']);
+    disp(['Global max: freq:',num2str(freq_of_interest),'Hz']);
+    
+end
 
 %%
+disp('wavelet analysis ..')
 cfg = [];
 cfg.method = 'wavelet';
 cfg.output = 'powandcsd';
-cfg.foi = [17:25]; %[FOI-TprFreq, FOI+TprFreq];
+cfg.foi = [FOI-TprFreq, FOI+TprFreq];
 cfg.toi = Baseline(1):0.01:PostStim(2);
 cfg.width = 3; % width of the wavelet ( = number of cycles). 
-                   % Small values increase the temporal resolution at 
-                   % the expense of frequency resolution
-% cfg.pad = 4;
 w_data = ft_freqanalysis(cfg, ftData);
 
 %%
@@ -255,17 +257,19 @@ cfg.headmodel = ftHeadmodel;
 cfg.latency   = [Baseline(1)+bf, 0];
 s_data.bsl    = ft_sourceanalysis(cfg, w_data);
 
-
 cfg.strt = 0;
 cfg.spt = PostStim(2)-bf;
 % cfg.overlap = 0.01; cfg.linterval = 0.1;
-cfg.overlap = 0.1;
-cfg.winLength = 0.3;
+cfg.step = .1;
+cfg.winLength = 0.1;
 winStarts  = do_time_intervals(cfg);
+disp(winStarts)
+
+DataMat.Time = winStarts(1,1):.01:winStarts(end,2);
 
 pow = [];
 for time_intervals = 1:length(winStarts)
-    
+        
     cfg = [];
     cfg.method = 'dics';
     cfg.dics.lambda = '0%';
@@ -295,6 +299,7 @@ source_diff_dics.pow = pow';
 
 n_verticies = size(source_diff_dics.pow,1);
 
+
 % Initialize the output matrix with zeros
 output_matrix = zeros(n_verticies,length(DataMat.Time));
 
@@ -303,6 +308,8 @@ for i = 1:time_intervals
     % Get the start and end indices
     start_idx = find(abs(DataMat.Time - winStarts(i, 1)) < 1e-10);
     end_idx = find(abs(DataMat.Time - winStarts(i, 2)) < 1e-10);
+    
+%     disp([start_idx, end_idx])
     
     % Populate the output matrix with computed source activities
     % For this example, I'll just use random values, but you should use your actual computed values
@@ -320,7 +327,7 @@ if (length(sInputs) == 1)
     iStudyOut = sInputs(1).iStudy;
     RefDataFile = sInputs(iChanInputs(iInput)).FileName;
 else
-    [tmp, iStudyOut] = bst_process('GetOutputStudy', sProcess, sInputs);
+    [~, iStudyOut] = bst_process('GetOutputStudy', sProcess, sInputs);
     RefDataFile = [];
 end
 % Create structure
@@ -335,7 +342,7 @@ switch Method
                 source_diff_dics.pow = source_diff_dics.pow;
         end
         ResultsMat.ImageGridAmp  = source_diff_dics.pow;
-        ResultsMat.cfg           = source_diff_dics.cfg;
+        ResultsMat.cfg           = source_diff_dics.cfg; 
 end
 
 ResultsMat.nComponents   = 1;
@@ -518,40 +525,14 @@ tapsmofrq = cfg.tapsmofrq;
 end
 
 
-function stat = do_source_stat_montcarlo(s_data)
-cfg = [];
-cfg.parameter        = 'pow';
-cfg.method           = 'montecarlo';
-cfg.statistic        = 'depsamplesT';
-cfg.correctm         = 'fdr';
-cfg.clusteralpha     = 0.001;
-cfg.tail             = 0;
-cfg.clustertail      = 0;
-cfg.alpha            = 0.05;
-cfg.numrandomization = 5000;
-
-ntrials                       = numel(s_data.bsl.trial);
-design                        = zeros(2,2*ntrials);
-design(1,1:ntrials)           = 1;
-design(1,ntrials+1:2*ntrials) = 2;
-design(2,1:ntrials)           = 1:ntrials;
-design(2,ntrials+1:2*ntrials) = 1:ntrials;
-
-cfg.design   = design;
-cfg.ivar     = 1;
-cfg.uvar     = 2;
-stat         = ft_sourcestatistics(cfg,s_data.pst,s_data.bsl);
-end
-
-
 function [wi]  = do_time_intervals(cfg_main)
 
 strt = cfg_main.strt; % strt = 0 sec.
 spt = cfg_main.spt; % spt = 2 sec.
-overlap = cfg_main.overlap; % overlap = 0.01;
+step = cfg_main.step; % overlap = 0.01;
 winLength = cfg_main.winLength; % winLength = 0.01;
 
-wi = []; w1 = strt; l = winLength; ov = overlap; j=1; %ov = l.*0.3
+wi = []; w1 = strt; l = winLength; ov = step; j=1; %ov = l.*0.3
 while w1+l < spt
     wi(j,:) = [w1, w1+l]; j=j+1; w1 = w1 + ov;
 end
