@@ -61,9 +61,9 @@ sub_all1 = setdiff(unq_bs_subj,no_anat);
 
 %%
 cd(data_info_dir)
-if exist(fullfile(data_info_dir,'comments_subject.mat'),'file') == 2
-    load(fullfile(data_info_dir,'comments_subject.mat')),
-else
+% if exist(fullfile(data_info_dir,'comments_subject.mat'),'file') == 2
+%     load(fullfile(data_info_dir,'comments_subject.mat')),
+% else
     subj_del = [];
     
     cd(BS_data_dir)
@@ -109,14 +109,14 @@ else
     sFiles_3 = sFiles_name(idx_anim);
     sFiles_2 = sFiles_name(idx_symb);
     
-    save(fullfile(data_info_dir,'comments_subject.mat'),'Comment','sFiles_name','sFiles_3','sFiles_2'),
-end
+%     save(fullfile(data_info_dir,'comments_subject.mat'),'Comment','sFiles_name','sFiles_3','sFiles_2'),
+% end
 
 %%
 cd(data_info_dir)
-if exist(fullfile(data_info_dir,'subjects_ID.mat'),'file') == 2
-    load(fullfile(data_info_dir,'subjects_ID.mat')),
-else
+% if exist(fullfile(data_info_dir,'subjects_ID.mat'),'file') == 2
+%     load(fullfile(data_info_dir,'subjects_ID.mat')),
+% else
     cd(BS_data_dir)
     L = length(sFiles_3); k = 1;
     clear subjs_3
@@ -142,8 +142,8 @@ else
     end
     unq_bs_subj_2 = unique(subjs_2);
     
-    save(fullfile(data_info_dir,'subjects_ID.mat'),'subjs_2','subjs_3'),
-end
+%     save(fullfile(data_info_dir,'subjects_ID.mat'),'subjs_2','subjs_3'),
+% end
 
 %%
 S_data = [];

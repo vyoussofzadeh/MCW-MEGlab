@@ -73,7 +73,7 @@ end
 if cfg_main.ternary == 1
     cfg = []; cfg.thre = thre;
     cfg.LI = megLI_sub_pt; megLI_sub_pt = do_ternary_classification(cfg);
-    100.*(length(find([megLI_sub_pt - fmri_LIs_val] == 0))/length(fmri_LIs_val))
+    (length(find([megLI_sub_pt - fmri_LIs_val] == 0))/length(fmri_LIs_val)).*100;
 end
 
 % if cfg_main.ternary ~= 1

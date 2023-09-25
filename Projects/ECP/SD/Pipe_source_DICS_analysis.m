@@ -7,6 +7,9 @@
 
 clear; clc, close('all'); warning off,
 
+%%
+flag.ica = 0;
+
 %% Paths
 restoredefaultpath
 cd('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD')
@@ -48,8 +51,8 @@ disp(datafile_fif)
 
 %%
 % adding BS path
-bs_path = '/opt/matlab_toolboxes/Brainstorm3_2021/brainstorm3'; %BS-2021
-bs_path = '/opt/matlab_toolboxes/brainstorm3';
+bs_path = '/opt/matlab_toolboxes/Brainstorm/Brainstorm3_2022/brainstorm3';
+% bs_path = '/opt/matlab_toolboxes/brainstorm3';
 
 addpath(bs_path);
 brainstorm
@@ -87,16 +90,41 @@ no_anat = {'EC1036'
     'EC1061'
     'EC1065'
     'EC1085'
-    'EC1092'
     'EC1094'
     'EC1096'
     'EC1110'
     'EC1111'
-    'EC1112'
-    'EC1141'
-    'EC1153'
-    'EC1162'
-    'EC1090'};
+    'EC1090'
+    };
+
+temp_anat = {'EC1090'};
+
+% 'EC1092'
+%  'EC1112'
+%     'EC1141'
+% 'EC1162'
+% 'EC1153'
+
+
+% no_anat = {'EC1036'
+%     'EC1037'
+%     'EC1038'
+%     'EC1040'
+%     'EC1045'
+%     'EC1049'
+%     'EC1061'
+%     'EC1065'
+%     'EC1085'
+%     'EC1092'
+%     'EC1094'
+%     'EC1096'
+%     'EC1110'
+%     'EC1111'
+%     'EC1112'
+%     'EC1141'
+%     'EC1153'
+%     'EC1162'
+%     'EC1090'};
 
 sub_all1 = setdiff(unq_bs_subj,no_anat);
 
@@ -237,6 +265,8 @@ end
 db_reload_database('current',1)
 
 %% Clean-up (ICA + reject trials)
+
+if flag.ica == 1
 addpath(ft_path);
 ft_defaults
 
@@ -308,6 +338,7 @@ for i=1:length(d)
         end
     end
 end
+end
 
 %% Source modelling, DICS-BF
 d1 = rdir(fullfile(BS_data_dir,'/*/ec*raw_low_clean/channel_vectorview306_acc1.mat'));
@@ -319,7 +350,7 @@ for i=1:length(d)
     
     [pathstr, name] = fileparts(d(i).name);
     
-    dd_results = rdir(fullfile(pathstr,'results_dics*.mat'));
+    dd_results = rdir(fullfile(pathstr,'results_subtraction*.mat'));
     results = [];
     for j=1:length(dd_results)
         cmt = load(dd_results(j).name);
@@ -336,7 +367,8 @@ for i=1:length(d)
     
     if isempty(results)
         flag = 1;
-    elseif isempty(find(contains(results, 'tv_dics_3')==1, 1))
+%     elseif isempty(find(contains(results, 'tv_dics_3')==1, 1))
+    elseif isempty(find(contains(results, 'wdics_3')==1, 1))
         flag = 1;
     else
         flag = 0;
@@ -350,11 +382,33 @@ for i=1:length(d)
             [~, name3] = fileparts(pathstr2);
             sFiles{j} = fullfile(name3, name2, [name, '.mat']);
         end
-        bst_process('CallProcess', 'process_ft_sourceanalysis_tvDICS_BF', sFiles, [], ...
-            'method',     'dics', ...  % DICS beamformer
-            'comment', 'tv_dics_3', ...
-            'sensortype', 'MEG');  % MEG
         
+        
+%         bst_process('CallProcess', 'process_ft_sourceanalysis_tvDICS_BF', sFiles, [], ...
+%             'method',     'dics', ...  % DICS beamformer
+%             'comment', 'tv_dics_3', ...
+%             'sensortype', 'MEG');  % MEG
+        
+        
+        % Process: FieldTrip: ft_sourceanalysis window (DICS)
+        bst_process('CallProcess', 'process_ft_sourceanalysis_dics_window', sFiles, [], ...
+            'sensortype', 'MEG', ...  % MEG
+            'poststim',   [7.21644966e-16, 2], ...
+            'baseline',   [-0.3, -0.0005], ...
+            'foi',        21, ...
+            'tpr',        3, ...
+            'tlength',    0.3, ...
+            'ovp',        0.5, ...
+            'simaps',     0, ...
+            'avmaps',     1, ...
+            'method',     'subtraction', ...  % Subtraction (post-pre)
+            'comment',    'wdics_3', ...
+            'erds',       'erd', ...  % ERD
+            'effect',     'abs', ...  % abs
+            'maxfreq',    40, ...
+            'showtfr',    0);
+        
+
         %         % Process: FieldTrip: ft_sourceanalysis (DICS)
         %         sFiles = bst_process('CallProcess', 'process_ft_sourceanalysis_dics', sFiles, [], ...
         %             'sensortype', 'MEG', ...  % MEG
@@ -368,8 +422,8 @@ for i=1:length(d)
         %             'maxfreq',    40, ...
         %             'showtfr',    1);
     end
-        
-    dd_results = rdir(fullfile(pathstr,'results_dics*.mat'));
+    
+    dd_results = rdir(fullfile(pathstr,'results_subtraction*.mat'));
     results = [];
     for j=1:length(dd_results)
         cmt = load(dd_results(j).name);
@@ -386,7 +440,8 @@ for i=1:length(d)
     
     if isempty(results)
         flag = 1;
-    elseif isempty(find(contains(results, 'tv_dics_2')==1, 1))
+%     elseif isempty(find(contains(results, 'tv_dics_2')==1, 1))
+    elseif isempty(find(contains(results, 'wdics_2')==1, 1))
         flag = 1;
     else
         flag = 0;
@@ -400,10 +455,30 @@ for i=1:length(d)
             [~, name3] = fileparts(pathstr2);
             sFiles{j} = fullfile(name3, name2, [name, '.mat']);
         end
-        bst_process('CallProcess', 'process_ft_sourceanalysis_tvDICS_BF', sFiles, [], ...
-            'method',     'dics', ...  % DICS beamformer
-            'comment', 'tv_dics_2', ...
-            'sensortype', 'MEG');  % MEG
+        
+%         bst_process('CallProcess', 'process_ft_sourceanalysis_tvDICS_BF', sFiles, [], ...
+%             'method',     'dics', ...  % DICS beamformer
+%             'comment', 'tv_dics_2', ...
+%             'sensortype', 'MEG');  % MEG
+                
+                % Process: FieldTrip: ft_sourceanalysis window (DICS)
+        bst_process('CallProcess', 'process_ft_sourceanalysis_dics_window', sFiles, [], ...
+            'sensortype', 'MEG', ...  % MEG
+            'poststim',   [7.21644966e-16, 2], ...
+            'baseline',   [-0.3, -0.0005], ...
+            'foi',        22, ...
+            'tpr',        4, ...
+            'tlength',    0.3, ...
+            'ovp',        0.5, ...
+            'simaps',     0, ...
+            'avmaps',     1, ...
+            'comment', 'wdics_2', ...
+            'method',     'subtraction', ...  % Subtraction (post-pre)
+            'erds',       'erd', ...  % ERD
+            'effect',     'abs', ...  % abs
+            'maxfreq',    40, ...
+            'showtfr',    0);
+
     end
 end
 
@@ -497,7 +572,7 @@ for ii = 1:length(subj)
         for jj=1:length(dd)
             tmp = load(dd(jj).name);
             disp(tmp.Comment);
-            if contains(tmp.Comment,['dics_', atag])
+            if contains(tmp.Comment,['wdics_', atag])
                 sel = [sel,jj];
             end
         end        
@@ -545,7 +620,7 @@ for ii = 1:length(subj)
                 for kk=1:length(dd1)
                     tmp = load(dd1(kk).name);
                     disp(tmp.Comment);
-                    if contains(tmp.Comment,[subj{ii}, '_dics_', atag])
+                    if contains(tmp.Comment,[subj{ii}, '_wdics_', atag])
                         runok = 0; break,
                     else
                         runok = 1;
@@ -566,7 +641,7 @@ for ii = 1:length(subj)
                     'avgtype',         1, ...  % Everything
                     'avg_func',        1, ...  % Arithmetic average:  mean(x)
                     'weighted',        0, ...
-                    'Comment', [subj{ii}, '_dics_', atag], ...
+                    'Comment', [subj{ii}, '_wdics_', atag], ...
                     'scalenormalized', 0);
             else
                 warning(['check data:', subj{ii}])
@@ -597,7 +672,7 @@ for ii=1:length(dd3)
     cd(pp)
     tmp = load(dd3{ii});
     comm_data{ii} = tmp.Comment;
-    if contains(comm_data{ii}, '_dics_3')
+    if contains(comm_data{ii}, '_wdics_3')
         sel = [sel,ii];
         tkz = tokenize(comm_data{ii},'_');
         subj{kk}= tkz{1}(6:end);
@@ -620,7 +695,7 @@ for ii=1:length(dd)
     tmp = load(dd(ii).name);
     comm_data{ii} = tmp.Comment;
     disp(comm_data{ii})
-    if contains(comm_data{ii}, '_dics_3')
+    if contains(comm_data{ii}, '_wdics_3')
         sel = [sel,ii];
         tkz = tokenize(comm_data{ii},'_');
         subj_comp{kk}= tkz{1}(13:end);
@@ -634,7 +709,7 @@ if isempty(sFiles_name_completed)
 end
 
 %% Project on default anatomy (for group mapping)
-idx = find(contains(sFiles_name,'dics')==1);
+idx = find(contains(sFiles_name,'wdics')==1);
 destSurfFile = '@default_subject/tess_cortex_pial_low.mat';
 
 load(protocol);
@@ -665,8 +740,7 @@ if length(idx)>1
 end
 
 %% Inter-subject (group) averaging
-
-filter_tag = 'dics_3';
+filter_tag = 'wdics_3';
 
 clc
 dd = rdir(fullfile (BS_data_dir,'/Group*/*/results*.mat'));

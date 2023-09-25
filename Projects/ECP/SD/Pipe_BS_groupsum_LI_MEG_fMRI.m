@@ -107,7 +107,7 @@ LI_symb_pt = load('LI_symb-pt');
 %% Power analysis
 close all
 
-switch LI_method
+switch mlabel
     case 'threshold'
         pow = [];
         if LI_method == 1
@@ -184,6 +184,31 @@ xlabel('time')
 set(gca,'color','none');
 set(lgnd,'color','none');
 
+
+clear LI_val
+
+% figure,
+for j=1:length(network_sel)
+    figure
+%     subplot(6,2,j)
+    LI_sub_hc = LI_anim_hc.LI_sub;
+    plot(squeeze(LI_sub_hc(network_sel(j),:,:))','LineWidth',1),
+    val = round(mean(wi(:,1),2),2);
+    box off
+    
+    title(net_sel_mutiple_label(network_sel(j)))
+    ylabel('LI')
+    xlabel('time')
+    set(gca,'color','none');
+    
+    set(gca,'Xtick', 1:2:length(wi),'XtickLabel',[]);
+    
+end
+
+set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
+set(gca,'FontSize',8,'XTickLabelRotation',90);
+set(gcf, 'Position', [800   800   1000   1100]);
+
 %%
 if ~exist(outdir, 'dir')
     mkdir(outdir);
@@ -235,6 +260,32 @@ cfg.filename = filename;
 cfg.type = 'fig';
 do_export_fig(cfg)
 
+
+%
+clear LI_val
+
+figure,
+for j=1:length(network_sel)
+    
+    subplot(6,2,j)
+    LI_sub_hc = LI_anim_hc.LI_sub - LI_symb_hc.LI_sub;
+    plot(squeeze(LI_sub_hc(network_sel(j),:,:))','LineWidth',1),
+    val = round(mean(wi(:,1),2),2);
+    box off
+    
+    title(net_sel_mutiple_label(network_sel(j)))
+    ylabel('LI')
+    xlabel('time')
+    set(gca,'color','none');
+    
+    set(gca,'Xtick', 1:2:length(wi),'XtickLabel',[]);
+    
+end
+
+set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
+set(gca,'FontSize',8,'XTickLabelRotation',90);
+set(gcf, 'Position', [800   800   1000   1100]);
+
 %%
 [sub_pt,IA,IB] = intersect(S_data_anim_pt.sFiles_subid, S_data_symb_pt.sFiles_subid);
 
@@ -275,6 +326,31 @@ filename = tag;
 cfg.filename = filename;
 cfg.type = 'fig';
 do_export_fig(cfg)
+
+%
+clear LI_val
+
+% figure,
+for j=1:length(network_sel)
+    figure,
+%     subplot(6,2,j)
+    LI_sub_pt = LI_anim_pt_val - LI_symb_pt_val;
+    plot(squeeze(LI_sub_pt(network_sel(j),:,:))','LineWidth',1),
+    val = round(mean(wi(:,1),2),2);
+    box off
+    
+    title(net_sel_mutiple_label(network_sel(j)))
+    ylabel('LI')
+    xlabel('time')
+    set(gca,'color','none');
+    
+    set(gca,'Xtick', 1:2:length(wi),'XtickLabel',[]);
+    
+end
+
+set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
+set(gca,'FontSize',8,'XTickLabelRotation',90);
+set(gcf, 'Position', [800   800   1000   1100]);
 
 %%
 mLI_sub_diff = mLI_sub_hc - mLI_sub_pt; tag = [mlabel,'; hc - pt'];
@@ -354,6 +430,34 @@ cfg.filename = tag;
 cfg.type = 'fig';
 do_export_fig(cfg)
 
+%
+% clc
+% close all
+clear LI_val
+
+figure,
+for j=1:length(network_sel)
+    
+    subplot(6,2,j)
+    LI_sub_pt_left = LI_anim_pt_val_left - LI_symb_pt_val_left;
+    plot(squeeze(LI_sub_pt_left(network_sel(j),:,:))','LineWidth',1),
+    val = round(mean(wi(:,1),2),2);
+    box off
+    
+    %     title([tag, [net_sel_mutiple_label(network_sel(j))]])
+    title([[net_sel_mutiple_label(network_sel(j))]])
+    ylabel('LI')
+    xlabel('time')
+    set(gca,'color','none');
+    
+    set(gca,'Xtick', 1:2:length(wi),'XtickLabel',[]);
+    
+end
+
+set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
+set(gca,'FontSize',8,'XTickLabelRotation',90);
+set(gcf, 'Position', [800   800   1000   1100]);
+
 %%
 mLI_sub_diff = mLI_sub_hc - mLI_sub_pt_left; tag = [mlabel,'; hc - pt-left'];
 
@@ -408,8 +512,8 @@ difference = setdiff(LI_pt_ID, sub_MF_pt');
 disp(difference');
 
 %% MEG LI vs fMRI LI (language_Lateral)
-% close all
-% clc
+close all
+clc
 
 % Corr, MEG-fMRI
 cfg = []; cfg.wi = wi;
@@ -417,17 +521,19 @@ cfg.ID = sub_MF_pt;
 cfg.ternary = 0;
 cfg.thre = .2;
 cfg.savefig = 1;
+cfg.bf = 20;
 cfg.outdir = outdir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
 cfg.LI_anim_val = LI_anim_pt_val_new; 
 cfg.LI_symb_val = LI_symb_pt_val_new;
 cfg.fmri_LIs_val = fmri_LIs_val; 
-% cfg.net_sel = [1,2,6];
+cfg.net_sel = [1,2,6, 11];
 cfg.net_sel = [11];
 % cfg.net_sel = [6];
 % cfg.net_sel = [1];
 % cfg.net_sel = [2];
-[megLI_sub_pt, fmri_LIs_val, crr] = do_MEG_fMRI_corr(cfg);
+[megLI_sub_pt, fmri_LIs_val, crr] = do_MEG_fMRI_corr_contrast(cfg);
+% [megLI_sub_pt, fmri_LIs_val, crr] = do_MEG_fMRI_corr_anim(cfg);
 
 %% MEG LI vs fMRI LI (Ternary language_Lateral)
 close all
@@ -448,34 +554,35 @@ cfg.outdir = outdir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
 cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;
 cfg.fmri_LIs_val = fmri_LIs_trn; 
-% cfg.net_sel = [1,2,6];
+% cfg.net_sel = [1,2,6,11];
 cfg.net_sel = [11];
 cfg.thre = 0.1;
-cfg.buffervalue = 5;
-[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance(cfg);
+cfg.buffervalue = 10;
+[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast(cfg);
+% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_anim(cfg);
 
-disp([megLIs_trn, fmri_LIs_trn])
+% disp([megLIs_trn, fmri_LIs_trn])
 
 % figure, imagesc([megLIs_trn - fmri_LIs_trn])
 % colorbar
 
 %%
-close all
-clc
+% close all
+% clc
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/other/')
 
 cfg = [];
 cfg.DataArray = [megLIs_trn, fmri_LIs_trn]; 
 cfg.savefig = 1;
 cfg.outdir = outdir; 
-cfg.title = 'SD task, 58 PTs, ternary class';
+cfg.title = ['SD task,' num2str(length(megLI_sub_pt)) ', ternary class'];
 do_plot_LIs(cfg)
 
 cfg = [];
 cfg.DataArray = [megLI_sub_pt, fmri_LIs_val]; 
 cfg.savefig = 1;
 cfg.outdir = outdir; 
-cfg.title = 'SD task, 58 PTs, raw LIs';
+cfg.title = ['SD task,' num2str(length(megLI_sub_pt)), 'PTs, raw LIs'];
 do_plot_LIs(cfg)
 
 %%
@@ -514,6 +621,7 @@ cfg.ID = sub_MF_pt;
 cfg.thre = 0.2;
 cfg.ternary = 0;
 cfg.savefig = 0;
+cfg.bf = 5;
 cfg.outdir = outdir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
 cfg.LI_anim_val = LI_anim_pt_val_new; cfg.LI_symb_val = LI_symb_pt_val_new;

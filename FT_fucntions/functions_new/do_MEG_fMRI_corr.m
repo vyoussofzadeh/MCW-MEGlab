@@ -54,7 +54,7 @@ if savefig == 1
 end
 
 [mx, idx] = max(crr);
-bf = 5;
+bf = cfg_main.bf;
 
 % if length(net_sel) > 1
 %     mLI_sub1 = squeeze(mean(LI_anim_pt_val_new(net_sel,midx)));
