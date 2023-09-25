@@ -293,7 +293,6 @@ for j=1:length(wi)
     cfg = [];
     ep_data.app = ft_appenddata(cfg, ep_data.bsl, ep_data.pst);
     
-    
     %%
     switch sProcess.options.sensortype.Value{1}
         case {'EEG', 'SEEG', 'ECOG'}
@@ -409,39 +408,60 @@ for j=1:length(wi)
     dics(j,:) = source_diff_dics.pow;
 end
 
-dics1 = dics;
-
-% if simaps == 1
-%     switch HeadModelMat.HeadModelType
-%         case 'surface'
-%             for i=1:size(dics1,1)
-%                 source1 = [];
-%                 source1.pow = dics1(i,:);
-%                 
-%                 figure
-%                 m = source1.pow';
-%                 bnd.pnt = sourcemodel.pos;
-%                 bnd.tri = sourcemodel.tri;
-%                 ft_plot_mesh(bnd, 'vertexcolor', abs(m));
-%                 colorbar
-%                 view([-180,0])
-%                 title(['source:', num2str((i))])
-%             end
+% dics1 = dics;
+% 
+% % if simaps == 1
+% %     switch HeadModelMat.HeadModelType
+% %         case 'surface'
+% %             for i=1:size(dics1,1)
+% %                 source1 = [];
+% %                 source1.pow = dics1(i,:);
+% %                 
+% %                 figure
+% %                 m = source1.pow';
+% %                 bnd.pnt = sourcemodel.pos;
+% %                 bnd.tri = sourcemodel.tri;
+% %                 ft_plot_mesh(bnd, 'vertexcolor', abs(m));
+% %                 colorbar
+% %                 view([-180,0])
+% %                 title(['source:', num2str((i))])
+% %             end
+% %     end
+% % end
+% 
+% if size(dics, 1) > 1
+%     for jj = 1:size(dics,1)
+%         tmp = abs(dics(jj,:));
+% %         tmp = (tmp - min(tmp(:))) ./ (max(tmp(:)) - min(tmp(:)));
+%         tmp = tmp./std(tmp);
+%         dics1(jj,:) = tmp;
 %     end
+%     D = mean(dics1,1);
+% else
+%     D = dics1;
 % end
 
-if size(dics, 1) > 1
-    for jj = 1:size(dics,1)
-        tmp = abs(dics(jj,:));
-%         tmp = (tmp - min(tmp(:))) ./ (max(tmp(:)) - min(tmp(:)));
-        tmp = tmp./std(tmp);
-        dics1(jj,:) = tmp;
-    end
-    D = mean(dics1,1);
-else
-    D = dics1;
+%%
+DataMat.Time = wi(1,1):.01:wi(end,2);
+n_verticies = size(D,2);
+
+% Initialize the output matrix with zeros
+output_matrix = zeros(n_verticies,length(DataMat.Time));
+
+% For each computed interval
+for i = 1:j
+    % Get the start and end indices
+    start_idx = find(abs(DataMat.Time - wi(i,1)) < 1e-10);
+    end_idx = find(abs(DataMat.Time - wi(i, 2)) < 1e-10);
+        
+    % Populate the output matrix with computed source activities
+    % For this example, I'll just use random values, but you should use your actual computed values
+    output_matrix(:, start_idx:end_idx) = dics(i,:)' + output_matrix(:, start_idx:end_idx);
 end
 
+D = output_matrix;
+
+%%
 % ===== SAVE RESULTS =====
 % === CREATE OUTPUT STRUCTURE ===
 bst_progress('text', 'Saving source file...');
@@ -461,9 +481,9 @@ switch Method
     case 'subtraction'
         switch sProcess.options.effect.Value
             case 'abs'
-                source_diff_dics.pow = abs(D)';
+                source_diff_dics.pow = abs(D);
             case 'raw'
-                source_diff_dics.pow = D';
+                source_diff_dics.pow = D;
         end
         ResultsMat.ImageGridAmp  = source_diff_dics.pow;
         ResultsMat.cfg           = source_diff_dics.cfg;
@@ -480,7 +500,7 @@ switch Method
 end
 ResultsMat.nComponents   = 1;
 ResultsMat.Function      = Method;
-ResultsMat.Time          = 1;
+ResultsMat.Time          = DataMat.Time;
 ResultsMat.DataFile      = RefDataFile;
 ResultsMat.HeadModelFile = HeadModelFile;
 ResultsMat.HeadModelType = HeadModelMat.HeadModelType;
