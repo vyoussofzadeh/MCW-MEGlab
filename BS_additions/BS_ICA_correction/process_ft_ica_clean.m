@@ -261,7 +261,7 @@ if ~ isempty(bic)
     disp('done, reload datafile!')
     
 else
-    disp('no correction was done')
+    disp('no correction was applied')
     OutputFiles = [];
     for IInput = 1:length(sInputs)
         OutputFiles{end+1} = sInputs(IInput).FileName;
