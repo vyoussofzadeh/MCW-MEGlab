@@ -44,6 +44,11 @@ sProcess.options.sensortype.Type    = 'combobox_label';
 sProcess.options.sensortype.Value   = {'MEG', {'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'; ...
     'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'}};
 
+% Option: Number of ICA components
+sProcess.options.icanum.Comment = 'Number of ICA components:';
+sProcess.options.icanum.Type    = 'value';
+sProcess.options.icanum.Value   = {20, 'components', 0}; % Default value is 20
+
 % Option: Sensors selection
 sProcess.options.lay.Comment = 'layout:';
 sProcess.options.lay.Type    = 'combobox_label';
@@ -147,8 +152,9 @@ ftData1 = ftData;
 ftData1.grad.chantype = ftData1.grad.chantype';
 
 cfg            = [];
+% Using the user-defined ICA number or default if not provided
+cfg.numcomponent = sProcess.options.icanum.Value{1};
 cfg.method     = 'runica';
-cfg.numcomponent = 20;       % specify the component(s) that should be plotted
 comp           = ft_componentanalysis(cfg, ftData1);
 
 %% LAYOUT
@@ -171,7 +177,9 @@ switch layout
     case {'neuromag', '4D'}
         cfg.layout = lay;
 end
+
 cfg.viewmode = 'component';
+% do_ft_databrowser(cfg, comp);
 ft_databrowser(cfg, comp);
 
 %%
@@ -184,8 +192,12 @@ cfg.foi          = 2:2:30;
 freq = ft_freqanalysis(cfg, comp);
 
 %%
-n = 20;
-nby1 = 5; nby2 = 4;
+n = sProcess.options.icanum.Value{1};
+
+% Calculate subplot dimensions
+nby1 = ceil(sqrt(n));
+nby2 = ceil(n / nby1);
+
 
 Nfigs = ceil(size(comp.topo,1)/n);
 tot = Nfigs*n;
@@ -219,133 +231,44 @@ if ~ isempty(bic)
     %%
     ProtocolInfo = bst_get('ProtocolInfo');
     [datapath,~] = fileparts(DataFile);
-    [~,srcPath] = fileparts(datapath);
-    srcDir  = bst_fullfile(ProtocolInfo.STUDIES, [srcPath,'_ica']);
+    iStudyOut = sInputs(1).iStudy;
     
+    OutputFiles = [];
     cd(fullfile(ProtocolInfo.STUDIES, datapath))
-    for iInput = 1:length(sInputs)
-        DataFile = sInputs(iInput).FileName;
+    for IInput = 1:length(sInputs)
+        DataFile = sInputs(IInput).FileName;
         D = load(file_fullpath(DataFile));
-        [a,FileName] = fileparts(DataFile);
+        [A,FileName] = fileparts(DataFile);
         FileName_new = [FileName, '_ic'];
         tkz = tokenize(D.Comment, ' ');
         D.Comment = [tkz{1} '_ica ',tkz{2}];
-        D.F(iChannelsData,:) = ic_data.trial{iInput};
+        D.F(iChannelsData,:) = ic_data.trial{IInput};
         save(FileName_new, '-struct', 'D');
         
+        newData = db_template('data');
+        newData.Comment       = [tkz{1} '_ica ',tkz{2}];
+        newData.FileName      = fullfile(A, [FileName_new, '.mat']);
+        % Get output study
+        sStudyOut = bst_get('Study', iStudyOut);
+        % Add new entry to the database
+        iResult = length(sStudyOut.Data) + 1;
+        sStudyOut.Data(iResult) = newData;
+        % Update Brainstorm database
+        bst_set('Study', iStudyOut, sStudyOut);
+        % Store output filename
+        OutputFiles{end+1} = newData.FileName;
     end
     disp('done, reload datafile!')
     
-else,
+else
     disp('no correction was done')
+    OutputFiles = [];
+    for IInput = 1:length(sInputs)
+        OutputFiles{end+1} = sInputs(IInput).FileName;
+    end
 end
+
 db_save();
 bst_progress('stop');
-end
 
-
-%% ===== TIME-FREQUENCY =====
-function [time_of_interest,freq_of_interest] = do_tfr_plot(cfg_main, tfr)
-% First compute the average over trials:
-cfg = [];
-freq_avg = ft_freqdescriptives(cfg, tfr);
-
-% And baseline-correct the average:
-cfg = [];
-cfg.baseline = cfg_main.baselinetime;
-cfg.baselinetype = 'db'; % Use decibel contrast here
-freq_avg_bsl = ft_freqbaseline(cfg, freq_avg);
-
-freq_avg_bsl.powspctrm(isnan(freq_avg_bsl.powspctrm))=0;
-meanpow = squeeze(mean(freq_avg_bsl.powspctrm, 1));
-
-tim_interp = linspace(cfg_main.toi(1), cfg_main.toi(2), 512);
-freq_interp = linspace(1, cfg_main.fmax, 512);
-
-% We need to make a full time/frequency grid of both the original and
-% interpolated coordinates. Matlab's meshgrid() does this for us:
-[tim_grid_orig, freq_grid_orig] = meshgrid(tfr.time, tfr.freq);
-[tim_grid_interp, freq_grid_interp] = meshgrid(tim_interp, freq_interp);
-
-% And interpolate:
-pow_interp = interp2(tim_grid_orig, freq_grid_orig, meanpow, tim_grid_interp, freq_grid_interp, 'spline');
-
-% while n==1
-pow_interp1  = pow_interp(50:end,50:end);
-tim_interp1  = tim_interp(50:end);
-freq_interp1 = freq_interp(50:end);
-
-
-[~,idx] = min(pow_interp1(:));
-[row,col] = ind2sub(size(pow_interp1),idx);
-
-time_of_interest = tim_interp1(col);
-freq_of_interest = freq_interp1(row);
-
-timind = nearest(tim_interp, time_of_interest);
-freqind = nearest(freq_interp, freq_of_interest);
-pow_at_toi = pow_interp(:,timind);
-pow_at_foi = pow_interp(freqind,:);
-
-
-% Plot figure
-if cfg_main.plotflag
-    figure();
-    ax_main  = axes('Position', [0.1 0.2 0.55 0.55]);
-    ax_right = axes('Position', [0.7 0.2 0.1 0.55]);
-    ax_top   = axes('Position', [0.1 0.8 0.55 0.1]);
-    
-    axes(ax_main);
-    imagesc(tim_interp, freq_interp, pow_interp);
-    % note we're storing a handle to the image im_main, needed later on
-    xlim([cfg_main.toi(1), cfg_main.toi(2)]);
-    axis xy;
-    xlabel('Time (s)');
-    ylabel('Frequency (Hz)');
-    clim = max(abs(meanpow(:)));
-    caxis([-clim clim]);
-    % colormap(brewermap(256, '*RdYlBu'));
-    hold on;
-    plot(zeros(size(freq_interp)), freq_interp, 'k:');
-    
-    axes(ax_top);
-    area(tim_interp, pow_at_foi, ...
-        'EdgeColor', 'none', 'FaceColor', [0.5 0.5 0.5]);
-    xlim([cfg_main.toi(1), cfg_main.toi(2)]);
-    ylim([-clim clim]);
-    box off;
-    ax_top.XTickLabel = [];
-    ylabel('Power (dB)');
-    hold on;
-    plot([0 0], [-clim clim], 'k:');
-    
-    axes(ax_right);
-    area(freq_interp, pow_at_toi,...
-        'EdgeColor', 'none', 'FaceColor', [0.5 0.5 0.5]);
-    view([270 90]); % this rotates the plot
-    ax_right.YDir = 'reverse';
-    ylim([-clim clim]);
-    box off;
-    ax_right.XTickLabel = [];
-    ylabel('Power (dB)');
-    
-    h = colorbar(ax_main, 'manual', 'Position', [0.85 0.2 0.05 0.55]);
-    ylabel(h, 'Power vs baseline (dB)');
-    
-    % Main plot:
-    axes(ax_main);
-    plot(ones(size(freq_interp))*time_of_interest, freq_interp,...
-        'Color', [0 0 0 0.1], 'LineWidth', 3);
-    plot(tim_interp, ones(size(tim_interp))*freq_of_interest,...
-        'Color', [0 0 0 0.1], 'LineWidth', 3);
-    
-    % Marginals:
-    axes(ax_top);
-    plot([time_of_interest time_of_interest], [0 clim],...
-        'Color', [0 0 0 0.1], 'LineWidth', 3);
-    axes(ax_right);
-    hold on;
-    plot([freq_of_interest freq_of_interest], [0 clim],...
-        'Color', [0 0 0 0.1], 'LineWidth', 3);
-end
 end
