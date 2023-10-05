@@ -24,8 +24,10 @@ Run_load_surface_template
 fmri_LIs = ecpfunc_read_fmri_lat();
 
 %%
+clc
 cfg = []; 
 cfg.protocol = protocol;
+cfg.datatag = 'wDICS_contrast_18_4';
 cfg.datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data';
 cfg.BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data_all_subjects';
 S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
@@ -325,6 +327,7 @@ difference = setdiff(S_data_hc.sFiles_subid, sub_MF_hc');
 disp(difference');
 
 %% MEG vs. fMRI lat analysis (PT)
+clc
 [sub_MF_pt,IA,IB] = intersect(LI_pt_ID, fmri_LIs.ID.language_Lateral');
 
 LI_pt_val = LI_pt.LI_sub;
@@ -334,6 +337,7 @@ fmri_LIs_val = (fmri_LIs.val.language_Lateral(IB)); % Lateral regions was used.
 
 % missing from fMRI 
 difference = setdiff(LI_pt_ID, sub_MF_pt');
+disp('missing from fMRI')
 disp(difference');
 
 %% MEG LI vs fMRI LI (language_Lateral)
@@ -365,7 +369,7 @@ close all
 clc
 
 cfg = [];
-cfg.thre = .1; cfg.LI = fmri_LIs_val;
+cfg.thre = .3; cfg.LI = fmri_LIs_val;
 fmri_LIs_trn = do_ternary_classification(cfg);
 size(fmri_LIs_trn);
 
@@ -381,8 +385,8 @@ cfg.LI_val = LI_pt_val_new;
 cfg.fmri_LIs_val = fmri_LIs_trn; 
 % cfg.net_sel = [1,2,6];
 cfg.net_sel = [11];
-cfg.thre = 0.1;
-cfg.buffervalue = 3;
+cfg.thre = 0.15;
+cfg.buffervalue = 10;
 [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast(cfg);
 
 % disp([megLIs_trn, fmri_LIs_trn])
@@ -390,7 +394,7 @@ cfg.buffervalue = 3;
 idx = find(abs(megLIs_trn - fmri_LIs_trn) > 0);
 sub_MF_pt(idx)
 
-length(megLIs_trn)
+% length(megLIs_trn)
 
 % (length(megLIs_trn) - length(idx))/length(megLIs_trn)
 
@@ -416,6 +420,8 @@ cfg.outdir = outdir;
 cfg.title = 'SD task, 58 PTs, raw LIs';
 do_plot_LIs(cfg)
 
+size(fmri_LIs_val)
+
 %%
 [C, order] = confusionmat(megLIs_trn, fmri_LIs_trn);
 % Visualize the confusion matrix
@@ -438,7 +444,7 @@ cd(outdir)
 
 fmri_LIs_val = (fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
 fmri_LIs_val = (fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
-fmri_LIs_val = (fmri_LIs.val.language_Lateral(IB)); net_sel = 11;
+% fmri_LIs_val = (fmri_LIs.val.language_Lateral(IB)); net_sel = 11;
 
 
 cfg = []; cfg.wi = wi;
@@ -453,23 +459,38 @@ cfg.LI_val = LI_pt_val_new;
 cfg.fmri_LIs_val = fmri_LIs_val; cfg.net_sel = net_sel;
 crr = do_MEG_fMRI_corr_contrast(cfg);
 
+%% INCOMPLETE
+
+cfg = []; cfg.wi = wi;
+cfg.ID = sub_MF_pt;
+cfg.thre = 0.1;
+cfg.bf = 10;
+cfg.ternary = 0;
+cfg.savefig = 0;
+cfg.outdir = outdir;
+cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+cfg.LI_val = LI_pt_val_new; 
+cfg.fmri_LIs_val = fmri_LIs; cfg.net_sel = net_sel;
+crr = do_MEG_fMRI_corr_contrast_rois(cfg);
+
+
 %% Corr.(tern)
 clc, close all
 
 fmri_LIs_val = (fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
 fmri_LIs_val = (fmri_LIs.val.language_Angular(IB)); net_sel = 1;
 fmri_LIs_val = (fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
-fmri_LIs_val = (fmri_LIs.val.language_Lateral(IB)); net_sel = 11;
+% fmri_LIs_val = (fmri_LIs.val.language_Lateral(IB)); net_sel = 11;
 
 cfg = [];
-cfg.thre = .5; cfg.LI = fmri_LIs_val;
+cfg.thre = .3; cfg.LI = fmri_LIs_val;
 fmri_LIs_trn = do_ternary_classification(cfg);
 size(fmri_LIs_trn);
 
 %- concordance (similarity)
 cfg = [];
 cfg.wi = wi;
-cfg.thre = 0.1;
+cfg.thre = 0.15;
 cfg.ternary = 1;
 cfg.savefig = 0;
 cfg.outdir = outdir;
@@ -479,7 +500,7 @@ cfg.LI_val = LI_pt_val_new;
 % cfg.LI_symb_val = LI_symb_pt_val_new;
 cfg.fmri_LIs_val = fmri_LIs_trn;
 cfg.net_sel = net_sel;
-cfg.buffervalue = 5;
+cfg.buffervalue = 10;
 conc = do_MEG_fMRI_concordance_contrast(cfg);
 
 %%

@@ -184,7 +184,10 @@ end
 d1 = rdir(fullfile(BS_data_dir,'/*/ec*raw_low_clean/channel_vectorview306_acc1.mat'));
 d2 = rdir(fullfile(BS_data_dir,'/*/ec*raw_tsss_low_clean/channel_vectorview306_acc1.mat'));
 d3 = rdir(fullfile(BS_data_dir,'/*/EC*raw_low_clean/channel_vectorview306_acc1.mat'));
-d = [d1;d2;d3];
+d4 = rdir(fullfile(BS_data_dir,'/*/ec*raw_clean_low/channel_vectorview306_acc1.mat'));
+d5 = rdir(fullfile(BS_data_dir,'/*/ec*elecfix_raw_clean*/channel_vectorview306_acc1.mat'));
+
+d = [d1;d2;d3; d4; d5];
 
 OPTIONS = [];
 OPTIONS.comment = 'Overlapping spheres';
@@ -288,13 +291,15 @@ end
 end
 
 %% Source modelling, DICS-BF
-
-rerun = {'EC1029','EC1047', 'EC1102', 'EC1106', 'EC1117', 'EC1125'};
+% rerun = {'EC1081','EC1082', 'EC1102', 'EC1121', 'EC1125', 'EC1154'};
 
 d1 = rdir(fullfile(BS_data_dir,'/*/ec*raw_low_clean/channel_vectorview306_acc1.mat'));
 d2 = rdir(fullfile(BS_data_dir,'/*/ec*raw_tsss_low_clean/channel_vectorview306_acc1.mat'));
 d3 = rdir(fullfile(BS_data_dir,'/*/EC*raw_low_clean/channel_vectorview306_acc1.mat'));
-d = [d1;d2;d3];
+d4 = rdir(fullfile(BS_data_dir,'/*/ec*raw_clean_low/channel_vectorview306_acc1.mat'));
+d5 = rdir(fullfile(BS_data_dir,'/*/ec*elecfix_raw_clean*/channel_vectorview306_acc1.mat'));
+
+d = [d1;d2;d3; d4; d5];
 
 for i=1:length(d)
     
@@ -331,9 +336,9 @@ for i=1:length(d)
         flag = 0;
     end
     
-    if contains(pathstr, rerun)
-        flag = 1;
-    end
+%     if contains(pathstr, rerun)
+%         flag = 1;
+%     end
     
     if ~isempty(dd_32) && ~isempty(dd_32) && flag == 1 
         
@@ -354,13 +359,12 @@ for i=1:length(d)
         end
         
         disp(pathstr)
-%         pause,
         
         % Process: FieldTrip: ft_sourceanalysis (wDICS) window contrast
         sFiles = bst_process('CallProcess', 'process_ft_sourceanalysis_dics_wcontrast', sFiles, sFiles2, ...
             'sensortype', 'MEG', ...  % MEG
             'poststim',   [7.21644966e-16, 2], ...
-            'foi',        21, ...
+            'foi',        18, ...
             'tpr',        4, ...
             'tlength',    0.3, ...
             'ovp',        0.5, ...
@@ -418,20 +422,21 @@ no_anat = {'EC1036'
     'EC1110'
     'EC1111'};
 
-incomplete_data = {'EC1161'};
+incomplete_data = {''};
 subj = unq_bs_subj;
 
 % atag = '3';
 atag = {'2','3'};
 
-for kkk=1:length(atag)
+for kkk=1:1%length(atag)
     
     clc
     close all,
     subj_del = [];
-    for ii = 1:length(subj)
+    for ii = 106:106%length(subj)
         
-        if ~(contains(subj{ii},no_anat) || contains(subj{ii},incomplete_data))
+        if ~(contains(subj{ii},no_anat)) 
+%             || contains(subj{ii},incomplete_data))
             cd(fullfile(BS_data_dir,subj{ii}))
             dd = rdir(['./*',tag,'*/results*.mat']);
             for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
@@ -554,7 +559,7 @@ end
 d_sel = dd3(sel);
 
 % looking for already caculated maps ..
-dd = rdir(fullfile (BS_data_dir,'/Group*/wDICS_contrast/results*.mat'));
+dd = rdir(fullfile (BS_data_dir,'/Group*/wDICS_contrast_18_4/results*.mat'));
 subj_comp = []; comm_data = []; sel = []; dconn = []; kk = 1;
 sFiles_name_completed = [];
 for ii=1:length(dd)
@@ -605,7 +610,7 @@ if length(idx)>1
             db_reload_subjects(idx1);
             disp(tkz{end-2});
             sFiles1 = fullfile(tkz{end-2}, tkz{end-1}, tkz{end});
-%             pause,
+            pause,
             bst_project_sources ({sFiles1}, destSurfFile);
         end
     end

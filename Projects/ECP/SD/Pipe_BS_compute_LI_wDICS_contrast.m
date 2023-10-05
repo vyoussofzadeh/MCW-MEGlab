@@ -22,6 +22,7 @@ Run_load_surface_template
 %%
 cfg = []; 
 cfg.protocol = protocol;
+cfg.datatag = 'wDICS_contrast_18_4';
 cfg.datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data';
 cfg.BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data_all_subjects';
 S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
@@ -126,7 +127,7 @@ end
 cd(save_dir)
 
 %%
-rerun = {'EC1029','EC1047', 'EC1102', 'EC1106', 'EC1117', 'EC1121', 'EC1125'};
+% rerun = {'EC1029','EC1047', 'EC1102', 'EC1106', 'EC1117', 'EC1121', 'EC1125'};
 
 %% Inter-subject (group) averaging,
 close all
