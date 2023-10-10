@@ -388,26 +388,6 @@ for i=1:length(Subj)
     end
 end
 
-% subj = unique(BS_chan.subj_all);
-no_anat = {'EC1036'
-    'EC1037'
-    'EC1038'
-    'EC1040'
-    'EC1045'
-    'EC1049'
-    'EC1061'
-    'EC1065'
-    'EC1085'
-    'EC1092'
-    'EC1094'
-    'EC1096'
-    'EC1110'
-    'EC1111'
-    'EC1112'
-    'EC1141'
-    'EC1153'
-    'EC1162'};
-
 no_anat = {'EC1036'
     'EC1037'
     'EC1038'
@@ -422,108 +402,94 @@ no_anat = {'EC1036'
     'EC1110'
     'EC1111'};
 
-incomplete_data = {''};
+incomplete_data = {'EC1127'}; % only one run
 subj = unq_bs_subj;
 
-% atag = '3';
-atag = {'2','3'};
-
-for kkk=1:1%length(atag)
+clc
+close all,
+subj_del = [];
+for ii = 1:length(subj)
     
-    clc
-    close all,
-    subj_del = [];
-    for ii = 106:106%length(subj)
+    if ~(contains(subj{ii},no_anat)) || contains(subj{ii},incomplete_data)
+        cd(fullfile(BS_data_dir,subj{ii}))
+        dd = rdir(['./*',tag,'*/results*.mat']);
+        for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
+        sel = [];
+        for jj=1:length(dd)
+            tmp = load(dd(jj).name);
+            disp(tmp.Comment);
+            if contains(tmp.Comment,'wDICS: subtraction')
+                sel = [sel,jj];
+            end
+        end
         
-        if ~(contains(subj{ii},no_anat)) 
-%             || contains(subj{ii},incomplete_data))
-            cd(fullfile(BS_data_dir,subj{ii}))
+        dd_Sel = [];
+        if length(sel)>2
+            clc
+            subj_del = [subj_del;subj{ii}];
+            dd_Sel = dd(sel);
+            for jj=1:length(dd_Sel)
+                tmp = load(dd_Sel(jj).name);
+                disp([num2str(jj),':',dd_Sel(jj).name])
+                disp(tmp.Comment);
+            end
+            delin = input('del extra files:');
+            delete(dd_Sel(delin).name)
+            %
             dd = rdir(['./*',tag,'*/results*.mat']);
             for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
             sel = [];
             for jj=1:length(dd)
                 tmp = load(dd(jj).name);
                 disp(tmp.Comment);
-                if contains(tmp.Comment,'wDICS: subtraction')
+                if contains(tmp.Comment,'s_2sided')
                     sel = [sel,jj];
                 end
             end
+        end
+        
+        dd_Sel = [];
+        if length(sel)==2
+            dd_Sel = dd(sel);
             
-            dd_Sel = [];
-            if length(sel)>2
-                clc
-                subj_del = [subj_del;subj{ii}];
-                dd_Sel = dd(sel);
-                for jj=1:length(dd_Sel)
-                    tmp = load(dd_Sel(jj).name);
-                    disp([num2str(jj),':',dd_Sel(jj).name])
-                    disp(tmp.Comment);
-                end
-                delin = input('del extra files:');
-                delete(dd_Sel(delin).name)
-                %
-                dd = rdir(['./*',tag,'*/results*.mat']);
-                for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
-                sel = [];
-                for jj=1:length(dd)
-                    tmp = load(dd(jj).name);
-                    disp(tmp.Comment);
-                    if contains(tmp.Comment,'s_2sided')
-                        sel = [sel,jj];
-                    end
-                end
+            sFiles1 = []; sFiles_name = [];
+            for jj=1:length(dd_Sel)
+                sFiles1{jj} = fullfile(subj{ii},dd_Sel(jj).name);
+                [aa,bb] = fileparts(dd(jj).name);
+                sFiles_name{jj} = aa;
             end
+            disp(sFiles1')
+            disp('------------');
             
-            dd_Sel = [];
-            if length(sel)==2
-                dd_Sel = dd(sel);
-                
-                sFiles1 = []; sFiles_name = [];
-                for jj=1:length(dd_Sel)
-                    sFiles1{jj} = fullfile(subj{ii},dd_Sel(jj).name);
-                    [aa,bb] = fileparts(dd(jj).name);
-                    sFiles_name{jj} = aa;
-                end
-                disp(sFiles1')
-                disp('------------');
-                
-                dd1 = rdir('./@intra/results*.mat');
-                if ~isempty(dd1)
-                    for kk=1:length(dd1)
-                        tmp = load(dd1(kk).name);
-                        disp(tmp.Comment);
-                        if contains(tmp.Comment,[subj{ii}, '_wDICS_contrast'])
-                            runok = 0; break,
-                        else
-                            runok = 1;
-                        end
+            dd1 = rdir('./@intra/results*.mat');
+            if ~isempty(dd1)
+                for kk=1:length(dd1)
+                    tmp = load(dd1(kk).name);
+                    disp(tmp.Comment);
+                    if contains(tmp.Comment,[subj{ii}, '_wDICS_'])
+                        runok = 0; break,
+                    else
+                        runok = 1;
                     end
-                else
-                    runok = 1;
                 end
-                if length(sFiles1)==2 && runok == 1
-                    %                 tkz = tokenize(sFiles1{1},'/');
-                    %                 idx1 = find(strcmp(tkz{1}, ProtocolSubjects)==1);
-                    %                 db_reload_conditions(idx1);
-                    %                 db_reload_subjects(idx1);
-                    %                 pause
-                    % Process: Average: Everything
-                    bst_process('CallProcess', 'process_average', sFiles1, [], ...
-                        'avgtype',         1, ...  % Everything
-                        'avg_func',        1, ...  % Arithmetic average:  mean(x)
-                        'weighted',        0, ...
-                        'Comment', [subj{ii}, '_wDICS_contrast'], ...
-                        'scalenormalized', 0);
-%                     pause
-                else
-                    warning(['check data:', subj{ii}])
-                end
+            else
+                runok = 1;
+            end
+            if (length(sFiles1)==2
+                % Process: Average: Everything
+                bst_process('CallProcess', 'process_average', sFiles1, [], ...
+                    'avgtype',         1, ...  % Everything
+                    'avg_func',        1, ...  % Arithmetic average:  mean(x)
+                    'weighted',        0, ...
+                    'Comment', [subj{ii}, '_wDICS_contrast'], ...
+                    'scalenormalized', 0);
+            else
+                warning(['check data:', subj{ii}])
             end
         end
     end
-    disp('intra-subject source averaging was completed!');
 end
-
+disp('intra-subject source averaging was completed!');
 
 %%
 cd(BS_data_dir);

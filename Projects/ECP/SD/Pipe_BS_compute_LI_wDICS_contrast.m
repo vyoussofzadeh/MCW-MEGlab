@@ -158,7 +158,6 @@ for select_data = 1:length(dtag)
 end
 
 %%
-
 S_data_sel.s_tag = S_data_sel.subcon;
 
 %- Plot LI subjects

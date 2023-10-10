@@ -88,7 +88,7 @@ switch LI_method
     case 1
         mlabel = 'lcmv_contrast_threshold';
     case 2
-        mlabel = 'lcmv_contrast_counting';
+        mlabel = 'lcmv_contrast_counting_1';
     case 3
         mlabel = 'lcmv_contrast_bootstrapping';
 end
@@ -103,59 +103,9 @@ LI_hc = load('LI_Ctrl');
 LI_pt = load('LI_Patn');
 
 %% Power analysis
-close all
-
 switch LI_method
     case 'threshold'
-        pow = [];
-        if LI_method == 1
-            for j=1:size(LI_anim_hc.pow_sub,1)
-                for i=1:size(LI_anim_hc.pow_sub,2)
-                    pow.left_hc(j,i,:) = LI_hc.pow_sub(j,i).left;
-                    pow.right_hc(j,i,:) = LI_hc.pow_sub(j,i).right;
-                end
-            end
-        end
-        
-        mPow_sub1 = squeeze(mean(pow.left_hc,2));
-        tag = [mlabel,'; anim vs. symb, hc, left'];
-        
-        %-
-        clc
-        mPow_sub_hc = mPow_sub1;
-        
-        figure,
-        clear LI_val
-        for j=1:length(network_sel)
-            hold on
-            do_createPlot(mPow_sub_hc(network_sel(j),:), val, colr(j,:), net_sel_mutiple_label(network_sel), [mlabel,'; hc - pt'], 'LI')
-        end
-        lgnd = legend([net_sel_mutiple_label(network_sel); 'mean']);
-        title(tag)
-        ylabel('Pow')
-        xlabel('time')
-        set(gca,'color','none');
-        set(lgnd,'color','none');
-        
-        mPow_sub1 = squeeze(mean(pow.right_hc,2));
-        tag = [mlabel,'; anim vs. symb, hc, right'];
-        
-        %-
-        clc
-        mPow_sub_hc = mPow_sub1;
-        
-        figure,
-        clear LI_val
-        for j=1:length(network_sel)
-            hold on
-            do_createPlot(mPow_sub_hc(network_sel(j),:), val, colr(j,:), net_sel_mutiple_label(network_sel), [mlabel,'; hc - pt'], 'LI')
-        end
-        lgnd = legend([net_sel_mutiple_label(network_sel); 'mean']);
-        title(tag)
-        ylabel('Pow')
-        xlabel('time')
-        set(gca,'color','none');
-        set(lgnd,'color','none');
+        run_power_analysis
 end
 
 %% Anim HC
@@ -476,6 +426,22 @@ cfg = []; cfg.outdir = outdir; cfg.filename = ['Confusion Matrix'];
 cfg.type = 'fig'; do_export_fig(cfg)
 
 cd(outdir)
+
+%% ROIs
+clc
+cfg = []; cfg.wi = wi;
+cfg.ID = sub_MF_pt;
+cfg.thre = 0.1;
+cfg.bf = 10;
+cfg.ternary = 0;
+cfg.savefig = 0;
+cfg.outdir = outdir;
+cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+cfg.LI_val = LI_pt_val_new; 
+cfg.fmri_LIs_val = fmri_LIs;
+cfg.idx = IB;
+% cfg.net_sel = net_sel;
+crr = do_MEG_fMRI_corr_contrast_rois(cfg);
 
 %% Corr. ROIs
 % clc, close all

@@ -140,7 +140,6 @@ for select_data = 1:length(dtag)
     cfg.select_data = select_data;
     S_data_sel = ecpfunc_select_data_contrast(cfg); 
     
-    
     %- Subject-level LI (all 8 networks)
     cfg = [];
     cfg.S_data_sel = S_data_sel;

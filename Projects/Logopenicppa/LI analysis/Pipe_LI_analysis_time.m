@@ -134,7 +134,8 @@ end
 
 cfg = [];
 cfg.atlas = atlas;
-cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Atlas/cortex_pial_low.fs';
+% cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Atlas/cortex_pial_low.fs';
+cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/cortex_pial_low.fs';
 cfg.sel = 'roi'; % 'whole', 'left', 'right', 'roi';
 cfg.lat_index = [idx_L, idx_R];
 cfg.rois = rois;
@@ -155,10 +156,12 @@ cfg.net_sel = net_sel;
 [opt_idx_L,opt_idx_R] = do_network_indecies(cfg);
 
 %% Time intervals (window)
+clc
 cfg = [];
 cfg.strt = 0;
 cfg.spt = 1;
 cfg.overlap = 0.01;
+cfg.linterval = 0.1;
 wi  = do_time_intervals(cfg);
 
 %% LI Subjects (network ROIs)

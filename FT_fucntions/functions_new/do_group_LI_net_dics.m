@@ -47,12 +47,12 @@ else
             cfg.wi = wi;
             %             [LI, wi_max, pow] = do_lat_analysis_asymetric(cfg);
             switch method
-                case 'wDICS_threshold'
+                case {'wDICS_threshold'; 'wDICS_bsl_threshold'}
                     [LI, ~, pow] = do_lat_analysis_asymetric(cfg);
                     pow_sub(j,i,:) = pow;
-                case 'wDICS_counting'
+                case {'wDICS_counting' ; 'wDICS_bsl_counting'}
                     [LI, ~] = do_lat_analysis_asymetric_counting(cfg);
-                case 'wDICS_bootstrapping'
+                case {'wDICS_bootstrapping' ; 'wDICS_bsl_bootstrapping'}
                     cfg.divs = 10;
                     [LI, ~] = do_LI_bootstrap(cfg);
             end

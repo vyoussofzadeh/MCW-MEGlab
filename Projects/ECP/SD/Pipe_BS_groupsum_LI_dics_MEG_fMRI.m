@@ -106,61 +106,9 @@ LI_symb_hc = load('LI_symb-hc');
 LI_symb_pt = load('LI_symb-pt');
 
 %% Power analysis
-close all
-
 switch LI_method
     case 'threshold'
-        pow = [];
-        if LI_method == 1
-            for j=1:size(LI_anim_hc.pow_sub,1)
-                for i=1:size(LI_anim_hc.pow_sub,2)
-                    pow.left_anim_hc(j,i,:) = LI_anim_hc.pow_sub(j,i).left;
-                    pow.right_anim_hc(j,i,:) = LI_anim_hc.pow_sub(j,i).right;
-                    pow.left_symb_hc(j,i,:) = LI_symb_hc.pow_sub(j,i).left;
-                    pow.right_symb_hc(j,i,:) = LI_symb_hc.pow_sub(j,i).right;
-                end
-            end
-        end
-        
-        mPow_sub1 = squeeze(mean(pow.left_anim_hc,2));
-        mPow_sub2 = squeeze(mean(pow.left_symb_hc,2)); tag = [mlabel,'; anim vs. symb, hc, left'];
-        
-        %-
-        clc
-        mPow_sub_hc = mPow_sub1 - mPow_sub2;
-        
-        figure,
-        clear LI_val
-        for j=1:length(network_sel)
-            hold on
-            do_createPlot(mPow_sub_hc(network_sel(j),:), val, colr(j,:), net_sel_mutiple_label(network_sel), [mlabel,'; hc - pt'], 'LI')
-        end
-        lgnd = legend([net_sel_mutiple_label(network_sel); 'mean']);
-        title(tag)
-        ylabel('Pow')
-        xlabel('time')
-        set(gca,'color','none');
-        set(lgnd,'color','none');
-        
-        mPow_sub1 = squeeze(mean(pow.right_anim_hc,2));
-        mPow_sub2 = squeeze(mean(pow.right_symb_hc,2)); tag = [mlabel,'; anim vs. symb, hc, right'];
-        
-        %-
-        clc
-        mPow_sub_hc = mPow_sub1 - mPow_sub2;
-        
-        figure,
-        clear LI_val
-        for j=1:length(network_sel)
-            hold on
-            do_createPlot(mPow_sub_hc(network_sel(j),:), val, colr(j,:), net_sel_mutiple_label(network_sel), [mlabel,'; hc - pt'], 'LI')
-        end
-        lgnd = legend([net_sel_mutiple_label(network_sel); 'mean']);
-        title(tag)
-        ylabel('Pow')
-        xlabel('time')
-        set(gca,'color','none');
-        set(lgnd,'color','none');
+        run_power_analysis
 end
 
 %% Anim HC

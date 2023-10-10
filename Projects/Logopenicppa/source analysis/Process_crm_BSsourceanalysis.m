@@ -37,6 +37,8 @@ BS_data_dir = fullfile(BS_dir,'data');
 protocol = fullfile(BS_dir, 'data/protocol.mat');
 
 %% Loading up raw data
+tag = 'CRM'; %- Semantic decision
+
 cfg = [];
 cfg.indir = indir;
 cfg.tag = tag;

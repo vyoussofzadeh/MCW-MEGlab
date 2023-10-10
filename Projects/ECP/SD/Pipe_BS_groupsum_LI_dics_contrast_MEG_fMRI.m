@@ -386,7 +386,7 @@ cfg.fmri_LIs_val = fmri_LIs_trn;
 % cfg.net_sel = [1,2,6];
 cfg.net_sel = [11];
 cfg.thre = 0.15;
-cfg.buffervalue = 10;
+cfg.buffervalue = 4;
 [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast(cfg);
 
 % disp([megLIs_trn, fmri_LIs_trn])
@@ -443,8 +443,8 @@ cd(outdir)
 % clc, close all
 
 fmri_LIs_val = (fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
-fmri_LIs_val = (fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
-% fmri_LIs_val = (fmri_LIs.val.language_Lateral(IB)); net_sel = 11;
+% fmri_LIs_val = (fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
+fmri_LIs_val = (fmri_LIs.val.language_Lateral(IB)); net_sel = 11;
 
 
 cfg = []; cfg.wi = wi;
@@ -459,8 +459,8 @@ cfg.LI_val = LI_pt_val_new;
 cfg.fmri_LIs_val = fmri_LIs_val; cfg.net_sel = net_sel;
 crr = do_MEG_fMRI_corr_contrast(cfg);
 
-%% INCOMPLETE
-
+%% ROIs
+clc
 cfg = []; cfg.wi = wi;
 cfg.ID = sub_MF_pt;
 cfg.thre = 0.1;
@@ -470,9 +470,10 @@ cfg.savefig = 0;
 cfg.outdir = outdir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
 cfg.LI_val = LI_pt_val_new; 
-cfg.fmri_LIs_val = fmri_LIs; cfg.net_sel = net_sel;
+cfg.fmri_LIs_val = fmri_LIs;
+cfg.idx = IB;
+% cfg.net_sel = net_sel;
 crr = do_MEG_fMRI_corr_contrast_rois(cfg);
-
 
 %% Corr.(tern)
 clc, close all
@@ -480,7 +481,7 @@ clc, close all
 fmri_LIs_val = (fmri_LIs.val.language_Frontal(IB)); net_sel = 2;
 fmri_LIs_val = (fmri_LIs.val.language_Angular(IB)); net_sel = 1;
 fmri_LIs_val = (fmri_LIs.val.language_Temporal(IB)); net_sel = 6;
-% fmri_LIs_val = (fmri_LIs.val.language_Lateral(IB)); net_sel = 11;
+fmri_LIs_val = (fmri_LIs.val.language_Lateral(IB)); net_sel = 11;
 
 cfg = [];
 cfg.thre = .3; cfg.LI = fmri_LIs_val;

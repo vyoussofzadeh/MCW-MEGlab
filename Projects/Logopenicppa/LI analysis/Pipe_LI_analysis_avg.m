@@ -42,7 +42,7 @@ for jj=1:length(sFiles_name)
     cd(BS_data_dir)
     tmp  = load(sFiles_name{jj});
     Comment{jj} = tmp.Comment;
-    if contains(Comment{jj}, 'Avg:')
+    if contains(Comment{jj}, '/Avg:')
         Comment_sel{kk} = sFiles_name{jj};
         disp(Comment{jj});
         tkz = tokenize(Comment{jj},'/');
@@ -134,7 +134,8 @@ end
 
 cfg = [];
 cfg.atlas = atlas;
-cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data_info/cortex_pial_low.fs';
+% cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data_info/cortex_pial_low.fs';
+cfg.src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/cortex_pial_low.fs';
 cfg.sel = 'roi'; % 'whole', 'left', 'right', 'roi';
 cfg.lat_index = [idx_L, idx_R];
 cfg.rois = rois;
@@ -173,11 +174,13 @@ for i=1:length(data_info.sFiles_name)
     cfg.atlas = atlas;
     cfg.thre = 0.5;
     cfg.lat_index = [opt_idx_L; opt_idx_R]'; % network_based
-%     cfg.lat_index = [idx_L, idx_R]; % Whole-brain (voxel_based)
+    %     cfg.lat_index = [idx_L, idx_R]; % Whole-brain (voxel_based)
     cfg.fplot = 0;
     cfg.tit = net_tag;
     cfg.wi = [1 1];
-    [LI,rois_idx] = do_lat_analysis(cfg);
+    %     [LI,rois_idx]
+    cfg.fplot = 0;
+    [LI,unq_roi_idx, LI_max, pow] = do_lat_analysis(cfg);
     Li_sub(i,:) = LI;
 end
 

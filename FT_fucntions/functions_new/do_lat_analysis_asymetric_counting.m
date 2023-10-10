@@ -9,7 +9,15 @@ sinput = cfg_main.sinput;
 % Threshtype = cfg_main.Threshtype;
 
 %% Parcel_based (mean parcels) LI analysis
-tmp = load(fullfile(cfg_main.BS_data_dir, sinput));
+tmp_1 = load(fullfile(cfg_main.BS_data_dir, sinput{1}));
+tmp_2 = load(fullfile(cfg_main.BS_data_dir, sinput{2}));
+
+disp([tmp_1.Comment; tmp_2.Comment ])
+
+tmp = tmp_1;
+tmp.ImageGridAmp = tmp_1.ImageGridAmp - tmp_2.ImageGridAmp;
+
+% figure, plot(tmp.ImageGridAmp(:,1))
 
 LI = []; 
 for j=1:size(wi,1)

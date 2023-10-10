@@ -18,20 +18,27 @@ LI = []; roi_idx = [];
 for j=1:size(wi,1)
     
     timind1 = nearest(tmp.Time, wi(j,1)); timind2 = nearest(tmp.Time, wi(j,2));
-    [parcelval,rois] = do_sourceparcell_surface(atlas,nanmean(tmp.ImageGridAmp(:,timind1:timind2),2));
+    %     [parcelval,rois]
     
-%     parcelval_thresholded = parcelval >= thre*max(parcelval); % logical indexing
+    cfg1 = [];
+    cfg1.d_in = nanmean(tmp.ImageGridAmp(:,timind1:timind2),2) ;
+    cfg1.atlas = atlas;
+    cfg1.thre = 0;
+    [parcelval,rois, pow_parcel_count] = do_sourceparcell_surface(cfg1);
+%     [parcelval,rois, pow_parcel_count] = do_sourceparcell_surface(atlas,nanmean(tmp.ImageGridAmp(:,timind1:timind2),2));
+    
+    %     parcelval_thresholded = parcelval >= thre*max(parcelval); % logical indexing
     
     parcelval_thresholded = parcelval;
-%     parcelval_thresholded(parcelval_thresholded < thre*max(parcelval_thresholded)) = 0;
+    %     parcelval_thresholded(parcelval_thresholded < thre*max(parcelval_thresholded)) = 0;
     
-%     val = parcelval;
-%     val = (val - min(val(:))) ./ (max(val(:)) - min(val(:)));
-%     idx2 = find(val >= thre.*max(val));
-%     parcelval_thresholded = zeros(size(val));
-%     parcelval_thresholded(idx2) = val(idx2);
+    %     val = parcelval;
+    %     val = (val - min(val(:))) ./ (max(val(:)) - min(val(:)));
+    %     idx2 = find(val >= thre.*max(val));
+    %     parcelval_thresholded = zeros(size(val));
+    %     parcelval_thresholded(idx2) = val(idx2);
     
-%     parcelval_thresholded = parcelval;
+    %     parcelval_thresholded = parcelval;
     
     [~, idx, ~] = do_barplot_ecp(parcelval,rois, thre, 0);
     
