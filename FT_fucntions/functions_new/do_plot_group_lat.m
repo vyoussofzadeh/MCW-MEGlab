@@ -34,7 +34,7 @@ plot(nanmean(LI_val(:,:)),'LineWidth',3);
 lgnd = legend([net_sel_mutiple_label(network_sel); 'mean']);
 legend('AutoUpdate', 'off')
 set(lgnd,'color','none');
-title(['mean LIs: ', S_data_sel.s_tag])
+% title(['mean LIs: ', S_data_sel.s_tag])
 set(lgnd,'color','none');
 set(gca,'color','none');
 xlabel('time')
@@ -66,7 +66,7 @@ clear std_dev
 figure,
 for j=1:length(network_sel)
     tmp = squeeze(LI_sub(network_sel(j),:,:));
-    subplot(nn,3,j)
+%     subplot(nn,3,j)
     plot(tmp'),
     hold on
     mm(j,:) = nanmean(tmp);
@@ -76,7 +76,7 @@ for j=1:length(network_sel)
     set(gca,'Xtick', 1:5:length(wi),'XtickLabel',val(1:5:end));
     set(gca,'FontSize',8,'XTickLabelRotation',90);
     set(gca,'color','none');
-    title([S_data_sel.s_tag, '-', net_sel_mutiple_label{network_sel(j)}])
+%     title([S_data_sel.s_tag, '-', net_sel_mutiple_label{network_sel(j)}])
     ylim([-110, 110])
     [peak_y, peak_x] = max(mm(j,:));
     xline(peak_x, 'color', colr(j,:),'LineWidth',1);
@@ -152,7 +152,7 @@ lgnd = legend(net_sel_mutiple_label(network_sel));
 set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
 set(gca,'FontSize',8,'XTickLabelRotation',90);
 set(gcf, 'Position', [1000   400   1100   500]);
-title(['subject LIs: ', S_data_sel.s_tag,])
+% title(['subject LIs: ', S_data_sel.s_tag,])
 set(gca,'color','none');
 set(lgnd,'color','none');
 ylabel('LI')
@@ -170,7 +170,7 @@ end
 %%
 d_in = mean(mean(LI_sub,1),3); L = length(d_in);
 figure, bar(d_in,0.4)
-set(gca,'Xtick', 1:L,'XtickLabel',S_data_sel.sFiles_subid);
+% set(gca,'Xtick', 1:L,'XtickLabel',S_data_sel.sFiles_subid);
 set(gca,'FontSize',8,'XTickLabelRotation',90);
 set(gcf, 'Position', [1000   600   1000   300]);
 set(gca,'color','none');

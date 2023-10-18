@@ -50,7 +50,7 @@ else
                 case {'threshold'; 'wDICS_bsl_threshold'}
                     [LI, ~, pow] = do_lat_analysis_asymetric(cfg);
                     pow_sub(j,i,:) = pow;
-                case {'counting'; 'wDICS_bsl_counting'}
+                case {'counting'; 'wDICS_bsl_counting'; 'LCMV_basline_Counting'}
                     [LI, ~] = do_lat_analysis_asymetric_counting(cfg);
                 case {'bootstrapping'; 'wDICS_bsl_bootstrapping'}
                     cfg.divs = 10;

@@ -12,7 +12,7 @@ for i=1:length(group_members)
     idx = [];
     for j=1:length(grois)
         idx(j) = strmatch(grois{j},rois);
-%         disp([grois{j}, rois(idx(j))])
+        %         disp([grois{j}, rois(idx(j))])
     end
     idx_L{i} = idx;
 end
@@ -23,7 +23,7 @@ for i=1:length(group_members)
     idx = [];
     for j=1:length(grois)
         idx(j) = strmatch(grois{j},rois);
-%         disp([grois{j}, rois(idx(j))])
+        %         disp([grois{j}, rois(idx(j))])
     end
     idx_R{i} = idx;
 end
@@ -87,8 +87,8 @@ switch cfg.sel
         for i=1:length(group_labels)
             groups_labels_num{i} = [num2str(i), ': ', group_labels{i}];
         end
-%         disp(cell2table(groups_labels_num'));
-
+        %         disp(cell2table(groups_labels_num'));
+        
         for iScout=1:length(sel)
             for j=1:length(idx_L{sel(iScout)})
                 index = Scouts((idx_L{sel(iScout)}(j))).Vertices;
@@ -97,20 +97,23 @@ switch cfg.sel
                 end
             end
         end
-%         disp((groups_labels_num(sel)'));
+        %         disp((groups_labels_num(sel)'));
 end
 
-figure,
-cfg = [];
-cfg.view = [-180,-90;0,90;-90,0; 90,0; 0, 0];
-cfg.position = [800   800   1000   300];
-cfg.color = (viridis(256));
-cfg.title = [''];
-cfg.alpha = 1;
-cfg.coor = [];
-cfg.surf = src;
-cfg.d_in = vertexcolor;
-do_surfplot(cfg);
-
+if cfg.plotflag == 1
+    
+    figure,
+    cfg = [];
+    cfg.view = [-180,-90;0,90;-90,0; 90,0; 0, 0];
+    cfg.position = [800   800   1000   300];
+    cfg.color = (viridis(256));
+    cfg.title = [''];
+    cfg.alpha = 1;
+    cfg.coor = [];
+    cfg.surf = src;
+    cfg.d_in = vertexcolor;
+    do_surfplot(cfg);
+    
+end
 
 

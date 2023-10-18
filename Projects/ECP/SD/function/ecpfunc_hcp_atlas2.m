@@ -24,18 +24,22 @@ region = {atlas.Scouts.Region};
 all_idx_L = find(startsWith(rois, 'L_'))';
 all_idx_R = find(startsWith(rois, 'R_'))';
 
-% Plot HCP atlas
-cfg = struct();
-cfg.atlas = atlas;
-cfg.src_fname = src_fname;
-% '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Atlas/cortex_pial_low.fs';
-cfg.sel = 'roi'; % 'whole', 'left', 'right', 'roi';
-cfg.index_L = all_idx_L;
-cfg.index_R = all_idx_R;
-cfg.rois = rois;
-cfg.rois_sel = 1:180;
-cfg.title = '';
-do_plot_HCP_atlas(cfg)
+if cfg_main.plotflag == 1;
+    
+    % Plot HCP atlas
+    cfg = struct();
+    cfg.atlas = atlas;
+    cfg.src_fname = src_fname;
+    % '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Atlas/cortex_pial_low.fs';
+    cfg.sel = 'roi'; % 'whole', 'left', 'right', 'roi';
+    cfg.index_L = all_idx_L;
+    cfg.index_R = all_idx_R;
+    cfg.rois = rois;
+    cfg.rois_sel = 1:180;
+    cfg.title = '';
+    do_plot_HCP_atlas(cfg)
+    
+end
 
 % Update frontal region
 idx_sel_L = strcmp(region(all_idx_L), 'LF');

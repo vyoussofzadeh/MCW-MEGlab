@@ -29,6 +29,7 @@ cfg.rois = Data_hcp_atlas.rois;
 cfg.group_labels = Data_hcp_atlas.groups_labels;
 cfg.group_members = Data_hcp_atlas.glass_net_L_label;
 cfg.roi_sel = network_sel;
+cfg.plotflag = cfg_main.plotflag;
 % net_sel = [6];
 % cfg.roi_sel = net_sel;
 cfg.group_members = Data_hcp_atlas.glass_net_L_label;
