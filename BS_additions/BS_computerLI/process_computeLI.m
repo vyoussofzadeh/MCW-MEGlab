@@ -158,29 +158,12 @@ function timerange = selectDataTypeAndTimeRange(time_interval, ~)
 
 switch time_interval
     case 1
-        disp('1: CRM')
-        disp('2: DFNM')
-        disp('3: PN')
-        
-        datatype = input('Enter Datatype: ');
-        switch datatype
-            case 1
-                timerange = [.300 .600];  % Make sure these are less than 1 for mS
-            case 2
-                timerange = [.550 1.19];  % Modified on June 5th, 2019 from [300:1.19] to [550:1.19]
-            case 3
-                timerange = [.200 .600];  % Default 200 - 600ms
-            otherwise
-                error('Invalid Datatype selection. Choose 1, 2, or 3.');
-        end
-        disp(['[ ', num2str(timerange(1)), ',', num2str(timerange(2)), '] sec was selected for LI analysis'])
-    case 2
         disp('Enter Timerange: e.g. [.100 .900]: ')
         timerange = input('');
         if isempty(timerange) || length(timerange) ~= 2
             error('Invalid Timerange input. Provide a valid range.');
         end
-    case 3
+    case 2
         timerange = 1;  % Make sure these are less than 1 for mS
     otherwise
         error('Invalid time interval. Choose 1, 2, or 3.');
@@ -200,7 +183,7 @@ function samplerate = determineSampleRate(time_interval, sResultP)
 % Determine the sample rate based on the time interval and sResultP
 
 switch time_interval
-    case 3
+    case 2
         samplerate = 1;
     otherwise
         samplerate = round(inv((sResultP.Time(end) - sResultP.Time(1)) / length(sResultP.Time))) - 1;
@@ -235,7 +218,7 @@ function [AllMax, GlobalMax, t1, t2] = determineMaxValues(time_interval, ImageGr
 % Compute the maximum values AllMax and GlobalMax
 
 switch time_interval
-    case 3
+    case 2
         GlobalMax = max(ImageGridAmp(:));  % Max value over all time points
         AllMax = max(ImageGridAmp(:));     % Max value over the time window of interest
         t1 = []; t2 = [];
@@ -325,7 +308,7 @@ s1='LI_';
 Summ_LI=zeros(1,TotROI); % initialize the vector that summarizes the final LIs  % added JL 11212014
 Summ_LI_Label='ROI Labels: '; % initialize the string that summarizes the ROI labels  % added JL 11212014
 switch time_interval
-    case {2; 1}
+    case 1
         figure
 end
 plot_ind=1;
@@ -358,7 +341,7 @@ for ii = 1:8
     RHscout = Rtemp_region;
     
     switch time_interval % modified by VY
-        case 3
+        case 2
             %First parse the maps into separate space-times maps for each side
             LHvals = ImageGridAmp(LHscout);
             LH_max = max(max(LHvals));
@@ -423,7 +406,7 @@ for ii = 1:8
         Thrshd_LI_ROIcount(k,2)=LI_ROIcount;
     end
     switch time_interval
-        case {2; 1}
+        case 1
             subplot(4,4,plot_ind)
             plot_ind=plot_ind+1;
             plot(Thrshd_LI_ROIcount(:,1),Thrshd_LI_ROIcount(:,2));
@@ -461,7 +444,7 @@ for ii = 1:8
     end
     
     switch time_interval
-        case {2; 1}
+        case 1
             subplot(4,4,plot_ind)
             plot_ind=plot_ind+1;
             plot(Thrshd_LI_ROIavg(:,1),Thrshd_LI_ROIavg(:,2)); %JS 092815 changed plot to subplot
@@ -471,7 +454,6 @@ for ii = 1:8
 end
 
 % Save results to disk
-
 % Create folder path if it doesn't exist
 folderPath = fullfile(savedir);
 if ~exist(folderPath, 'dir')
@@ -481,11 +463,10 @@ else
     disp('Folder already exists.');
 end
 
-
 sname = cfg_LI.sname;
 
 % Define the filename based on the time_interval
-if time_interval == 3
+if time_interval == 2
     filename = fullfile(folderPath, ['/LI_ROItable_', sname, '_thresh', num2str(Ratio4Threshold), '.xls']);
 else
     filename = fullfile(folderPath, ['/LI_ROItable_', sname, '_', 'time', num2str(timerange(1)), '-', num2str(timerange(2)), '_thresh', num2str(Ratio4Threshold), '.xls']);
