@@ -485,12 +485,13 @@ fclose(tempfile);
 disp(['Results saved to: ' filename]);
 
 % Optional: Display results
-disp('=================');
-disp('                 ');
+disp('=================')
+disp('                 ')
 a = table(RoiLabels'); a.Properties.VariableNames{'Var1'} = 'ROI';
 b = table(Summ_LI'); b.Properties.VariableNames{'Var1'} = 'LI';
-d = [a, b];
-disp(d);
-disp('=================');
+c = table([L_count;R_count]'); c.Properties.VariableNames{'Var1'} = 'Left_vs_right';
+d = [a,b,c];
+disp(d)
+
 
 end
