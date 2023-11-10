@@ -29,7 +29,7 @@ function sProcess = GetDescription() %#ok<DEFNU>
 
 
 % Description the process
-sProcess.Comment     = 'Compute LI (counting-based)';
+sProcess.Comment     = 'Computer LI, surface-based, DK atlas';
 sProcess.Category    = 'Custom';
 sProcess.SubGroup    = 'Sources';
 sProcess.Index       = 337;
