@@ -493,5 +493,4 @@ c = table([L_count;R_count]'); c.Properties.VariableNames{'Var1'} = 'Left_vs_rig
 d = [a,b,c];
 disp(d)
 
-
 end
