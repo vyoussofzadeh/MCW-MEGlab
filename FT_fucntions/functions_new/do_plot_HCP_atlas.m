@@ -38,6 +38,9 @@ switch cfg_main.sel
             index = Scouts(idx_lr(iScout)).Vertices;
             if ~isempty(index)
                 vertexcolor(index,:) = repmat(Scouts(idx_lr(iScout)).Color,  length(index), 1);
+                if isfield(cfg_main, 'fixedcolor')
+                    vertexcolor(index,:) = repmat(cfg_main.fixedcolor,  length(index), 1);
+                end
             end
         end
     case 'left'
@@ -64,7 +67,7 @@ switch cfg_main.sel
         sel = cfg_main.rois_sel; %input('enter rois (1-180):');
         idx_L_Sel = idx_L(sel);
         %         disp(rois(idx_L_Sel)')
-
+        
         vertexcolor_L = vertexcolor;
         for iScout=1:length(idx_L_Sel)
             index = Scouts(idx_L_Sel(iScout)).Vertices;
@@ -80,6 +83,9 @@ switch cfg_main.sel
             index = Scouts(idx_R_Sel(iScout)).Vertices;
             if ~isempty(index)
                 vertexcolor_R(index,:) = repmat(Scouts(idx_R_Sel(iScout)).Color,  length(index), 1);
+                if isfield(cfg_main, 'fixedcolor')
+                    vertexcolor(index,:) = repmat(cfg_main.fixedcolor,  length(index), 1);
+                end
             end
         end
         
@@ -127,7 +133,7 @@ switch cfg_main.sel
         cfg.alpha = 1; cfg.coor = [];
         cfg.surf = src;
         cfg.d_in = vertexcolor;
-        do_surfplot(cfg);        
+        do_surfplot(cfg);
 end
 
 

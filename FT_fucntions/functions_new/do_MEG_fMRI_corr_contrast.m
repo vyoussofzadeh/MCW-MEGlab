@@ -18,10 +18,8 @@ for i=1:length(wi)
     if length(net_sel) > 1
         
         mLI_sub1 = mean(LI_pt_new(net_sel,:,i));
-%         mLI_sub2 = mean(LI_symb_pt_val_new(net_sel,:,i));
     else
         mLI_sub1 = (LI_pt_new(net_sel,:,i));
-%         mLI_sub2 = (LI_symb_pt_val_new(net_sel,:,i));
     end
     megLI_sub_pt = (mLI_sub1)';
     
@@ -32,7 +30,6 @@ for i=1:length(wi)
         cfg.LI = megLI_sub_pt; megLI_sub_pt = do_ternary_classification(cfg);
     end
     crr(i,:) = corr2(megLI_sub_pt, fmri_LIs_val);
-    %     [mx, midx] = max(abs(megLI_sub_pt)); midx_all(i) = midx;
 end
 
 % Determine the time point of max LI for each subject
@@ -52,10 +49,11 @@ end
 % m3 = m1 - m2;
 % figure, plot(mean(wi'), m3(2,:)), title(ID(2))
 
-figure, plot(mean(wi'),crr), title([net_sel_mutiple_label{net_sel}]);
+figure, plot(mean(wi'),crr, 'LineWidth', 3), title([net_sel_mutiple_label{net_sel}]);
 set(gca,'color','none');
 ylabel('LIs corr (MEG vs. fMRI)')
 xlabel('Time (sec)')
+max(crr)
 
 % - export figs
 if savefig == 1
@@ -72,14 +70,27 @@ bf = cfg_main.bf;
 
 if length(net_sel) > 1
     mLI_sub1 = squeeze(mean(LI_pt_new(net_sel,:,idx-bf:idx+bf)));
-%     mLI_sub2 = squeeze(mean(LI_symb_pt_val_new(net_sel,:,idx-bf:idx+bf)));
     megLI_sub_pt = mean((mLI_sub1),2);
 else
     mLI_sub1 = mean(LI_pt_new(net_sel,:,idx-bf:idx+bf),3)';
-%     mLI_sub2 = mean(LI_symb_pt_val_new(net_sel,:,idx-bf:idx+bf),3)';
     megLI_sub_pt = (mLI_sub1);
 end
-% megLI_sub_pt = mean((mLI_sub1),2);
+
+%%
+% for i=1:size(LI_pt_new,2)
+%     figure, plot(squeeze(LI_pt_new(net_sel,i,:))),
+%     hold on
+%     yline(fmri_LIs_val(i))
+%     yline(mean(LI_pt_new(net_sel,i,idx-bf:idx+bf)),'r')
+%     mx = max(LI_pt_new(net_sel,i,:));
+%     mn = min(LI_pt_new(net_sel,i,:));
+% %     yline(((abs(mx) - abs(mn))),'c')
+% %     yline((median(LI_pt_new(net_sel,i,:))),'c')
+%     yline(mx,'c')
+%     title(num2str(i))
+%     pause,
+%     close all   
+% end
 
 %%
 % if length(net_sel) > 1
@@ -120,6 +131,12 @@ if cfg_main.ternary ~= 1
     L = length(ID);
     set(gca,'Xtick', 1:L,'XtickLabel',ID);
     set(gca,'FontSize',9,'XTickLabelRotation',90);
+    
+    figure, plot(megLI_sub_pt, fmri_LIs_val,'x','LineWidth', 3)
+    set(gca,'color','none');
+    xlabel('MEG'); ylabel('fMRI')
+    box off
+
     
     % - export figs
     if savefig == 1
