@@ -54,7 +54,12 @@ for j = 1:size(wi, 1)
     lvals_nonnegative = LHvals(LHvals >= 0);
     rvals_nonnegative = RHvals(RHvals >= 0);
     
-    threshvals = (0:(divs-1)) * (ROIMax / (divs - 1));
+    % creating an array of values between 0 and the maximum amplitude
+    % (ROIMax) observed in the brain regions of interest. 
+    % This array is linearly spaced and divided into divs number of divisions. 
+    % This creates a series of thresholds that will be used to progressively ...
+    % include only those voxels with amplitude values above each threshold.
+    threshvals = (0:(divs-1)) * (ROIMax / (divs - 1)); 
     
     lr_threshvals = cell(1, numel(threshvals));
     num_threshvals = 0;
@@ -108,7 +113,7 @@ if cfg_main.fplot ==1
     set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
     set(gca,'FontSize',8,'XTickLabelRotation',90);
     set(gcf, 'Position', [1000   400   1000   300]);
-    title([cfg_main.tit, ' - ', tmp.Comment]),
+%     title([cfg_main.tit, ' - ', tmp.Comment]),
     xlabel('temporal windows (sec)')
     ylabel('LI')
     set(gca,'color','none');

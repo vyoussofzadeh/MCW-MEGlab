@@ -29,6 +29,9 @@ cfg.index_L = idx_L_all';
 cfg.index_R = idx_R_all';
 cfg.rois = Data_hcp_atlas.rois;
 cfg.rois_sel = 1:size(idx_L_all,2);
+if isfield(cfg_main,'fixedcolor')
+    cfg.fixedcolor = cfg_main.fixedcolor;
+end
 do_plot_HCP_atlas(cfg)
 
 % if cfg_main.export ==1   

@@ -76,7 +76,7 @@ rmpath(spm_path);
 %% Table
 t1 = table(m_LI_sub'); t1.Properties.VariableNames{'Var1'} = 'LI';
 
-%% Create a folde
+%% Create a folder
 folderPath = 'path/to/folder';
 
 if ~exist(folderPath, 'dir')
@@ -108,3 +108,5 @@ hold on
 plot(t(interval_start:interval_end), peak_interval, 'r')
 hold off
 
+%% Checking if a field exist as input to a function
+isfield(cfg, 'var')

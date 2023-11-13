@@ -3,7 +3,6 @@ function [megLI_sub_pt, fmri_LIs_val] = do_MEG_fMRI_concordance_contrast(cfg_mai
 
 wi = cfg_main.wi;
 LI_pt_val_new = cfg_main.LI_val;
-% LI_symb_pt_val_new = cfg_main.LI_symb_val;
 net_sel = cfg_main.net_sel;
 fmri_LIs_val = cfg_main.fmri_LIs_val;
 net_sel_mutiple_label = cfg_main.net_sel_mutiple_label;
@@ -18,18 +17,14 @@ conc = [];
 for i=1:length(wi)
     if length(net_sel) > 1
         mLI_sub1 = mean(LI_pt_val_new(net_sel,:,i));
-%         mLI_sub2 = mean(LI_symb_pt_val_new(net_sel,:,i));
     else
         mLI_sub1 = (LI_pt_val_new(net_sel,:,i));
-%         mLI_sub2 = (LI_symb_pt_val_new(net_sel,:,i));
     end
     megLI_sub_pt = (mLI_sub1)';
-    %     megLI_sub_pt = (mLI_sub1)';
     
     if cfg_main.ternary == 1
         cfg = []; cfg.thre = thre;
         cfg.LI = megLI_sub_pt; mLI_sub_pt_trn = do_ternary_classification(cfg);
-        %         conc(i,:) = corr2(mLI_sub_pt_trn, fmri_LIs_val);
         matches = mLI_sub_pt_trn == fmri_LIs_val;
         numMatches = sum(matches);
         percentageMatch = (numMatches / length(mLI_sub_pt_trn)) * 100;
@@ -40,12 +35,13 @@ for i=1:length(wi)
 end
 
 %%
-figure, plot(mean(wi'),mean(conc,2)), title([net_sel_mutiple_label{net_sel}]);
+figure, plot(mean(wi'),mean(conc,2),'LineWidth', 3), title([net_sel_mutiple_label{net_sel}]);
 ylabel('LIs conc (MEG , fMRI)')
 set(gca,'color','none');
 xlabel('Time (sec)')
 
 [mx, idx] = max(mean(conc,2));
+disp(mx)
 
 % - export figs
 if savefig == 1
@@ -56,17 +52,11 @@ if savefig == 1
     do_export_fig(cfg)
 end
 
-% tt = mean(wi');
-% tt(idx)
-
-% bf = 5;
 if length(net_sel) > 1
     mLI_sub1 = squeeze(mean(LI_pt_val_new(net_sel,:,idx-bf:idx+bf)));
-%     mLI_sub2 = squeeze(mean(LI_symb_pt_val_new(net_sel,:,idx-bf:idx+bf)));
     megLI_sub_pt = mean((mLI_sub1),2);
 else
     mLI_sub1 = mean(LI_pt_val_new(net_sel,:,idx-bf:idx+bf),3);
-%     mLI_sub2 = mean(LI_symb_pt_val_new(net_sel,:,idx-bf:idx+bf),3);
     megLI_sub_pt = (mLI_sub1)';
 end
 
@@ -76,7 +66,6 @@ if cfg_main.ternary == 1
     (length(find([megLI_sub_pt - fmri_LIs_val] == 0))/length(fmri_LIs_val)).*100
 end
 
-% if cfg_main.ternary ~= 1
 
 lgd = {'meg', 'fmri'};
 figure, bar([megLI_sub_pt, fmri_LIs_val])
@@ -97,8 +86,5 @@ if savefig == 1
     do_export_fig(cfg)
 end
 
-%     figure, plot(megLI_sub_pt, fmri_LIs_val,'*')
-% end
-% mean(mLI_sub_pt.* fmri_LIs_val)
 
 end

@@ -1,10 +1,10 @@
-function [idx_L, idx_R, groups_labels_num, src] = do_plot_HCP6_atlas(cfg)
+function [idx_L, idx_R, groups_labels_num, src] = do_plot_HCP6_atlas(cfg_main)
 
 
-group_members = cfg.group_members;
-rois = cfg.rois;
-group_labels = cfg.group_labels;
-sel = cfg.roi_sel;
+group_members = cfg_main.group_members;
+rois = cfg_main.rois;
+group_labels = cfg_main.group_labels;
+sel = cfg_main.roi_sel;
 
 idx_L = [];
 for i=1:length(group_members)
@@ -31,9 +31,9 @@ end
 %%
 idx_LR32 = [idx_L,idx_R];
 
-Scouts = cfg.atlas.Scouts;
+Scouts = cfg_main.atlas.Scouts;
 nScouts = length(Scouts);
-src_fname = cfg.src_fname;
+src_fname = cfg_main.src_fname;
 src = ft_read_headshape(src_fname);
 
 %- Whole atlas
@@ -46,7 +46,7 @@ for iScout=1:nScouts
     end
 end
 
-switch cfg.sel
+switch cfg_main.sel
     
     case 'whole'
         for iScout=1:length(idx_LR32)
@@ -94,13 +94,16 @@ switch cfg.sel
                 index = Scouts((idx_L{sel(iScout)}(j))).Vertices;
                 if ~isempty(index)
                     vertexcolor(index,:) = repmat(Scouts((iScout)).Color,  length(index), 1);
+                    if isfield(cfg_main, 'fixedcolor')
+                        vertexcolor(index,:) = repmat(cfg_main.fixedcolor,  length(index), 1);
+                    end
                 end
             end
         end
         %         disp((groups_labels_num(sel)'));
 end
 
-if cfg.plotflag == 1
+if cfg_main.plotflag == 1
     
     figure,
     cfg = [];
