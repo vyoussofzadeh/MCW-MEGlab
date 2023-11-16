@@ -364,6 +364,148 @@ for i=1:length(d)
     end
 end
 
+%%
+d1 = rdir(fullfile(BS_data_dir,'/*/ec*raw_low_clean/channel_vectorview306_acc1.mat'));
+d2 = rdir(fullfile(BS_data_dir,'/*/ec*raw_tsss_low_clean/channel_vectorview306_acc1.mat'));
+d3 = rdir(fullfile(BS_data_dir,'/*/EC*raw_low_clean/channel_vectorview306_acc1.mat'));
+d = [d1;d2;d3];
+
+for i=1:length(d)
+    
+    [pathstr, name] = fileparts(d(i).name);
+    
+    dd_results = rdir(fullfile(pathstr,'results_subtraction*.mat'));
+    results = [];
+    for j=1:length(dd_results)
+        cmt = load(dd_results(j).name);
+        results{j} = cmt.Comment;
+    end
+    
+    dd_32 = rdir(fullfile(pathstr,'data_3*_trl.mat'));
+    if isempty(dd_32)
+        dd_32 = rdir(fullfile(pathstr,'data_3_ic*.mat'));
+        if isempty(dd_32)
+            dd_32 = rdir(fullfile(pathstr,'data_3_trial*.mat'));
+        end
+    end
+    
+    if isempty(results)
+        flag = 1;
+%     elseif isempty(find(contains(results, 'tv_dics_3')==1, 1))
+    elseif isempty(find(contains(results, 'wdics_3')==1, 1))
+        flag = 1;
+    else
+        flag = 0;
+    end
+    
+    if ~isempty(dd_32) && flag == 1
+        sFiles = [];
+        for j=1:length(dd_32)
+            [pathstr, name] = fileparts(dd_32(j).name);
+            [pathstr2, name2] = fileparts(pathstr);
+            [~, name3] = fileparts(pathstr2);
+            sFiles{j} = fullfile(name3, name2, [name, '.mat']);
+        end
+        
+        
+%         bst_process('CallProcess', 'process_ft_sourceanalysis_tvDICS_BF', sFiles, [], ...
+%             'method',     'dics', ...  % DICS beamformer
+%             'comment', 'tv_dics_3', ...
+%             'sensortype', 'MEG');  % MEG
+        
+        
+        % Process: FieldTrip: ft_sourceanalysis window (DICS)
+        bst_process('CallProcess', 'process_ft_sourceanalysis_dics_window', sFiles, [], ...
+            'sensortype', 'MEG', ...  % MEG
+            'poststim',   [7.21644966e-16, 2], ...
+            'baseline',   [-0.3, -0.0005], ...
+            'foi',        18, ...
+            'tpr',        4, ...
+            'tlength',    0.3, ...
+            'ovp',        0.5, ...
+            'simaps',     0, ...
+            'avmaps',     1, ...
+            'method',     'subtraction', ...  % Subtraction (post-pre)
+            'comment',    'wdics_3', ...
+            'erds',       'erd', ...  % ERD
+            'effect',     'abs', ...  % abs
+            'maxfreq',    40, ...
+            'showtfr',    0);
+        
+
+        %         % Process: FieldTrip: ft_sourceanalysis (DICS)
+        %         sFiles = bst_process('CallProcess', 'process_ft_sourceanalysis_dics', sFiles, [], ...
+        %             'sensortype', 'MEG', ...  % MEG
+        %             'poststim',   [0.3, 1], ...
+        %             'baseline',   [-0.3, -0.0005], ...
+        %             'foi',        20, ...
+        %             'tpr',        4, ...
+        %             'method',     'subtraction', ...  % Subtraction (post-pre)
+        %             'erds',       'erd', ...  % ERD
+        %             'effect',     'abs', ...  % abs
+        %             'maxfreq',    40, ...
+        %             'showtfr',    1);
+    end
+    
+    dd_results = rdir(fullfile(pathstr,'results_subtraction*.mat'));
+    results = [];
+    for j=1:length(dd_results)
+        cmt = load(dd_results(j).name);
+        results{j} = cmt.Comment;
+    end
+    
+    dd_22 = rdir(fullfile(pathstr,'data_2*_trl.mat'));
+    if isempty(dd_22)
+        dd_22 = rdir(fullfile(pathstr,'data_2_ic*.mat'));
+        if isempty(dd_22)
+            dd_22 = rdir(fullfile(pathstr,'data_2_trial*.mat'));
+        end
+    end
+    
+    if isempty(results)
+        flag = 1;
+%     elseif isempty(find(contains(results, 'tv_dics_2')==1, 1))
+    elseif isempty(find(contains(results, 'wdics_2')==1, 1))
+        flag = 1;
+    else
+        flag = 0;
+    end
+    
+    if ~isempty(dd_22) && flag == 1
+        sFiles = [];
+        for j=1:length(dd_22)
+            [pathstr, name] = fileparts(dd_22(j).name);
+            [pathstr2, name2] = fileparts(pathstr);
+            [~, name3] = fileparts(pathstr2);
+            sFiles{j} = fullfile(name3, name2, [name, '.mat']);
+        end
+        
+%         bst_process('CallProcess', 'process_ft_sourceanalysis_tvDICS_BF', sFiles, [], ...
+%             'method',     'dics', ...  % DICS beamformer
+%             'comment', 'tv_dics_2', ...
+%             'sensortype', 'MEG');  % MEG
+                
+                % Process: FieldTrip: ft_sourceanalysis window (DICS)
+        bst_process('CallProcess', 'process_ft_sourceanalysis_dics_window', sFiles, [], ...
+            'sensortype', 'MEG', ...  % MEG
+            'poststim',   [7.21644966e-16, 2], ...
+            'baseline',   [-0.3, -0.0005], ...
+            'foi',        18, ...
+            'tpr',        4, ...
+            'tlength',    0.3, ...
+            'ovp',        0.5, ...
+            'simaps',     0, ...
+            'avmaps',     1, ...
+            'comment', 'wdics_2', ...
+            'method',     'subtraction', ...  % Subtraction (post-pre)
+            'erds',       'erd', ...  % ERD
+            'effect',     'abs', ...  % abs
+            'maxfreq',    40, ...
+            'showtfr',    0);
+
+    end
+end
+
 %% Intra-subject averaging
 load(protocol);
 Subj = ProtocolSubjects.Subject;
