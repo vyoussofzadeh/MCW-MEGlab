@@ -137,10 +137,10 @@ for i=1:length(d)
     if isempty(idx)
         idx = strfind(name,'EC');
     end
-%     idx1 = strfind(name,'_');
+    %     idx1 = strfind(name,'_');
     idx2 = strfind(name,'run');
     if isempty(idx2)
-       idx2 = strfind(name,'Run'); 
+        idx2 = strfind(name,'Run');
     end
     sub_sel = name(idx+2:idx+5);
     run_sel = name(idx2+3);
@@ -153,8 +153,8 @@ for i=1:length(d)
             && ~isfolder(['@rawec',sub_sel, '_SD_Run', run_sel, '_raw_tsss_low'])...
             && ~isfolder(['@rawec',sub_sel, '_SD_run', run_sel, '_raw_tsss_low'])
         disp(sFiles)
-%         pause,
-%         cd(BS_data_dir)
+        %         pause,
+        %         cd(BS_data_dir)
         bs_preprocess(sFiles)
     end
 end
@@ -175,7 +175,7 @@ for i=1:length(d)
     cd(pathstr2)
     if  ~isfolder(name(11:end))
         disp(sFiles)
-%         pause,
+        %         pause,
         import_raw_to_db(sFiles{1});
     end
 end
@@ -217,81 +217,93 @@ db_reload_database('current',1)
 
 %% Clean-up (ICA + reject trials)
 if analysis_flag.ica == 1
-addpath(ft_path);
-ft_defaults
-
-d = rdir(fullfile(BS_data_dir,'/*/ec*raw_low_clean/channel_vectorview306_acc1.mat'));
-
-for i=1:length(d)
+    addpath(ft_path);
+    ft_defaults
     
-    [pathstr, name] = fileparts(d(i).name);
-    cd(pathstr)
+    d = rdir(fullfile(BS_data_dir,'/*/ec*raw_low_clean/channel_vectorview306_acc1.mat'));
     
-    dd_results_3 = rdir(fullfile(pathstr,'results*.mat'));
-    results_comments = [];
-    for jj=1:length(dd_results_3)
-        tmp = load(dd_results_3(jj).name);
-        results_comments{jj} = tmp.Comment(1);
-    end
-    
-    dd_32 = rdir(fullfile(pathstr,'data_3*_trl.mat'));
-    if isempty(dd_32)
-        dd_3 = rdir(fullfile(pathstr,'data_3*.mat'));
-        sFiles = [];
-        for j=1:length(dd_3)
-            [pathstr, name] = fileparts(dd_3(j).name);
-            [pathstr2, name2] = fileparts(pathstr);
-            [pathstr3, name3] = fileparts(pathstr2);
-            sFiles{j} = fullfile(name3, name2, [name, '.mat']);
+    for i=1:length(d)
+        
+        [pathstr, name] = fileparts(d(i).name);
+        cd(pathstr)
+        
+        dd_results_3 = rdir(fullfile(pathstr,'results*.mat'));
+        results_comments = [];
+        for jj=1:length(dd_results_3)
+            tmp = load(dd_results_3(jj).name);
+            results_comments{jj} = tmp.Comment(1);
         end
-%         disp(sFiles(i))
-        idx = strfind(name,'_');
-        if ~isempty(results_comments)
-            runidx = contains(results_comments, name(idx(1)+1));
-        else
-            runidx = [];
-        end
-        if isempty(runidx)
-            aks_ica = input('run ICA (yes=1)?'); 
-            if aks_ica ==1 
-                bs_preprocess_ICA_reject_trials(sFiles),
+        
+        dd_32 = rdir(fullfile(pathstr,'data_3*_trl.mat'));
+        if isempty(dd_32)
+            dd_3 = rdir(fullfile(pathstr,'data_3*.mat'));
+            sFiles = [];
+            for j=1:length(dd_3)
+                [pathstr, name] = fileparts(dd_3(j).name);
+                [pathstr2, name2] = fileparts(pathstr);
+                [pathstr3, name3] = fileparts(pathstr2);
+                sFiles{j} = fullfile(name3, name2, [name, '.mat']);
+            end
+            %         disp(sFiles(i))
+            idx = strfind(name,'_');
+            if ~isempty(results_comments)
+                runidx = contains(results_comments, name(idx(1)+1));
             else
-                disp('done')
+                runidx = [];
+            end
+            if isempty(runidx)
+                aks_ica = input('run ICA (yes=1)?');
+                if aks_ica ==1
+                    bs_preprocess_ICA_reject_trials(sFiles),
+                else
+                    disp('done')
+                end
+            end
+        end
+        
+        dd_22 = rdir(fullfile(pathstr,'data_2*_trl.mat'));
+        if isempty(dd_22)
+            dd_2 = rdir(fullfile(pathstr,'data_2*.mat'));
+            sFiles = [];
+            for j=1:length(dd_2)
+                [pathstr, name] = fileparts(dd_2(j).name);
+                [pathstr2, name2] = fileparts(pathstr);
+                [pathstr3, name3] = fileparts(pathstr2);
+                sFiles{j} = fullfile(name3, name2, [name, '.mat']);
+            end
+            %         disp(sFiles(i))
+            idx = strfind(name,'_');
+            if ~isempty(results_comments)
+                runidx = contains(results_comments, name(idx(1)+1));
+            else
+                runidx = [];
+            end
+            if isempty(runidx)
+                aks_ica = input('run ICA (yes=1)?');
+                if aks_ica ==1
+                    bs_preprocess_ICA_reject_trials(sFiles),
+                else
+                    disp('done')
+                end
             end
         end
     end
-    
-    dd_22 = rdir(fullfile(pathstr,'data_2*_trl.mat'));
-    if isempty(dd_22)
-        dd_2 = rdir(fullfile(pathstr,'data_2*.mat'));
-        sFiles = [];
-        for j=1:length(dd_2)
-            [pathstr, name] = fileparts(dd_2(j).name);
-            [pathstr2, name2] = fileparts(pathstr);
-            [pathstr3, name3] = fileparts(pathstr2);
-            sFiles{j} = fullfile(name3, name2, [name, '.mat']);
-        end
-%         disp(sFiles(i))
-        idx = strfind(name,'_');
-        if ~isempty(results_comments)
-            runidx = contains(results_comments, name(idx(1)+1));
-        else
-            runidx = [];
-        end
-        if isempty(runidx)
-            aks_ica = input('run ICA (yes=1)?');
-            if aks_ica ==1 
-                bs_preprocess_ICA_reject_trials(sFiles),
-            else
-                disp('done')
-            end
-        end
-    end
-end
 end
 
 %% Source modelling, DICS-BF
 % rerun = {'EC1081','EC1082', 'EC1102', 'EC1121', 'EC1125', 'EC1154'};
+disp('1) subtraction')
+disp('2) permutation')
+
+stat_sel = input('');
+
+switch stat_sel
+    case 1
+        stat_method = 'subtraction';
+    case 2
+        stat_method = 'permutation';
+end
+
 
 d1 = rdir(fullfile(BS_data_dir,'/*/ec*raw_low_clean/channel_vectorview306_acc1.mat'));
 d2 = rdir(fullfile(BS_data_dir,'/*/ec*raw_tsss_low_clean/channel_vectorview306_acc1.mat'));
@@ -336,11 +348,11 @@ for i=1:length(d)
         flag = 0;
     end
     
-%     if contains(pathstr, rerun)
-%         flag = 1;
-%     end
+    %     if contains(pathstr, rerun)
+    %         flag = 1;
+    %     end
     
-    if ~isempty(dd_32) && ~isempty(dd_32) && flag == 1 
+    if ~isempty(dd_32) && ~isempty(dd_32) && flag == 1
         
         sFiles = [];
         for j=1:length(dd_32)
@@ -361,16 +373,16 @@ for i=1:length(d)
         disp(pathstr)
         
         % Process: FieldTrip: ft_sourceanalysis (wDICS) window contrast
-        sFiles = bst_process('CallProcess', 'process_ft_sourceanalysis_dics_wcontrast', sFiles, sFiles2, ...
+        bst_process('CallProcess', 'process_ft_sourceanalysis_dics_wcontrast', sFiles, sFiles2, ...
             'sensortype', 'MEG', ...  % MEG
-            'poststim',   [7.21644966e-16, 2], ...
+            'poststim',   [7.21644966e-16, 1], ...
             'foi',        18, ...
             'tpr',        4, ...
             'tlength',    0.3, ...
             'ovp',        0.5, ...
             'simaps',     1, ...
             'avmaps',     1, ...
-            'method',     'subtraction', ...  % Subtraction (post-pre)
+            'method',     stat_method,...
             'erds',       'erd', ...  % ERD
             'effect',     'abs', ...  % abs
             'maxfreq',    40, ...
@@ -475,7 +487,7 @@ for ii = 1:length(subj)
             else
                 runok = 1;
             end
-            if (length(sFiles1)==2
+            if length(sFiles1)==2
                 % Process: Average: Everything
                 bst_process('CallProcess', 'process_average', sFiles1, [], ...
                     'avgtype',         1, ...  % Everything
@@ -536,7 +548,7 @@ for ii=1:length(dd)
     comm_data{ii} = tmp.Comment;
     disp(comm_data{ii})
     if contains(comm_data{ii}, ['_wDICS_contrast'])
-%         pause,
+        %         pause,
         sel = [sel,ii];
         tkz = tokenize(comm_data{ii},'_');
         subj_comp{kk}= tkz{1}(13:end);

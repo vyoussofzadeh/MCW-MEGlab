@@ -229,11 +229,24 @@ end
 ftData_B = ftData;
 
 %%
-Overlap1 = 1-Overlap;
-w1 = PostStim(1); l = tlength; ov = l.*Overlap1; j=1; wi=[];
-while w1+l <= PostStim(2)
-    wi(j,:) = [w1, w1+l]; j=j+1; w1 = w1 + ov;
+if Overlap ==1
+    Overlap = Overlap-0.1;
+    disp(['overlap was adjusted to,', num2str(Overlap)])
 end
+
+Overlap1 = 1 - Overlap;
+w1 = PostStim(1); 
+l = tlength; 
+ov = l * Overlap1; 
+j = 1; 
+wi = [];
+
+while w1 + l - ov <= PostStim(2)
+    wi(j, :) = [w1, w1 + l]; 
+    j = j + 1; 
+    w1 = w1 + ov;
+end
+
 disp(wi)
 
 %%
@@ -354,9 +367,13 @@ for j=1:size(wi,1)
             stats1.stat =  tmp2;
             stats1.mask = stat.inside;
             stats2 = stats1;
-            stats2.stat(stats2.stat>0)=0;
-            stats2.stat(isnan(stats2.stat))=0;
-            
+                        
+            switch sProcess.options.erds.Value
+                case 'erd'
+                    stats2.stat(stats2.stat>0)=0;
+                case 'ers'
+                    stats2.stat(stats2.stat<0)=0;
+            end
             dics(j,:) = stats2.stat;
     end
 end
@@ -396,27 +413,27 @@ end
 % Create structure
 ResultsMat = db_template('resultsmat');
 ResultsMat.ImagingKernel = [];
-switch Method
-    case 'subtraction'
-        switch sProcess.options.effect.Value
-            case 'abs'
-                source_diff_dics.pow = abs(D);
-            case 'raw'
-                source_diff_dics.pow = D;
-        end
-        ResultsMat.ImageGridAmp  = source_diff_dics.pow;
-        ResultsMat.cfg           = source_diff_dics.cfg;
-        
-    case 'permutation'
-        switch sProcess.options.effect.Value
-            case 'abs'
-                stats2.stat = abs((stats2.stat));
-            case 'raw'
-                stats2.stat = stats2.stat;
-        end
-        ResultsMat.ImageGridAmp  = stats2.stat;
-        ResultsMat.cfg           = stat.cfg;
+% switch Method
+%     case 'subtraction'
+switch sProcess.options.effect.Value
+    case 'abs'
+        source_diff_dics.pow = abs(D);
+    case 'raw'
+        source_diff_dics.pow = D;
 end
+ResultsMat.ImageGridAmp  = source_diff_dics.pow;
+% ResultsMat.cfg           = source_diff_dics.cfg;
+
+%     case 'permutation'
+%         switch sProcess.options.effect.Value
+%             case 'abs'
+%                 stats2.stat = abs((D));
+%             case 'raw'
+%                 stats2.stat = D;
+%         end
+%         ResultsMat.ImageGridAmp  = stats2.stat;
+%         ResultsMat.cfg           = stat.cfg;
+% % end
 ResultsMat.nComponents   = 1;
 ResultsMat.Function      = Method;
 ResultsMat.Time          = DataMat.Time;
