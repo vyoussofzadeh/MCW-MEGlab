@@ -14,6 +14,8 @@ views = cfg.view;
 for i=1:size(views,1)
     subplot(1,length(views),i)
     ft_plot_mesh(surf, 'vertexcolor', d_in);
+%     camlight(80,-10);
+%     camlight(-80,-10);
     colormap(cfg.color)
     colorbar off
     axis tight

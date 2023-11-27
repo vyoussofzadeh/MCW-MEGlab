@@ -452,7 +452,7 @@ for kkk=1:length(atag)
             for jj=1:length(dd)
                 tmp = load(dd(jj).name);
                 disp(tmp.Comment);
-                if contains(tmp.Comment,['wdics_', atag{kkk}])
+                if contains(tmp.Comment,['18Hz_wdics_', atag{kkk}])
                     sel = [sel,jj];
                 end
             end
@@ -500,7 +500,7 @@ for kkk=1:length(atag)
                     for kk=1:length(dd1)
                         tmp = load(dd1(kk).name);
                         disp(tmp.Comment);
-                        if contains(tmp.Comment,[subj{ii}, '_wdics_', atag{kkk}])
+                        if contains(tmp.Comment,[subj{ii}, '_18Hz_wdics_', atag{kkk}])
                             runok = 0; break,
                         else
                             runok = 1;
@@ -517,12 +517,12 @@ for kkk=1:length(atag)
                     %                 db_reload_subjects(idx1);
                     %                 pause
                     % Process: Average: Everything
-                    pause
+%                     pause
                     bst_process('CallProcess', 'process_average', sFiles1, [], ...
                         'avgtype',         1, ...  % Everything
                         'avg_func',        1, ...  % Arithmetic average:  mean(x)
                         'weighted',        0, ...
-                        'Comment', [subj{ii}, '_wdics_', atag{kkk}], ...
+                        'Comment', [subj{ii}, '_18Hz_wdics_', atag{kkk}], ...
                         'scalenormalized', 0);
                 else
                     warning(['check data:', subj{ii}])
@@ -554,20 +554,20 @@ for kkk = 1:length(atag)
         cd(pp)
         tmp = load(dd3{ii});
         comm_data{ii} = tmp.Comment;
-        if contains(comm_data{ii}, ['_wdics_', atag{kkk}])
+        if contains(comm_data{ii}, ['18Hz_wdics_', atag{kkk}])
             sel = [sel,ii];
             tkz = tokenize(comm_data{ii},'_');
             subj{kk}= tkz{1}(6:end);
             dconn{kk} = tkz{2};
 %             pause
-            sFiles_name{kk} = [subj{kk},'_',dconn{kk}, '_', tkz{3}(1)];
+            sFiles_name{kk} = [subj{kk},'_',dconn{kk}, '_', tkz{3}, '_',tkz{4}(1)];
             kk=1+kk;
         end
     end
     d_sel = dd3(sel);
     
     % looking for already caculated maps ..
-    dd = rdir(fullfile (BS_data_dir,'/Group*/wDICS_baseline/results*.mat'));
+    dd = rdir(fullfile (BS_data_dir,'/Group*/wDICS_baseline_18_4/results*.mat'));
     subj_comp = []; comm_data = []; sel = []; dconn = []; kk = 1;
     sFiles_name_completed = [];
     for ii=1:length(dd)
@@ -577,7 +577,7 @@ for kkk = 1:length(atag)
         tmp = load(dd(ii).name);
         comm_data{ii} = tmp.Comment;
         disp(comm_data{ii})
-        if contains(comm_data{ii}, ['_wdics_', atag{kkk}])
+        if contains(comm_data{ii}, ['18Hz_wdics_', atag{kkk}])
             sel = [sel,ii];
             tkz = tokenize(comm_data{ii},'_');
             subj_comp{kk}= tkz{1}(13:end);
@@ -591,7 +591,7 @@ for kkk = 1:length(atag)
     end
     
     % Project on default anatomy (for group mapping)
-    idx = find(contains(sFiles_name,'wdics')==1);
+    idx = find(contains(sFiles_name,'18Hz_wdics')==1);
     destSurfFile = '@default_subject/tess_cortex_pial_low.mat';
     
     load(protocol);

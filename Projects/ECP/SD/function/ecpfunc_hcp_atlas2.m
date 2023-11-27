@@ -24,7 +24,7 @@ region = {atlas.Scouts.Region};
 all_idx_L = find(startsWith(rois, 'L_'))';
 all_idx_R = find(startsWith(rois, 'R_'))';
 
-if cfg_main.plotflag == 1;
+if cfg_main.plotflag == 1
     
     % Plot HCP atlas
     cfg = struct();

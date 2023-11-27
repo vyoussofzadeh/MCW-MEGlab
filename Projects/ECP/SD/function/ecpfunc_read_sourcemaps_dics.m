@@ -44,7 +44,8 @@ cd(data_info_dir)
 subj_del = [];
 
 cd(BS_data_dir)
-dd = rdir(fullfile('./Group_analysis/wDICS_baseline/results*.mat'));
+% dd = rdir(fullfile('./Group_analysis/wDICS_baseline_18_4/results*.mat'));
+dd = rdir(fullfile('./Group_analysis',cfg_main.datatag, 'results*.mat'));
 for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
 
 sFiles_name = [];
