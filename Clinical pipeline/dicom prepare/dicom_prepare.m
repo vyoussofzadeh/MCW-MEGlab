@@ -1,35 +1,21 @@
 
 clc, clear, close all,
+% set(0,'DefaultFigureWindowStyle','normal')
 
 %%
 % cd_org = '/MEG_data/Vahab/Github/MCW-MEGlab/FT/Clinical pipeline/dicom prepare';
 path_tools = '/usr/local/MATLAB_Tools';
 set_ft(path_tools)
 
-%%  Saving data as nii
-savedir = '/MEG_data/Vahab/Github/MCW-MEGlab/FT/Clinical pipeline/dicom prepare/SWagner';
-cd(savedir)
-% T1 = ft_read_mri('T1_BS.nii');
-
 %%
-reportdir = '/MEG_data/epilepsy/wagner_sarah/210621/report/Spikes';
-cd(reportdir);
-T1 = ft_read_mri('T1.nii');
-L_dip = ft_read_mri('run2-3-4-5_dipoles_90gof_Lsensors.nii');
-
-%%
-cd(savedir)
-nii_name = 'L_dip.nii';
-cfg                 = [];
-cfg.filename        = nii_name;
-cfg.filetype        = 'nifti';
-cfg.parameter       = 'anatomy';
-ft_volumewrite(cfg, L_dip);
-ft_sourceplot([], L_dip);
+% cd('/MEG_data/epilepsy')
+% [analyses_dir] = uigetdir; % choose, /MEG_data/epilepsy/xxx/211015/analyses
+% cd(analyses_dir)
+cd_scriptpath = '/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab/MCW_MEGlab_git/Clinical pipeline/dicom prepare';
 
 %% MR_org
-cd('/MEG_data/MRI_database/epilepsy/WAGNER_Sarah_sagT1/DICOM')
-
+% cd('/MEG_data/MRI_database/epilepsy/WAGNER_Sarah_sagT1/DICOM')
+cd('/MEG_data/MRI_database/epilepsy/')
 set_spm(path_tools)
 dicomfile_MR = spm_select(1,'.*','Select one dicome file, e.g. EXP0000');
 
@@ -37,8 +23,45 @@ set_ft(path_tools)
 dicom_MR = ft_read_mri(dicomfile_MR);
 ft_sourceplot([], dicom_MR);
 
-%%
+%% Saving data as nii
+tkz = tokenize(dicomfile_MR,'/');
+disp(tkz');
+savedir = '/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab/FT/Clinical pipeline/dicom prepare/Export/';
+
+%% Create a folder
 cd(savedir)
+disp('enter subject name, Last_First');
+subname = input('','s');
+if exist(fullfile(savedir,subname), 'file') == 0, mkdir(fullfile(savedir,subname)); end
+% T1 = ft_read_mri('T1_BS.nii');
+
+subdir = fullfile(savedir,subname);
+
+%%
+cd('/MEG_data/epilepsy/')
+disp('select: /xxxx/211015/report/Spikes')
+reportdir = uigetdir; 
+
+% reportdir = '/MEG_data/epilepsy/parra_jocelyn/211015/report/Spikes';
+cd(reportdir);
+%%
+T1_nii = uigetfile ({'*.nii','T1 (*.nii)'},'select T1 nii');
+T1 = ft_read_mri(T1_nii);
+dip_nii = uigetfile ({'*.nii','dip (*.nii)'},'select dipole nii');
+dip = ft_read_mri(dip_nii);
+
+%%
+cd(subdir)
+nii_name = 'dip.nii';
+cfg                 = [];
+cfg.filename        = nii_name;
+cfg.filetype        = 'nifti';
+cfg.parameter       = 'anatomy';
+ft_volumewrite(cfg, dip);
+ft_sourceplot([], dip);
+
+%%
+cd(subdir)
 nii_name = 'dicom_MR.nii';
 cfg                 = [];
 cfg.filename        = nii_name;
@@ -58,12 +81,12 @@ ft_sourceplot([], T1);
 % T1_flirt = ft_read_mri('T1_flirt.nii');
 
 %% SPM coreg, estimate and reslice
-cd(savedir)
+cd(subdir)
 
 set_spm(path_tools)
 nii_filename1 = 'dicom_MR.nii'; % 256x256x150
 nii_filename2 = 'T1.nii';       % 256x256x256
-nii_filename3 = 'L_dip.nii';       % 256x256x256
+nii_filename3 = 'dip.nii';      % 256x256x256
 
 
 matlabbatch{1}.spm.spatial.coreg.estwrite.ref = {[nii_filename1,',1']};
@@ -83,13 +106,13 @@ spm_jobman('run',matlabbatch);
 close all
 set_ft(path_tools)
 rT1 = ft_read_mri('rT1.nii');
-rL_dip = ft_read_mri('rL_dip.nii');
-ft_sourceplot([], rL_dip);
+r_dip = ft_read_mri('rdip.nii');
+ft_sourceplot([], r_dip);
 ft_sourceplot([], rT1);
 
 %% Export overlayed dipole and T1
 ovT1_dip = rT1;
-tmp = rL_dip.anatomy+rT1.anatomy;
+tmp = r_dip.anatomy+rT1.anatomy;
 ovT1_dip.anatomy = tmp;
 
 nii_name = 'T1_dip_overlay.nii';
@@ -102,8 +125,17 @@ ft_sourceplot([], ovT1_dip);
 
 %%
 [a,b] = fileparts(dicomfile_MR);
-addpath('/MEG_data/Vahab/Github/MCW-MEGlab/FT/functions/External');
-d = rdir(fullfile(a,'EXP*'));
+addpath('/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab/MCW_MEGlab_git/FT_fucntions/helper')
+
+dir(a)
+disp('choose dicom file filter, e.g., EXP* or dicom*')
+dfile_filter = input('','s');
+
+d = rdir(fullfile(a,dfile_filter));
+
+if isempty(d)
+    error('wrong dfilter dicom file');
+end
 
 metadata_all = [];
 for i=1:length(d)
@@ -111,10 +143,13 @@ for i=1:length(d)
     metadata_all{i}=metadata;
 end
 
-%%
-outd = fullfile(savedir,'dicom','T1'); if exist(outd, 'file') == 0, mkdir(outd); end
+disp(length(d))
+disp(length(metadata_all))
 
-cd(savedir)
+%%
+outd = fullfile(subdir,'dicom','T1'); if exist(outd, 'file') == 0, mkdir(outd); end
+
+cd(subdir)
 for i=1:size(rT1.anatomy,3)
     I = int16(squeeze(rT1.anatomy(:,:,i)));
     if i < 11
@@ -129,9 +164,9 @@ for i=1:size(rT1.anatomy,3)
 end
 
 
-outd = fullfile(savedir,'dicom','Ldip'); if exist(outd, 'file') == 0, mkdir(outd); end
-for i=1:size(rL_dip.anatomy,3)
-    I = int16(squeeze(rL_dip.anatomy(:,:,i)));
+outd = fullfile(subdir,'dicom','dip'); if exist(outd, 'file') == 0, mkdir(outd); end
+for i=1:size(r_dip.anatomy,3)
+    I = int16(squeeze(r_dip.anatomy(:,:,i)));
     if i < 11
         dicome_name = ['EXP000',num2str(i-1)];
     elseif i < 101
@@ -145,9 +180,9 @@ end
 
 
 % Overlayed T1 and Dipople
-outd = fullfile(savedir,'dicom','T1_dip'); if exist(outd, 'file') == 0, mkdir(outd); end
+outd = fullfile(subdir,'dicom','T1_dip'); if exist(outd, 'file') == 0, mkdir(outd); end
 
-cd(savedir)
+cd(subdir)
 for i=1:size(ovT1_dip.anatomy,3)
     I = int16(squeeze(ovT1_dip.anatomy(:,:,i)));
     if i < 11
@@ -161,11 +196,13 @@ for i=1:size(ovT1_dip.anatomy,3)
     dicomwrite(I,fullfile(outd,dicome_name), metadata_all{i});
 end
 
-%%
-set_spm(path_tools)
+%% CHECKING DICOM outputs
+cd(subdir)
+
+addpath(cd_scriptpath), set_spm(path_tools)
 dicomfile_T1_check = spm_select(1,'.*','Select T1 dicome file, e.g. EXP0000');
 
-set_ft(path_tools)
+addpath(cd_scriptpath), set_ft(path_tools)
 T1_check = ft_read_mri(dicomfile_T1_check);
 ft_sourceplot([], T1_check);
 
@@ -177,26 +214,26 @@ cfg.parameter       = 'anatomy';
 ft_volumewrite(cfg, T1_check);
 
 close all
-set_spm(path_tools)
-dicomfile_Ldip_check = spm_select(1,'.*','Select dipole dicome file, e.g. EXP0000');
+addpath(cd_scriptpath), set_spm(path_tools)
+dicomfile_dip_check = spm_select(1,'.*','Select dipole dicome file, e.g. EXP0000');
 
-set_ft(path_tools)
-ldip_check = ft_read_mri(dicomfile_Ldip_check);
-ft_sourceplot([], ldip_check);
+addpath(cd_scriptpath), set_ft(path_tools)
+dip_check = ft_read_mri(dicomfile_dip_check);
+ft_sourceplot([], dip_check);
 
-nii_name = 'dicom_out_ldip.nii';
+nii_name = 'dicom_out_dip.nii';
 cfg                 = [];
 cfg.filename        = nii_name;
 cfg.filetype        = 'nifti';
 cfg.parameter       = 'anatomy';
-ft_volumewrite(cfg, ldip_check);
+ft_volumewrite(cfg, dip_check);
 
 
 close all
-set_spm(path_tools)
+addpath(cd_scriptpath), set_spm(path_tools)
 dicomfile_T1_Ldip_check = spm_select(1,'.*','Select T1_dipole dicome file, e.g. EXP0000');
 
-set_ft(path_tools)
+addpath(cd_scriptpath), set_ft(path_tools)
 T1_dip_check = ft_read_mri(dicomfile_T1_Ldip_check);
 ft_sourceplot([], T1_dip_check);
 
@@ -208,11 +245,12 @@ cfg.parameter       = 'anatomy';
 ft_volumewrite(cfg, T1_dip_check);
 
 %%
-set_spm(path_tools)
+disp('======')
+disp('select dicom_out files for inspections (sanity-check)')
+addpath(cd_scriptpath), set_spm(path_tools)
 spm_check_registration
 
 %%
-
 function set_ft(path_tools)
 
 restoredefaultpath
