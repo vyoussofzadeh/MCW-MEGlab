@@ -40,7 +40,7 @@ data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/S
 cd(data_save_dir)
 
 %%
-save_dir = fullfile(data_save_dir,LI_analysis_label{LI_analysis}, 'compare_LIs');
+save_dir = fullfile(data_save_dir,LI_analysis_label{LI_analysis}, 'compare_LIs_Left_TLE');
 checkOrCreateDir(save_dir)
 cd(save_dir)
 
@@ -48,6 +48,8 @@ LI_pt = [];
 for i=1:length(LI_method_label)
     LI_pt.(LI_method_label{i}) = load(fullfile(data_save_dir,LI_analysis_label{LI_analysis},LI_method_label{i},'LI_Patn'));
 end
+
+LI_pt.LI_methods = LI_method_label;
 
 %% Run Brainstorm
 Run_BS
@@ -79,7 +81,6 @@ switch LI_analysis
     case 4
         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
 end
-
 
 %% Subject demog details
 switch LI_analysis
@@ -137,6 +138,8 @@ switch LI_analysis
         LI_pt_ID = S_data_pt.sFiles_subid;
 end
 
+LI_pt.pt_ID = LI_pt_ID;
+
 %%
 cfg = []; cfg.strt = 0; cfg.spt = 2; cfg.overlap = 0.01; cfg.linterval = 0.3;
 wi  = do_time_intervals(cfg);
@@ -162,37 +165,24 @@ colr = distinguishable_colors(length(network_sel));
 % mLI_sub_hc = squeeze(nanmean(LI_hc.LI_sub,2));
 % mLI_sub_pt = squeeze(nanmean(LI_pt.LI_sub,2));
 
-%%
-% clc
+%% L-TLE subjects
 patn_neuropsych_tle = ecpfunc_read_patn_neuropsych_tle();
-TLESide = patn_neuropsych_tle.TLESide; SUBNO = patn_neuropsych_tle.SUBNO;
 
-SUBNO_pt = [];
-for i=1:length(LI_pt_ID)
-    SUBNO_pt(i) = str2double(LI_pt_ID{i}(3:end));
-end
-
-[~,~,IB] = intersect(SUBNO_pt, SUBNO);
-TLESide_sel = TLESide(IB);
-
-TLE_left = find(TLESide_sel == 'Left');
-
-% LI_pt_val_left = LI_pt.LI_sub(:,TLE_left,:);
-%
-% mLI_sub_left = squeeze(mean(LI_pt_val_left,2));
+cfg = [];
+cfg.patn_neuropsych_tle = patn_neuropsych_tle;
+cfg.LI_pt = LI_pt;
+LI_pt_left_tle = ecpfunc_select_left_tle(cfg);
 
 %% MEG vs. fMRI lat analysis (PT)
-% pause, close all,
+[sub_MF_pt,IA,IB] = intersect(LI_pt_left_tle.pt_ID, fmri_LIs.ID.language_Lateral');
 
-[sub_MF_pt,IA,IB] = intersect(LI_pt_ID, fmri_LIs.ID.language_Lateral');
-
-LI_pt_val = LI_pt.(LI_method_label{1}).LI_sub;
+% LI_pt_val = LI_pt.(LI_method_label{1}).LI_sub;
 
 % LI_pt_val_new = LI_pt_val(:,IA,:);
 fmri_LIs_val = (fmri_LIs.val.language_Lateral(IB)); % Lateral regions was used.
 
-% missing from fMRI
-difference = setdiff(LI_pt_ID, sub_MF_pt');
+% missing fMRI data.
+difference = setdiff(LI_pt_left_tle.pt_ID, sub_MF_pt');
 disp('missing from fMRI')
 disp(difference');
 
@@ -201,7 +191,7 @@ disp(difference');
 
 LI_pt_val_new = [];
 for i=1:length(LI_method_label)
-    LI_pt_val_new.(LI_method_label{i}) = LI_pt.(LI_method_label{i}).LI_sub(:, IA,:);
+    LI_pt_val_new.(LI_method_label{i}) = LI_pt_left_tle.(LI_method_label{i}).LI_sub(:, IA,:);
 end
 
 % Corr, MEG-fMRI
@@ -245,16 +235,6 @@ cfg.net_sel = [11];
 cfg.thre = 0.1;
 cfg.buffervalue = 10;
 [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_all(cfg);
-% cfg.net_sel = [2];
-% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_all(cfg);
-% cfg.net_sel = [6];
-% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_all(cfg);
-% cfg.net_sel = [2,6];
-% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_all(cfg);
-% cfg.net_sel = [1,2,6];
-% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_all(cfg);
-% cfg.net_sel = [9];
-% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_all(cfg);
 
 %% mean MEG li vs. fMRI
 % pause, close all,
@@ -294,12 +274,7 @@ for i=1:length(LI_method_label)
     % - export figs
     cfg = []; cfg.outdir = save_dir; cfg.filename = ['Confusion Matrix: ', LI_method_label{i}];
     cfg.type = 'fig'; do_export_fig(cfg)
-    
-    % end
-    % cd(save_dir)
-    
-    % ROIs (corr MEG vs. fMRI)
-    % pause, close all,
+
     
     % clc
     cfg = []; cfg.wi = wi;

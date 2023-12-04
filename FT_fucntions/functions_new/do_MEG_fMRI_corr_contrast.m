@@ -1,4 +1,4 @@
-function [megLI_sub_pt, fmri_LIs_val, crr] = do_MEG_fMRI_corr_contrast(cfg_main)
+function [megLI_sub_pt, fmri_LIs_val, crr, interval_idx] = do_MEG_fMRI_corr_contrast(cfg_main)
 
 
 wi = cfg_main.wi;
@@ -68,6 +68,11 @@ end
 [mx, idx] = max(crr);
 bf = cfg_main.bf;
 
+mwi = mean(wi,2);
+
+interval = mwi(idx-bf:idx+bf);
+interval_idx = idx-bf:idx+bf;
+
 if length(net_sel) > 1
     mLI_sub1 = squeeze(mean(LI_pt_new(net_sel,:,idx-bf:idx+bf)));
     megLI_sub_pt = mean((mLI_sub1),2);
@@ -124,6 +129,7 @@ if cfg_main.ternary ~= 1
     lgd = {'meg', 'fmri'};
     figure, bar([megLI_sub_pt, fmri_LIs_val])
     set(gcf, 'Position', [600   500   1500   300]);
+    title([num2str(interval(1)),' to ', num2str(interval(end))])
     set(gca,'color','none');
     lgnd = legend(lgd);
     set(lgnd,'color','none');
@@ -132,10 +138,10 @@ if cfg_main.ternary ~= 1
     set(gca,'Xtick', 1:L,'XtickLabel',ID);
     set(gca,'FontSize',9,'XTickLabelRotation',90);
     
-    figure, plot(megLI_sub_pt, fmri_LIs_val,'x','LineWidth', 3)
-    set(gca,'color','none');
-    xlabel('MEG'); ylabel('fMRI')
-    box off
+%     figure, plot(megLI_sub_pt, fmri_LIs_val,'x','LineWidth', 3)
+%     set(gca,'color','none');
+%     xlabel('MEG'); ylabel('fMRI')
+%     box off
 
     
     % - export figs

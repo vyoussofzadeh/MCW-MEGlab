@@ -39,6 +39,11 @@ sProcess.OutputTypes = {'results'};
 sProcess.nInputs     = 1;
 sProcess.nMinFiles   = 1;
 
+% Add an option to select the LI computation method
+sProcess.options.LImethod.Comment = 'Select LI computation method:';
+sProcess.options.LImethod.Type    = 'combobox';
+sProcess.options.LImethod.Value   = {1, {'Counting', 'Bootstrapping'}};
+
 % Add a time interval input
 sProcess.options.time_interval.Comment = 'Choose a time interval:';
 sProcess.options.time_interval.Type    = 'combobox';
@@ -137,6 +142,12 @@ cfg_LI.t2 = t2;
 cfg_LI.savedir = savedir;
 cfg_LI.sname =  sProcess.options.sname.Value;
 computeLI(cfg_LI);
+% switch sProcess.options.LImethod.Value{1}
+%     case 1
+%         computeLI_counting(cfg_LI);
+%     case 2
+%         computeLI_bootstrap(cfg_LI);
+% end
 
 disp('To edit the LI script, first ensure Brainstorm is running. Then, open process_computeLI.m in Matlab.');
 disp('Pipeline update: 09/25/23');
@@ -449,7 +460,7 @@ for ii = 1:8
             plot_ind=plot_ind+1;
             plot(Thrshd_LI_ROIavg(:,1),Thrshd_LI_ROIavg(:,2)); %JS 092815 changed plot to subplot
             title([RoiLabels{ii} ' Average-based']);
-            set(gcf, 'Position', [500   500   700   700]);
+            set(gcf, 'Position', [500   500   1000   800]);
     end
 end
 
@@ -492,5 +503,6 @@ b = table(Summ_LI'); b.Properties.VariableNames{'Var1'} = 'LI';
 c = table([L_count;R_count]'); c.Properties.VariableNames{'Var1'} = 'Left_vs_right';
 d = [a,b,c];
 disp(d)
+
 
 end

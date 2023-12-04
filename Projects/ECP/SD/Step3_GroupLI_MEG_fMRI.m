@@ -243,14 +243,14 @@ cfg.ID = sub_MF_pt;
 cfg.ternary = 0;
 cfg.thre = .2;
 cfg.savefig = 1;
-cfg.bf = 5;
+cfg.bf = 15;
 cfg.outdir = save_dir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
 cfg.LI_val = LI_pt_val_new;
 cfg.fmri_LIs_val = fmri_LIs_val;
 % cfg.net_sel = [1,2,6];
 cfg.net_sel = [11]; % 6, 1, 2
-[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast(cfg);
+[megLI_sub_pt, fmri_LIs_val, ~, interval_idx] = do_MEG_fMRI_corr_contrast(cfg);
 
 %% MEG LI vs fMRI LI (Ternary language_Lateral)
 % pause, close all,
@@ -279,8 +279,22 @@ cfg.buffervalue = 1;
 
 % disp([megLIs_trn, fmri_LIs_trn])
 
-% idx = find(abs(megLIs_trn - fmri_LIs_trn) > 0);
-% sub_MF_pt(idx)
+meg_fMRI_trn = [megLIs_trn, fmri_LIs_trn];
+
+idx = find(abs(megLIs_trn - fmri_LIs_trn) > 0);
+discordant_subs = sub_MF_pt(idx)
+
+
+
+%% close all
+mwi = mean(wi,2);
+for i=1:length(discordant_subs)
+    tmp = squeeze(LI_pt_val_new(11,idx(i),:));
+    figure,plot(wi(:,1),tmp), title([discordant_subs(i), num2str(meg_fMRI_trn(idx(i),:)), 'mean=', num2str(mean(tmp(interval_idx)))])
+    hold on
+    xline(mwi(interval_idx(1)))
+    xline(mwi(interval_idx(end)))
+end
 
 %%
 % pause, close all,

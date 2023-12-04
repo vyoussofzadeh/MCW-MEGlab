@@ -27,66 +27,6 @@ glass_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/da
 cfg = struct('src_fname', src_fname, 'glass_dir', glass_dir, 'glass_atlas', glass_atlas, 'plotflag', 1);
 Data_hcp_atlas = ecpfunc_hcp_atlas2(cfg);
 
-%% 
-% addpath('/opt/matlab_toolboxes/plotSurfaceROIBoundary')
-% 
-% atlas = load(glass_atlas);
-% 
-% 
-% load('surface_data.mat');
-% load('example_data.mat');
-% 
-% cmap = turbo(256);
-% 
-% data_label = 'Gene PC1';
-% 
-% data = zscore(lh_HCPMMP1_gene_pc1);
-% 
-% 
-% vertex_id = lh_HCPMMP1;
-% 
-% surface.vertices = lh_inflated_verts;
-% surface.faces = lh_faces;
-% 
-% 
-% close all
-% ExampleSurfacePlotFunction(surface,vertex_id,data,cmap,data_label);
-% 
-% size(vertex_id)
-% size(surface.vertices)
-% size(data)
-% size(data_label)
-% size(cmap)
-% 
-% % 
-% % 
-% src = ft_read_headshape(src_fname);
-% 
-% surface2 = surface;
-% surface2.vertices = src.pos;
-% surface2.faces = src.tri;
-% 
-% vertex_id2 = [];
-% vertex_id2 = 180.*ones(15002,1);
-% vertex_id2(1:179) = 1:179;
-% 
-% Seed = [];
-% for j=1:length(Data_hcp_atlas.atlas.Scouts)/2   
-%     Seed(j) = Data_hcp_atlas.atlas.Scouts(j).Seed;
-% end
-% 
-% Seed2 = unique(Seed);
-% size(Seed)
-% 
-% ExampleSurfacePlotFunction(surface2,vertex_id2,data,cmap,data_label);
-% 
-% size(vertex_id2)
-% size(surface2.vertices)
-% size(data)
-% size(cmap)
-% size(data_label)
-
-
 %% HCP Atlas, plotting
 close all
 cfg = [];

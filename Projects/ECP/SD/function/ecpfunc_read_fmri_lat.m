@@ -47,7 +47,3 @@ fmri_LIs.ID = li_values_part_all;
 
 
 
-
-
-
-

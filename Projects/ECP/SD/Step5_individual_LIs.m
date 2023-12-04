@@ -326,8 +326,6 @@ cfg.thre = 0.1;
 cfg.buffervalue = 1;
 [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast(cfg);
 
-
-
 %% MEG LI vs fMRI LI (Ternary language_Lateral)
 % pause, close all,
 % clc
