@@ -44,10 +44,15 @@ sProcess.options.LImethod.Comment = 'Select LI computation method:';
 sProcess.options.LImethod.Type    = 'combobox';
 sProcess.options.LImethod.Value   = {1, {'Counting', 'Bootstrapping'}};
 
-% Add a time interval input
+% Modify time interval input
 sProcess.options.time_interval.Comment = 'Choose a time interval:';
 sProcess.options.time_interval.Type    = 'combobox';
-sProcess.options.time_interval.Value   = {1, {'Time interval', 'averaged sources'}};
+sProcess.options.time_interval.Value   = {1, {'Time Interval', 'Averaged Sources'}};
+
+% Active time window
+sProcess.options.poststim.Comment = 'Enter specific time interval:';
+sProcess.options.poststim.Type    = 'poststim';
+sProcess.options.poststim.Value   = [];
 
 % Add an effect input
 sProcess.options.effect.Comment = 'Choose an effect:';
@@ -95,18 +100,18 @@ savedir = sProcess.options.savedir.Value;
 % Prompt and select time interval
 time_interval = selectTimeInterval(sProcess.options.time_interval.Value{1});
 
-% Select data type and time range
-timerange = selectDataTypeAndTimeRange(time_interval, sResultP);
+% Conditional activation of specific time interval input
+if time_interval == 1
+    timerange = sProcess.options.poststim.Value{1};
+else
+    timerange =1; % Follow the existing procedure for other options
+end
 
 % Select effect type (Positive, Negative, Absolute values)
 effect = selectEffectType(sProcess.options.effect.Value{1});
 
-% Determine sample rate
-samplerate = determineSampleRate(time_interval, sResultP);
-
 % Define ROI-related parameters
-% TotROI = 8;  % Total number of ROIs for LI-calculation
-% Ratio4Threshold = getThresholdRatio(sProcess.options.ratio4threshold.Value{1});
+
 Ratio4Threshold = sProcess.options.ratio4threshold.Value{1}/100;
 
 % Define threshold type
@@ -124,8 +129,7 @@ ImageGridAmp = processImageGridAmp(sResultP.ImageGridAmp, effect);
 % Define ROIs
 [RoiLabels, RoiIndices] = defineROIs();
 
-% Load scout files and compute LI
-
+% Compute LI
 cfg_LI = [];
 cfg_LI.time_interval = time_interval;
 cfg_LI.ImageGridAmp = ImageGridAmp;
@@ -142,12 +146,6 @@ cfg_LI.t2 = t2;
 cfg_LI.savedir = savedir;
 cfg_LI.sname =  sProcess.options.sname.Value;
 computeLI(cfg_LI);
-% switch sProcess.options.LImethod.Value{1}
-%     case 1
-%         computeLI_counting(cfg_LI);
-%     case 2
-%         computeLI_bootstrap(cfg_LI);
-% end
 
 disp('To edit the LI script, first ensure Brainstorm is running. Then, open process_computeLI.m in Matlab.');
 disp('Pipeline update: 09/25/23');
@@ -164,23 +162,6 @@ if isempty(time_interval) || ~any(time_interval == [1, 2, 3])
 end
 end
 
-function timerange = selectDataTypeAndTimeRange(time_interval, ~)
-% Prompt user to select data type and determine the corresponding time range
-
-switch time_interval
-    case 1
-        disp('Enter Timerange: e.g. [.100 .900]: ')
-        timerange = input('');
-        if isempty(timerange) || length(timerange) ~= 2
-            error('Invalid Timerange input. Provide a valid range.');
-        end
-    case 2
-        timerange = 1;  % Make sure these are less than 1 for mS
-    otherwise
-        error('Invalid time interval. Choose 1, 2, or 3.');
-end
-end
-
 function effect = selectEffectType(effect)
 % Prompt user to select effect type
 
@@ -190,16 +171,16 @@ if isempty(effect) || ~any(effect == [1, 2, 3])
 end
 end
 
-function samplerate = determineSampleRate(time_interval, sResultP)
-% Determine the sample rate based on the time interval and sResultP
-
-switch time_interval
-    case 2
-        samplerate = 1;
-    otherwise
-        samplerate = round(inv((sResultP.Time(end) - sResultP.Time(1)) / length(sResultP.Time))) - 1;
-end
-end
+% function samplerate = determineSampleRate(time_interval, sResultP)
+% % Determine the sample rate based on the time interval and sResultP
+% 
+% switch time_interval
+%     case 2
+%         samplerate = 1;
+%     otherwise
+%         samplerate = round(inv((sResultP.Time(end) - sResultP.Time(1)) / length(sResultP.Time))) - 1;
+% end
+% end
 
 function Threshtype = selectThresholdType(Threshtype)
 % Prompt user to select threshold type
@@ -318,22 +299,32 @@ TotROI = 8;
 s1='LI_';
 Summ_LI=zeros(1,TotROI); % initialize the vector that summarizes the final LIs  % added JL 11212014
 Summ_LI_Label='ROI Labels: '; % initialize the string that summarizes the ROI labels  % added JL 11212014
-switch time_interval
-    case 1
-        figure
+% switch time_interval
+%     case 1
+%         figure
+% end
+
+
+% Adjustments for dimensions of verticies when concatenating
+for i=1:length(sScout.Scouts)
+    % Check if Vertices is nx1, transpose only in this case
+    if size(sScout.Scouts(i).Vertices, 1) > 1
+        sScout.Scouts(i).Vertices = sScout.Scouts(i).Vertices';
+    end
 end
+
+%%
 plot_ind=1;
 LI_label_out={};
-%
 for ii = 1:8
     
     s2 = RoiLabels{ii};
-    %Odd indices are left Rois
-    Ltemp_region = [];
-    Ltemp_label  = [];
     hemi_roi_num=length(RoiIndices{ii});
     curr_subregion=sScout.Scouts(RoiIndices{ii});
     
+    %Odd indices are left Rois
+    Ltemp_region = [];
+    Ltemp_label  = [];
     k = 1;
     for i=1:2:hemi_roi_num
         Ltemp_region=[Ltemp_region,curr_subregion(i).Vertices];
@@ -348,6 +339,7 @@ for ii = 1:8
         Rtemp_region=[Rtemp_region,curr_subregion(i).Vertices];
         Rtemp_label{k} = curr_subregion(i).Label; k = k+1;
     end
+    
     LHscout = Ltemp_region;
     RHscout = Rtemp_region;
     
@@ -382,9 +374,11 @@ for ii = 1:8
     
     % ROI count --- above threshold voxels only
     %JL@10/30/14    indHalfROImaxL = find(LHvals > ROIMax/2);%indHalfROImaxL = find(LHvals > ROIMax/2); % Not being used right now
-    L_ROIcount = length(ind_L); L_count(ii) = L_ROIcount;
+    L_ROIcount = length(ind_L);
+    L_count(ii) = L_ROIcount;
     %JL@10/30/14    indHalfROImaxR = find(RHvals > ROIMax/2); % Not being used right now
-    R_ROIcount = length(ind_R); R_count(ii) = R_ROIcount;
+    R_ROIcount = length(ind_R);
+    R_count(ii) = R_ROIcount;
     ROIcount=sum(L_ROIcount+R_ROIcount); % to report total significant voxels over space-time
     LI_ROIcount = 100*((L_ROIcount-R_ROIcount)/(L_ROIcount+R_ROIcount));
     Summ_LI(ii)=LI_ROIcount;  % added JL 11212014
@@ -400,69 +394,75 @@ for ii = 1:8
     LI_ROIavg = 100*((L_ROIavg-R_ROIavg)/(L_ROIavg+R_ROIavg));
     
     % Run a loop to plot LIs based on space-time voxel count as a function of threshold
-    k=0;
-    Rng= threshold:0.2:AllMax; % Rng= threshold:1:AllMax; % modified JL@10/30/14
-    for thrTmp = Rng
-        ind = find(LHvals > thrTmp);
-        L_ROIcount  = length(ind);
-        ind = find(RHvals > thrTmp);
-        R_ROIcount  = length(ind);
-        k=k+1;
-        Thrshd_LI_ROIcount(k,1)=thrTmp;
-        if L_ROIcount+R_ROIcount~=0
-            LI_ROIcount = 100*((L_ROIcount-R_ROIcount)/(L_ROIcount+R_ROIcount));
-        else
-            LI_ROIcount = inf;
-        end
-        Thrshd_LI_ROIcount(k,2)=LI_ROIcount;
-    end
-    switch time_interval
-        case 1
-            subplot(4,4,plot_ind)
-            plot_ind=plot_ind+1;
-            plot(Thrshd_LI_ROIcount(:,1),Thrshd_LI_ROIcount(:,2));
-            title([RoiLabels{ii} ' Count-based']);
-    end
+%     k=0;
+%     Rng= threshold:0.02:AllMax; % Rng= threshold:1:AllMax; % modified JL@10/30/14
+%     for thrTmp = Rng
+%         ind = find(LHvals > thrTmp);
+%         L_ROIcount  = length(ind);
+%         ind = find(RHvals > thrTmp);
+%         R_ROIcount  = length(ind);
+%         k=k+1;
+%         Thrshd_LI_ROIcount(k,1)=thrTmp;
+%         if L_ROIcount+R_ROIcount~=0
+%             LI_ROIcount = 100*((L_ROIcount-R_ROIcount)/(L_ROIcount+R_ROIcount));
+%         else
+%             LI_ROIcount = inf;
+%         end
+%         Thrshd_LI_ROIcount(k,2)=LI_ROIcount;
+%     end
+%     switch time_interval
+%         case 1
+%             subplot(2,4,plot_ind)
+%             plot_ind=plot_ind+1;
+%             plot(Thrshd_LI_ROIcount(:,1),Thrshd_LI_ROIcount(:,2));
+%             title([RoiLabels{ii}]);
+%             axis tight
+%     end
     
-    % Run a loop to plot LIs based on space-time voxel-magnitude average as a function of threshold. But this metrix does not seem
-    % to be very useful because the LIs tend to be around 0.
-    k=0;
-    %JL@10/30/14   Rng= threshold:1:AllMax;
-    for thrTmp = Rng
-        ind = LHvals > thrTmp;
-        LHvals_aboveThreshold = LHvals(ind); % a 1-D matrix, no need for mean(mean()) later
-        ind = RHvals > thrTmp;
-        RHvals_aboveThreshold = RHvals(ind); % a 1-D matrix, no need for mean(mean()) later
-        if isempty(LHvals_aboveThreshold)
-            L_ROIavg=0;  %to prevent error of "Warning: Divide by zero" when LHvals_aboveThreshold is an empty matrix and you are doing operation of mean(LHvals_aboveThreshold)
-        else
-            L_ROIavg=mean(LHvals_aboveThreshold);
-        end
-        if isempty(RHvals_aboveThreshold)
-            R_ROIavg=0;  %to prevent error of "Warning: Divide by zero" when RHvals_aboveThreshold is an empty matrix and you are doing operation of mean(RHvals_aboveThreshold)
-        else
-            R_ROIavg=mean(RHvals_aboveThreshold);
-        end
-        
-        k=k+1;
-        Thrshd_LI_ROIavg(k,1)=thrTmp;
-        if L_ROIavg+R_ROIavg ~= 0
-            LI_ROIavg = 100*((L_ROIavg-R_ROIavg)/(L_ROIavg+R_ROIavg));
-        else
-            LI_ROIavg = inf;
-        end
-        Thrshd_LI_ROIavg(k,2)=LI_ROIavg;
-    end
-    
-    switch time_interval
-        case 1
-            subplot(4,4,plot_ind)
-            plot_ind=plot_ind+1;
-            plot(Thrshd_LI_ROIavg(:,1),Thrshd_LI_ROIavg(:,2)); %JS 092815 changed plot to subplot
-            title([RoiLabels{ii} ' Average-based']);
-            set(gcf, 'Position', [500   500   1000   800]);
-    end
 end
+% xlabel('selected threshold to gloabl max');
+% ylabel('LI')
+
+%%
+%     % Run a loop to plot LIs based on space-time voxel-magnitude average as a function of threshold. But this metrix does not seem
+%     % to be very useful because the LIs tend to be around 0.
+%     k=0;
+%     %JL@10/30/14   Rng= threshold:1:AllMax;
+%     for thrTmp = Rng
+%         ind = LHvals > thrTmp;
+%         LHvals_aboveThreshold = LHvals(ind); % a 1-D matrix, no need for mean(mean()) later
+%         ind = RHvals > thrTmp;
+%         RHvals_aboveThreshold = RHvals(ind); % a 1-D matrix, no need for mean(mean()) later
+%         if isempty(LHvals_aboveThreshold)
+%             L_ROIavg=0;  %to prevent error of "Warning: Divide by zero" when LHvals_aboveThreshold is an empty matrix and you are doing operation of mean(LHvals_aboveThreshold)
+%         else
+%             L_ROIavg=mean(LHvals_aboveThreshold);
+%         end
+%         if isempty(RHvals_aboveThreshold)
+%             R_ROIavg=0;  %to prevent error of "Warning: Divide by zero" when RHvals_aboveThreshold is an empty matrix and you are doing operation of mean(RHvals_aboveThreshold)
+%         else
+%             R_ROIavg=mean(RHvals_aboveThreshold);
+%         end
+%         
+%         k=k+1;
+%         Thrshd_LI_ROIavg(k,1)=thrTmp;
+%         if L_ROIavg+R_ROIavg ~= 0
+%             LI_ROIavg = 100*((L_ROIavg-R_ROIavg)/(L_ROIavg+R_ROIavg));
+%         else
+%             LI_ROIavg = inf;
+%         end
+%         Thrshd_LI_ROIavg(k,2)=LI_ROIavg;
+%     end
+%     
+%     switch time_interval
+%         case 1
+%             subplot(4,4,plot_ind)
+%             plot_ind=plot_ind+1;
+%             plot(Thrshd_LI_ROIavg(:,1),Thrshd_LI_ROIavg(:,2)); %JS 092815 changed plot to subplot
+%             title([RoiLabels{ii} ' Average-based']);
+% %             set(gcf, 'Position', [500   500   1000   800]);
+%     end
+
 
 % Save results to disk
 % Create folder path if it doesn't exist
@@ -506,3 +506,4 @@ disp(d)
 
 
 end
+

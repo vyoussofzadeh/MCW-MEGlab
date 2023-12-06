@@ -218,7 +218,7 @@ cfg.fmri_LIs_val = fmri_LIs_val;
 cfg.LI_method_label = LI_method_label;
 % cfg.net_sel = [1,2,6];
 cfg.net_sel = [11]; % 6, 1, 2
-[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_all(cfg);
+[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
 
 %% MEG LI vs fMRI LI (Ternary language_Lateral)
 % pause, close all,
@@ -244,56 +244,56 @@ cfg.LI_method_label = LI_method_label;
 cfg.net_sel = [11];
 cfg.thre = 0.1;
 cfg.buffervalue = 10;
-[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_all(cfg);
+[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
 % cfg.net_sel = [2];
-% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_all(cfg);
+% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
 % cfg.net_sel = [6];
-% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_all(cfg);
+% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
 % cfg.net_sel = [2,6];
-% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_all(cfg);
+% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
 % cfg.net_sel = [1,2,6];
-% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_all(cfg);
+% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
 % cfg.net_sel = [9];
-% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_all(cfg);
+% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
 
 %% mean MEG li vs. fMRI
 % pause, close all,
 
 for i=1:length(LI_method_label)
     
-    cfg = [];
-    cfg.DataArray = [megLIs_trn{i}, fmri_LIs_trn];
-    cfg.savefig = 1;
-    cfg.outdir = save_dir;
-    cfg.title = ['trn-', LI_method_label{i}];%'SD task, 58 PTs, raw LIs';
-    do_plot_LIs(cfg)
+    %     cfg = [];
+    %     cfg.DataArray = [megLIs_trn{i}, fmri_LIs_trn];
+    %     cfg.savefig = 1;
+    %     cfg.outdir = save_dir;
+    %     cfg.title = ['trn-', LI_method_label{i}];%'SD task, 58 PTs, raw LIs';
+    %     do_plot_LIs(cfg)
     
-    cfg = [];
-    cfg.DataArray = [megLI_sub_pt{i}, fmri_LIs_val];
-    cfg.savefig = 1;
-    cfg.outdir = save_dir;
-    cfg.title = ['LI-', LI_method_label{i}];%'SD task, 58 PTs, raw LIs';
-    do_plot_LIs(cfg)
+    %     cfg = [];
+    %     cfg.DataArray = [megLI_sub_pt{i}, fmri_LIs_val];
+    %     cfg.savefig = 1;
+    %     cfg.outdir = save_dir;
+    %     cfg.title = ['LI-', LI_method_label{i}];%'SD task, 58 PTs, raw LIs';
+    %     do_plot_LIs(cfg)
     %
     %     size(fmri_LIs_val)
     
     %
-    [C, order] = confusionmat(megLIs_trn{i}, fmri_LIs_trn);
-    % Visualize the confusion matrix
-    figure;
-    h = heatmap(C);
-    h.XDisplayLabels = {'-1','0', '1'};
-    h.YDisplayLabels = {'-1','0', '1'};
-    xlabel('MEG');
-    ylabel('fMRI');
-    title(LI_method_label{i})%'Confusion Matrix');
-    colorbar off
-    colorbar('location', 'eastoutside')
+    %     [C, order] = confusionmat(megLIs_trn{i}, fmri_LIs_trn);
+    %     % Visualize the confusion matrix
+    %     figure;
+    %     h = heatmap(C);
+    %     h.XDisplayLabels = {'-1','0', '1'};
+    %     h.YDisplayLabels = {'-1','0', '1'};
+    %     xlabel('MEG');
+    %     ylabel('fMRI');
+    %     title(LI_method_label{i})%'Confusion Matrix');
+    %     colorbar off
+    %     colorbar('location', 'eastoutside')
     
     %%
     % - export figs
-    cfg = []; cfg.outdir = save_dir; cfg.filename = ['Confusion Matrix: ', LI_method_label{i}];
-    cfg.type = 'fig'; do_export_fig(cfg)
+    %     cfg = []; cfg.outdir = save_dir; cfg.filename = ['Confusion Matrix: ', LI_method_label{i}];
+    %     cfg.type = 'fig'; do_export_fig(cfg)
     
     % end
     % cd(save_dir)
@@ -320,6 +320,28 @@ for i=1:length(LI_method_label)
     
     % - export figs
     cfg = []; cfg.outdir = save_dir; filename = ['net ROIs_', LI_method_label{i}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+    
+    
+    % clc
+    cfg = []; cfg.wi = wi;
+    cfg.ID = sub_MF_pt;
+    cfg.thre = 0.1;
+    cfg.bf = 10;
+    cfg.ternary = 0;
+    cfg.savefig = 0;
+    cfg.outdir = save_dir;
+    cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+    cfg.net_sel_id = [1,2,5,6,11];
+    cfg.lang_id = {'language_Angular'; 'language_Frontal';'language_PCingPrecun'; 'language_Temporal'; 'language_Lateral'};
+    cfg.LI_val = LI_pt_val_new.(LI_method_label{i});
+    cfg.fmri_LIs_val = fmri_LIs;
+    cfg.idx = IB;
+    cfg.title = LI_method_label{i};
+    crr = do_MEG_fMRI_concordance_contrast_rois(cfg);
+    
+    % - export figs
+    cfg = []; cfg.outdir = save_dir; filename = ['net ROIs_', LI_method_label{i}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+    
     
 end
 

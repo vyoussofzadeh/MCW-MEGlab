@@ -1,0 +1,115 @@
+function [megLI_sub_pt, fmri_LIs_val, crr] = do_MEG_fMRI_corr_contrast_rois(cfg_main)
+
+
+% lang_id = {'language_Angular'; 'language_Frontal'; 'language_Occipital'; 'language_Other'; 'language_PCingPrecun'; 'language_Temporal'; 'language_Lateral'};
+
+lang_id = cfg_main.lang_id;
+
+net_sel_id = cfg_main.net_sel_id;
+% net_sel_id = [1,2,3,4,5,6,11];
+
+
+crr_all = [];
+for j=1:length(lang_id)
+    
+    wi = cfg_main.wi;
+    LI_pt_new = cfg_main.LI_val;
+    % LI_symb_pt_val_new = cfg_main.LI_symb_val;
+    net_sel = net_sel_id(j);
+    fmri_LIs_val = cfg_main.fmri_LIs_val;
+    net_sel_mutiple_label = cfg_main.net_sel_mutiple_label;
+    ID = cfg_main.ID;
+    thre = cfg_main.thre;
+    savefig = cfg_main.savefig;
+    outdir = cfg_main.outdir;
+    
+    crr = [];
+    midx = [];
+    for i=1:length(wi)
+        if length(net_sel) > 1
+            
+            mLI_sub1 = mean(LI_pt_new(net_sel,:,i));
+        else
+            mLI_sub1 = (LI_pt_new(net_sel,:,i));
+        end
+        megLI_sub_pt = (mLI_sub1)';
+        
+        [~, midx(i)] = max(megLI_sub_pt);
+        
+        if cfg_main.ternary == 1
+            cfg = []; cfg.thre = thre;
+            cfg.LI = megLI_sub_pt; megLI_sub_pt = do_ternary_classification(cfg);
+        end
+        tmp = fmri_LIs_val.val.(lang_id{j});
+        crr(i,:) = corr2(megLI_sub_pt, tmp(cfg_main.idx));
+    end
+    crr_all(j,:) = crr;   
+end
+
+% Determine the time point of max LI for each subject
+% [~, max_time_pts] = max(squeeze(LI_pt_new(net_sel,:,:)), [], 2);
+
+
+figure,
+plot(mean(wi'),crr_all,'LineWidth', 3), 
+% title([net_sel_mutiple_label{net_sel}]);
+set(gca,'color','none');
+ylabel('LIs corr (MEG vs. fMRI)')
+xlabel('Time (sec)')
+legend(net_sel_mutiple_label(net_sel_id),'Location','southoutside', 'NumColumns', 5)
+box off
+if isfield(cfg_main, 'title') 
+    title(cfg_main.title)
+end
+
+% - export figs
+if savefig == 1
+    cfg = [];
+    cfg.outdir = outdir;
+    cfg.filename = ['corr, ', net_sel_mutiple_label{net_sel}];
+    cfg.type = 'fig';
+    do_export_fig(cfg)
+end
+
+%%
+% [mx, idx] = max(crr);
+% bf = cfg_main.bf;
+% 
+% if length(net_sel) > 1
+%     mLI_sub1 = squeeze(mean(LI_pt_new(net_sel,:,idx-bf:idx+bf)));
+%     megLI_sub_pt = mean((mLI_sub1),2);
+% else
+%     mLI_sub1 = mean(LI_pt_new(net_sel,:,idx-bf:idx+bf),3)';
+%     megLI_sub_pt = (mLI_sub1);
+% end
+% 
+% %%
+% if cfg_main.ternary == 1
+%     cfg = []; cfg.thre = thre;
+%     cfg.LI = megLI_sub_pt; megLI_sub_pt = do_ternary_classification(cfg);
+% end
+% 
+% if cfg_main.ternary ~= 1
+%     
+%     lgd = {'meg', 'fmri'};
+%     figure, bar([megLI_sub_pt, fmri_LIs_val])
+%     set(gcf, 'Position', [600   500   1500   300]);
+%     set(gca,'color','none');
+%     lgnd = legend(lgd);
+%     set(lgnd,'color','none');
+%     xlabel('Subjects')
+%     L = length(ID);
+%     set(gca,'Xtick', 1:L,'XtickLabel',ID);
+%     set(gca,'FontSize',9,'XTickLabelRotation',90);
+%     
+%     % - export figs
+%     if savefig == 1
+%         cfg = [];
+%         cfg.outdir = outdir;
+%         cfg.filename = 'MEG_vs_fMRI_corr_subjs';
+%         cfg.type = 'fig';
+%         do_export_fig(cfg)
+%     end
+% end
+
+end

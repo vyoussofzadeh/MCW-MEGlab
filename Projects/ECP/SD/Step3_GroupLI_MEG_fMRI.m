@@ -67,10 +67,12 @@ cfg.BS_data_dir = BS_data_dir;
 
 switch LI_analysis
     case {1,5}
-        cfg.datatag = 'wDICS_22_4_baseline';
+%         cfg.datatag = 'wDICS_22_4_baseline';
+        cfg.datatag = 'wDICS_baseline_18_4';
         S_data = ecpfunc_read_sourcemaps_dics(cfg);
     case 2
         cfg.datatag = 'wDICS_contrast_18_4';
+%         cfg.datatag = 'wDICS_contrast_22_4';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
     case 3
         S_data = ecpfunc_read_sourcemaps(cfg);
@@ -147,7 +149,7 @@ cfg = [];
 cfg.src_fname = src_fname;
 cfg.glass_dir = glass_dir;
 cfg.glass_atlas = glass_atlas;
-cfg.plotflag = 1;
+cfg.plotflag = 0;
 Data_hcp_atlas = ecpfunc_hcp_atlas2(cfg);
 net_sel_mutiple_label = Data_hcp_atlas.groups_labels';
 
@@ -274,7 +276,7 @@ cfg.fmri_LIs_val = fmri_LIs_trn;
 % cfg.net_sel = [1,2,6];
 cfg.net_sel = [11];
 cfg.thre = 0.1;
-cfg.buffervalue = 1;
+cfg.buffervalue = 10;
 [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast(cfg);
 
 % disp([megLIs_trn, fmri_LIs_trn])
@@ -285,10 +287,10 @@ idx = find(abs(megLIs_trn - fmri_LIs_trn) > 0);
 discordant_subs = sub_MF_pt(idx)
 
 
-
-%% close all
+%% 
+% close all
 mwi = mean(wi,2);
-for i=1:length(discordant_subs)
+for i=1:5%length(discordant_subs)
     tmp = squeeze(LI_pt_val_new(11,idx(i),:));
     figure,plot(wi(:,1),tmp), title([discordant_subs(i), num2str(meg_fMRI_trn(idx(i),:)), 'mean=', num2str(mean(tmp(interval_idx)))])
     hold on
@@ -299,21 +301,21 @@ end
 %%
 % pause, close all,
 
-cfg = [];
-cfg.DataArray = [megLIs_trn, fmri_LIs_trn];
-cfg.savefig = 1;
-cfg.outdir = save_dir;
-cfg.title = 'SD task, 58 PTs, ternary class';
-do_plot_LIs(cfg)
-
-cfg = [];
-cfg.DataArray = [megLI_sub_pt, fmri_LIs_val];
-cfg.savefig = 1;
-cfg.outdir = save_dir;
-cfg.title = 'SD task, 58 PTs, raw LIs';
-do_plot_LIs(cfg)
-
-size(fmri_LIs_val)
+% cfg = [];
+% cfg.DataArray = [megLIs_trn, fmri_LIs_trn];
+% cfg.savefig = 1;
+% cfg.outdir = save_dir;
+% cfg.title = 'SD task, 58 PTs, ternary class';
+% do_plot_LIs(cfg)
+% 
+% cfg = [];
+% cfg.DataArray = [megLI_sub_pt, fmri_LIs_val];
+% cfg.savefig = 10;
+% cfg.outdir = save_dir;
+% cfg.title = 'SD task, 58 PTs, raw LIs';
+% do_plot_LIs(cfg)
+% 
+% size(fmri_LIs_val)
 
 %%
 [C, order] = confusionmat(megLIs_trn, fmri_LIs_trn);
