@@ -40,7 +40,7 @@ data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/S
 cd(data_save_dir)
 
 %%
-save_dir = fullfile(data_save_dir,LI_analysis_label{LI_analysis}, LI_method_label{LI_method});
+save_dir = fullfile(data_save_dir,LI_analysis_label{LI_analysis}, ['ZScore_', LI_method_label{LI_method}]);
 checkOrCreateDir(save_dir)
 cd(save_dir)
 
@@ -67,12 +67,10 @@ cfg.BS_data_dir = BS_data_dir;
 
 switch LI_analysis
     case {1,5}
-%         cfg.datatag = 'wDICS_22_4_baseline';
-        cfg.datatag = 'wDICS_baseline_18_4';
+        cfg.datatag = 'wDICS_baseline_18_4_zscore';
         S_data = ecpfunc_read_sourcemaps_dics(cfg);
     case 2
-        cfg.datatag = 'wDICS_contrast_18_4';
-%         cfg.datatag = 'wDICS_contrast_22_4';
+        cfg.datatag = 'wDICS_contrast_18_4_zscore';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
     case 3
         S_data = ecpfunc_read_sourcemaps(cfg);
@@ -283,37 +281,19 @@ cfg.buffervalue = 10;
 
 meg_fMRI_trn = [megLIs_trn, fmri_LIs_trn];
 
-disc_idx = find(abs(megLIs_trn - fmri_LIs_trn) > 0);
-discordant_subs = sub_MF_pt(disc_idx);
+idx = find(abs(megLIs_trn - fmri_LIs_trn) > 0);
+discordant_subs = sub_MF_pt(idx)
 
-conc_idx = find(abs(megLIs_trn - fmri_LIs_trn) == 0);
-concordant_subs = sub_MF_pt(conc_idx);
 
-%% Discordant samples
+%% 
 % close all
 mwi = mean(wi,2);
-for i=1:length(discordant_subs)
-    tmp = squeeze(LI_pt_val_new(11,disc_idx(i),:));
-    figure,plot(wi(:,1),tmp), title([discordant_subs(i), num2str(meg_fMRI_trn(disc_idx(i),:)), 'mean=', num2str(mean(tmp(interval_idx)))])
+for i=1:5%length(discordant_subs)
+    tmp = squeeze(LI_pt_val_new(11,idx(i),:));
+    figure,plot(wi(:,1),tmp), title([discordant_subs(i), num2str(meg_fMRI_trn(idx(i),:)), 'mean=', num2str(mean(tmp(interval_idx)))])
     hold on
     xline(mwi(interval_idx(1)))
     xline(mwi(interval_idx(end)))
-    
-%     cfg = []; cfg.outdir = save_dir; filename = 'net ROIs'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
-    
-end
-
-%% Concordant samples
-mwi = mean(wi,2);
-for i=1:5%length(concordant_subs)
-    tmp = squeeze(LI_pt_val_new(11,conc_idx(i),:));
-    figure,plot(wi(:,1),tmp), title([concordant_subs(i), num2str(meg_fMRI_trn(conc_idx(i),:)), 'mean=', num2str(mean(tmp(interval_idx)))])
-    hold on
-    xline(mwi(interval_idx(1)))
-    xline(mwi(interval_idx(end)))
-    
-%     cfg = []; cfg.outdir = save_dir; filename = 'net ROIs'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
-    
 end
 
 %%

@@ -254,14 +254,16 @@ cfg.fmri_LIs_val = fmri_LIs_val;
 cfg.net_sel = [11]; % 6, 1, 2
 [megLI_sub_pt, fmri_LIs_val, ~, interval_idx] = do_MEG_fMRI_corr_contrast(cfg);
 
-%% MEG LI vs fMRI LI (Ternary language_Lateral)
-% pause, close all,
-% clc
-
+%%
 cfg = [];
 cfg.thre = .2; cfg.LI = fmri_LIs_val;
 fmri_LIs_trn = do_ternary_classification(cfg);
 size(fmri_LIs_trn);
+
+%% MEG LI vs fMRI LI (Ternary language_Lateral)
+% pause, 
+close all,
+% clc
 
 % concordance, MEG-fMRI
 cfg = [];
@@ -276,44 +278,54 @@ cfg.fmri_LIs_val = fmri_LIs_trn;
 % cfg.net_sel = [1,2,6];
 cfg.net_sel = [11];
 cfg.thre = 0.1;
-cfg.buffervalue = 10;
+cfg.buffervalue = 15;
 [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast(cfg);
 
 % disp([megLIs_trn, fmri_LIs_trn])
 
 meg_fMRI_trn = [megLIs_trn, fmri_LIs_trn];
 
-disc_idx = find(abs(megLIs_trn - fmri_LIs_trn) > 0);
-discordant_subs = sub_MF_pt(disc_idx);
+idx = find(abs(megLIs_trn - fmri_LIs_trn) > 0);
+discordant_subs = sub_MF_pt(idx);
 
-conc_idx = find(abs(megLIs_trn - fmri_LIs_trn) == 0);
-concordant_subs = sub_MF_pt(conc_idx);
+%% Max abs LI (for detecting optimal time intervals) 
+cfg = []; 
+cfg.wi = wi;
+cfg.LI_val = LI_pt_val_new;
+cfg.net_sel = [11]; % 6, 1, 2
+cfg.startTime = 0.4;
+cfg.endTime = 1.7;
+absmax_idx = do_LI_maxinterval(cfg);
 
-%% Discordant samples
+%%
+close all
+clc
+
+cfg = [];
+cfg.wi = wi;
+cfg.ID = sub_MF_pt;
+cfg.ternary = 1;
+cfg.savefig = 0;
+cfg.outdir = save_dir;
+cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+cfg.LI_val = LI_pt_val_new;
+cfg.fmri_LIs_val = fmri_LIs_trn;
+% cfg.net_sel = [1,2,6];
+cfg.net_sel = [2];
+cfg.thre = 0.1;
+cfg.absmax = absmax_idx;
+cfg.buffervalue = 10;
+[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_absmax(cfg);
+
+%% 
 % close all
 mwi = mean(wi,2);
 for i=1:length(discordant_subs)
-    tmp = squeeze(LI_pt_val_new(11,disc_idx(i),:));
-    figure,plot(wi(:,1),tmp), title([discordant_subs(i), num2str(meg_fMRI_trn(disc_idx(i),:)), 'mean=', num2str(mean(tmp(interval_idx)))])
+    tmp = squeeze(LI_pt_val_new(11,idx(i),:));
+    figure,plot(wi(:,1),tmp), title([discordant_subs(i), num2str(meg_fMRI_trn(idx(i),:)), 'mean=', num2str(mean(tmp(interval_idx)))])
     hold on
     xline(mwi(interval_idx(1)))
     xline(mwi(interval_idx(end)))
-    
-%     cfg = []; cfg.outdir = save_dir; filename = 'net ROIs'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
-    
-end
-
-%% Concordant samples
-mwi = mean(wi,2);
-for i=1:5%length(concordant_subs)
-    tmp = squeeze(LI_pt_val_new(11,conc_idx(i),:));
-    figure,plot(wi(:,1),tmp), title([concordant_subs(i), num2str(meg_fMRI_trn(conc_idx(i),:)), 'mean=', num2str(mean(tmp(interval_idx)))])
-    hold on
-    xline(mwi(interval_idx(1)))
-    xline(mwi(interval_idx(end)))
-    
-%     cfg = []; cfg.outdir = save_dir; filename = 'net ROIs'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
-    
 end
 
 %%
