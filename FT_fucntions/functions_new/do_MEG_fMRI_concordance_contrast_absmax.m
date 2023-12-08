@@ -15,45 +15,45 @@ bf = cfg_main.buffervalue;
 
 max_time_idx = absmax_idx.max_time_idx;
 
-%%
-conc = [];
-for i=1:length(wi)
-    if length(net_sel) > 1
-        mLI_sub1 = mean(LI_pt_val_new(net_sel,:,i));
-    else
-        mLI_sub1 = (LI_pt_val_new(net_sel,:,i));
-    end
-    megLI_sub_pt = (mLI_sub1)';
-    
-    if cfg_main.ternary == 1
-        cfg = []; cfg.thre = thre;
-        cfg.LI = megLI_sub_pt; mLI_sub_pt_trn = do_ternary_classification(cfg);
-        matches = mLI_sub_pt_trn == fmri_LIs_val;
-        numMatches = sum(matches);
-        percentageMatch = (numMatches / length(mLI_sub_pt_trn)) * 100;
-        conc(i,:) = percentageMatch; %(mLI_sub_pt_trn .* fmri_LIs_val);
-    else
-        conc(i,:) = (megLI_sub_pt .* fmri_LIs_val);
-    end
-end
-
-%%
-figure, plot(mean(wi'),mean(conc,2),'LineWidth', 3), title([net_sel_mutiple_label{net_sel}]);
-ylabel('LIs conc (MEG , fMRI)')
-set(gca,'color','none');
-xlabel('Time (sec)')
-
+% %%
+% conc = [];
+% for i=1:length(wi)
+%     if length(net_sel) > 1
+%         mLI_sub1 = mean(LI_pt_val_new(net_sel,:,i));
+%     else
+%         mLI_sub1 = (LI_pt_val_new(net_sel,:,i));
+%     end
+%     megLI_sub_pt = (mLI_sub1)';
+%     
+%     if cfg_main.ternary == 1
+%         cfg = []; cfg.thre = thre;
+%         cfg.LI = megLI_sub_pt; mLI_sub_pt_trn = do_ternary_classification(cfg);
+%         matches = mLI_sub_pt_trn == fmri_LIs_val;
+%         numMatches = sum(matches);
+%         percentageMatch = (numMatches / length(mLI_sub_pt_trn)) * 100;
+%         conc(i,:) = percentageMatch; %(mLI_sub_pt_trn .* fmri_LIs_val);
+%     else
+%         conc(i,:) = (megLI_sub_pt .* fmri_LIs_val);
+%     end
+% end
+% 
+% %%
+% figure, plot(mean(wi'),mean(conc,2),'LineWidth', 3), title([net_sel_mutiple_label{net_sel}]);
+% ylabel('LIs conc (MEG , fMRI)')
+% set(gca,'color','none');
+% xlabel('Time (sec)')
+% 
 % [mx, idx] = max(mean(conc,2));
 % disp(mx)
-
-% - export figs
-if savefig == 1
-    cfg = [];
-    cfg.outdir = outdir;
-    cfg.filename = [net_sel_mutiple_label{net_sel}];
-    cfg.type = 'fig';
-    do_export_fig(cfg)
-end
+% 
+% % - export figs
+% if savefig == 1
+%     cfg = [];
+%     cfg.outdir = outdir;
+%     cfg.filename = [net_sel_mutiple_label{net_sel}];
+%     cfg.type = 'fig';
+%     do_export_fig(cfg)
+% end
 
 mLI_sub1 = [];
 for j=1:length(max_time_idx)

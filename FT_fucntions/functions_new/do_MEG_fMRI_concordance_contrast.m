@@ -1,4 +1,4 @@
-function [megLI_sub_pt, fmri_LIs_val] = do_MEG_fMRI_concordance_contrast(cfg_main)
+function [megLI_sub_pt, fmri_LIs_val, mwi_interval] = do_MEG_fMRI_concordance_contrast(cfg_main)
 
 
 wi = cfg_main.wi;
@@ -43,6 +43,9 @@ xlabel('Time (sec)')
 [mx, idx] = max(mean(conc,2));
 disp(mx)
 
+mwi = mean(wi,2);
+mwi_interval = mwi(idx-bf:idx+bf);
+
 % - export figs
 if savefig == 1
     cfg = [];
@@ -63,19 +66,21 @@ end
 if cfg_main.ternary == 1
     cfg = []; cfg.thre = thre;
     cfg.LI = megLI_sub_pt; megLI_sub_pt = do_ternary_classification(cfg);
-    (length(find([megLI_sub_pt - fmri_LIs_val] == 0))/length(fmri_LIs_val)).*100
+    Concordance = (length(find([megLI_sub_pt - fmri_LIs_val] == 0))/length(fmri_LIs_val)).*100;
 end
 
+disp(['LI concordance (MEG-vs-fMRI): ', num2str(Concordance)])
 
 lgd = {'meg', 'fmri'};
 figure, bar([megLI_sub_pt, fmri_LIs_val])
-set(gcf, 'Position', [600   500   1500   300]);
+set(gcf, 'Position', [600   500   1000   300]);
 set(gca,'color','none');
 lgnd = legend(lgd);
-set(lgnd,'color','none');
+set(lgnd,'location','southeast');
+% set(lgnd,'color','none');
 L = length(ID);
 set(gca,'Xtick', 1:L,'XtickLabel',ID);
-set(gca,'FontSize',10,'XTickLabelRotation',90);
+set(gca,'FontSize',8,'XTickLabelRotation',90);
 
 % - export figs
 if savefig == 1
