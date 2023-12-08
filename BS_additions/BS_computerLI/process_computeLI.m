@@ -29,7 +29,7 @@ function sProcess = GetDescription() %#ok<DEFNU>
 
 
 % Description the process
-sProcess.Comment     = 'Computer LI, surface-based, DK atlas';
+sProcess.Comment     = 'Compute LI, surface-based, DK atlas';
 sProcess.Category    = 'Custom';
 sProcess.SubGroup    = 'Sources';
 sProcess.Index       = 337;
@@ -171,17 +171,6 @@ if isempty(effect) || ~any(effect == [1, 2, 3])
 end
 end
 
-% function samplerate = determineSampleRate(time_interval, sResultP)
-% % Determine the sample rate based on the time interval and sResultP
-% 
-% switch time_interval
-%     case 2
-%         samplerate = 1;
-%     otherwise
-%         samplerate = round(inv((sResultP.Time(end) - sResultP.Time(1)) / length(sResultP.Time))) - 1;
-% end
-% end
-
 function Threshtype = selectThresholdType(Threshtype)
 % Prompt user to select threshold type
 
@@ -299,11 +288,6 @@ TotROI = 8;
 s1='LI_';
 Summ_LI=zeros(1,TotROI); % initialize the vector that summarizes the final LIs  % added JL 11212014
 Summ_LI_Label='ROI Labels: '; % initialize the string that summarizes the ROI labels  % added JL 11212014
-% switch time_interval
-%     case 1
-%         figure
-% end
-
 
 % Adjustments for dimensions of verticies when concatenating
 for i=1:length(sScout.Scouts)
@@ -393,76 +377,7 @@ for ii = 1:8
     ROIavg = mean([L_ROIavg,R_ROIavg]);
     LI_ROIavg = 100*((L_ROIavg-R_ROIavg)/(L_ROIavg+R_ROIavg));
     
-    % Run a loop to plot LIs based on space-time voxel count as a function of threshold
-%     k=0;
-%     Rng= threshold:0.02:AllMax; % Rng= threshold:1:AllMax; % modified JL@10/30/14
-%     for thrTmp = Rng
-%         ind = find(LHvals > thrTmp);
-%         L_ROIcount  = length(ind);
-%         ind = find(RHvals > thrTmp);
-%         R_ROIcount  = length(ind);
-%         k=k+1;
-%         Thrshd_LI_ROIcount(k,1)=thrTmp;
-%         if L_ROIcount+R_ROIcount~=0
-%             LI_ROIcount = 100*((L_ROIcount-R_ROIcount)/(L_ROIcount+R_ROIcount));
-%         else
-%             LI_ROIcount = inf;
-%         end
-%         Thrshd_LI_ROIcount(k,2)=LI_ROIcount;
-%     end
-%     switch time_interval
-%         case 1
-%             subplot(2,4,plot_ind)
-%             plot_ind=plot_ind+1;
-%             plot(Thrshd_LI_ROIcount(:,1),Thrshd_LI_ROIcount(:,2));
-%             title([RoiLabels{ii}]);
-%             axis tight
-%     end
-    
 end
-% xlabel('selected threshold to gloabl max');
-% ylabel('LI')
-
-%%
-%     % Run a loop to plot LIs based on space-time voxel-magnitude average as a function of threshold. But this metrix does not seem
-%     % to be very useful because the LIs tend to be around 0.
-%     k=0;
-%     %JL@10/30/14   Rng= threshold:1:AllMax;
-%     for thrTmp = Rng
-%         ind = LHvals > thrTmp;
-%         LHvals_aboveThreshold = LHvals(ind); % a 1-D matrix, no need for mean(mean()) later
-%         ind = RHvals > thrTmp;
-%         RHvals_aboveThreshold = RHvals(ind); % a 1-D matrix, no need for mean(mean()) later
-%         if isempty(LHvals_aboveThreshold)
-%             L_ROIavg=0;  %to prevent error of "Warning: Divide by zero" when LHvals_aboveThreshold is an empty matrix and you are doing operation of mean(LHvals_aboveThreshold)
-%         else
-%             L_ROIavg=mean(LHvals_aboveThreshold);
-%         end
-%         if isempty(RHvals_aboveThreshold)
-%             R_ROIavg=0;  %to prevent error of "Warning: Divide by zero" when RHvals_aboveThreshold is an empty matrix and you are doing operation of mean(RHvals_aboveThreshold)
-%         else
-%             R_ROIavg=mean(RHvals_aboveThreshold);
-%         end
-%         
-%         k=k+1;
-%         Thrshd_LI_ROIavg(k,1)=thrTmp;
-%         if L_ROIavg+R_ROIavg ~= 0
-%             LI_ROIavg = 100*((L_ROIavg-R_ROIavg)/(L_ROIavg+R_ROIavg));
-%         else
-%             LI_ROIavg = inf;
-%         end
-%         Thrshd_LI_ROIavg(k,2)=LI_ROIavg;
-%     end
-%     
-%     switch time_interval
-%         case 1
-%             subplot(4,4,plot_ind)
-%             plot_ind=plot_ind+1;
-%             plot(Thrshd_LI_ROIavg(:,1),Thrshd_LI_ROIavg(:,2)); %JS 092815 changed plot to subplot
-%             title([RoiLabels{ii} ' Average-based']);
-% %             set(gcf, 'Position', [500   500   1000   800]);
-%     end
-
 
 % Save results to disk
 % Create folder path if it doesn't exist
@@ -483,15 +398,35 @@ else
     filename = fullfile(folderPath, ['/LI_ROItable_', sname, '_', 'time', num2str(timerange(1)), '-', num2str(timerange(2)), '_thresh', num2str(Ratio4Threshold), '.xls']);
 end
 
-% Write the data to the Excel file
+%%
 tempfile = fopen(filename, 'w');
-fprintf(tempfile, '%s\t', LI_label_out{:});
+
+% Print headers
+fprintf(tempfile, 'ROI\tLI\tLeft_count\tRight_count\n');
+
+% Ensure L_count and R_count are column vectors
+L_count1 = L_count(:);
+R_count1 = R_count(:);
+
+
+% Printing the labels, LI values, L_count, and R_count on separate lines
+for i = 1:length(LI_label_out)
+    fprintf(tempfile, '%s\t', LI_label_out{i});
+    fprintf(tempfile, '%f\t', Summ_LI(i));
+    fprintf(tempfile, '%d\t', L_count1(i));
+    fprintf(tempfile, '%d\n', R_count1(i));
+end
+
+% Adding an extra newline for separation
 fprintf(tempfile, '\n');
-fprintf(tempfile, '%f\t', Summ_LI);
-fprintf(tempfile, '\n\nThreshold');
-fprintf(tempfile, '%f\t', threshold);
+
+% Printing the threshold
+fprintf(tempfile, 'Threshold\t%f\n', threshold);
+
 fclose(tempfile);
 
+
+%%
 % Display the path to the saved file
 disp(['Results saved to: ' filename]);
 
@@ -506,4 +441,3 @@ disp(d)
 
 
 end
-
