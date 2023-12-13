@@ -80,6 +80,18 @@ switch LI_analysis
         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
 end
 
+%%
+brainstorm
+S_data.sFiles_3
+
+% Process: Average: Everything
+bst_process('CallProcess', 'process_average', sFiles_name(idx_3_smooth), [], ...
+    'avgtype',         1, ...  % Everything
+    'avg_func',        1, ...  % Arithmetic average:  mean(x)
+    'weighted',        0, ...
+    'Comment', 'mean_3', ...
+    'scalenormalized', 0);
+
 %% Subject demog details
 switch LI_analysis
     case {1,3, 5}
