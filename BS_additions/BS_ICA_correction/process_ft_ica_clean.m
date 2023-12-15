@@ -158,7 +158,7 @@ cfg.method     = 'runica';
 comp           = ft_componentanalysis(cfg, ftData1);
 
 %% LAYOUT
-layout = sProcess.options.lay.Value{1};
+layout = lower(sProcess.options.lay.Value{1});
 
 cfg = [];
 switch layout
