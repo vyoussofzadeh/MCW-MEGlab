@@ -52,7 +52,7 @@ sProcess.options.icanum.Value   = {20, 'components', 0}; % Default value is 20
 % Option: Sensors selection
 sProcess.options.lay.Comment = 'layout:';
 sProcess.options.lay.Type    = 'combobox_label';
-sProcess.options.lay.Value   = {'lay', {'neuromag', '4D', 'ctf', 'nolay'; ...
+sProcess.options.lay.Value   = {'neuromag', {'neuromag', '4D', 'ctf', 'nolay'; ...
     'Neuromag','4D','CTF', 'no layout'}};
 
 end
