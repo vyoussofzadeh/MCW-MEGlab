@@ -121,7 +121,7 @@ Run_bs
 
 %%
 close all
-set(0,'DefaultFigureWindowStyle','normal')
+% set(0,'DefaultFigureWindowStyle','normal')
 addpath('/usr/local/MATLAB_Tools/brainstorm3')
 %brainstorm
 

@@ -28,6 +28,7 @@ for j=1:size(LI_method_label,2)
         end
         megLI_sub_pt = (mLI_sub1)';
         
+        
         if cfg_main.ternary == 1
             cfg = []; cfg.thre = thre;
             cfg.LI = megLI_sub_pt; mLI_sub_pt_trn = do_ternary_classification(cfg);
@@ -39,7 +40,7 @@ for j=1:size(LI_method_label,2)
             conc(j,i,:) = (megLI_sub_pt .* fmri_LIs_val);
         end
     end
-    
+%     mLI_sub1 = [];
     [mx, idx] = max(conc(j,:)); 
     interval = idx-bf:idx+bf;
     if length(net_sel) > 1

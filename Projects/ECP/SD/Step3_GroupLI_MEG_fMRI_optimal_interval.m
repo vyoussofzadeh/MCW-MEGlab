@@ -81,16 +81,16 @@ switch LI_analysis
 end
 
 %%
-brainstorm
-S_data.sFiles_3
-
-% Process: Average: Everything
-bst_process('CallProcess', 'process_average', sFiles_name(idx_3_smooth), [], ...
-    'avgtype',         1, ...  % Everything
-    'avg_func',        1, ...  % Arithmetic average:  mean(x)
-    'weighted',        0, ...
-    'Comment', 'mean_3', ...
-    'scalenormalized', 0);
+% brainstorm
+% S_data.sFiles_3
+% 
+% % Process: Average: Everything
+% bst_process('CallProcess', 'process_average', S_data.sFiles_3, [], ...
+%     'avgtype',         1, ...  % Everything
+%     'avg_func',        1, ...  % Arithmetic average:  mean(x)
+%     'weighted',        0, ...
+%     'Comment', 'mean_3', ...
+%     'scalenormalized', 0);
 
 %% Subject demog details
 switch LI_analysis
