@@ -52,8 +52,8 @@ sProcess.options.icanum.Value   = {20, 'components', 0}; % Default value is 20
 % Option: Sensors selection
 sProcess.options.lay.Comment = 'layout:';
 sProcess.options.lay.Type    = 'combobox_label';
-sProcess.options.lay.Value   = {'lay', {'neuromag', '4D', 'ctf', 'nolay'; ...
-    'Neuromag','4D','CTF', 'no layout'}};
+sProcess.options.lay.Value   = {'neuromag', {'neuromag', '4D', 'ctf', 'nolay'; ...
+    'neuromag','4D','CTF', 'no layout'}};
 
 end
 
@@ -158,7 +158,7 @@ cfg.method     = 'runica';
 comp           = ft_componentanalysis(cfg, ftData1);
 
 %% LAYOUT
-layout = sProcess.options.lay.Value{1};
+layout = lower(sProcess.options.lay.Value{1});
 
 cfg = [];
 switch layout
