@@ -73,6 +73,13 @@ javaclasspath
 %% Remove tool from the path
 rmpath(spm_path);
 
+%% Delete a folder,
+dd = rdir('.../data_all_subjects/*/Subject_analysis/brain*.mat');
+for i=1:length(dd)
+    [pathstr, name, ext] = fileparts(dd(i).name);
+    rmdir(pathstr,'s')
+end
+
 %% Table
 t1 = table(m_LI_sub'); t1.Properties.VariableNames{'Var1'} = 'LI';
 
