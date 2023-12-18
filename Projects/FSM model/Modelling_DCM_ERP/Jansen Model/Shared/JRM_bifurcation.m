@@ -169,7 +169,7 @@ for P=c_range
         AbsTol = 1e-9.*ones(Neq,1);
         %     options = odeset('RelTol',1e-4,'InitialStep',0.1,'MaxStep',0.005);
         options = odeset('RelTol',1e-6,'AbsTol',AbsTol);
-        [t,y]=ode45(@model_Jansen13,t,x_ini,options);
+        [t,y]=ode45(@model_Jansen,t,x_ini,options);
         y = y';
     end
     x=y';
