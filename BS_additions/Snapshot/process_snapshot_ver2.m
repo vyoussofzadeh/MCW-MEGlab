@@ -22,7 +22,7 @@ function varargout = process_snapshot_ver2( varargin )
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors: Francois Tadel, 2012-2022
+% Authors: Vahab YoussofZadeh, 2024
 
 eval(macro_method);
 end
@@ -96,8 +96,7 @@ end
 
 %% ===== FORMAT COMMENT =====
 function Comment = FormatComment(sProcess) %#ok<DEFNU>
-iType = find(strcmpi(sProcess.options.type.Value{1}, sProcess.options.type.Value{2}(2,:)));
-Comment = ['Snapshot: ' sProcess.options.type.Value{2}{1,iType}];
+Comment = sProcess.Comment;
 end
 
 %% ===== RUN =====
