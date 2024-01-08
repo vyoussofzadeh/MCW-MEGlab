@@ -31,7 +31,7 @@ end
 %% ===== GET DESCRIPTION =====
 function sProcess = GetDescription() %#ok<DEFNU>
 % Description the process
-sProcess.Comment     = 'Save snapshot (mutiple views)';
+sProcess.Comment     = 'Save snapshot (MCW_clinical)';
 sProcess.Category    = 'Custom';
 sProcess.SubGroup    = 'File';
 sProcess.Index       = 982;
@@ -55,7 +55,7 @@ sProcess.options.orientpreset.Value   = {1, {
 
 % === Custom Orientation
 % sProcess.options.customorient.Comment = 'Custom Orientation (e.g., {"left", "right", "top"}): ';
-sProcess.options.customorient.Comment = 'Custom Orientation (e.g., ''left'', ''right'', ''top''): ';
+sProcess.options.customorient.Comment = 'Custom Orientation (e.g., {left, right, top}): ';
 sProcess.options.customorient.Type    = 'text';
 sProcess.options.customorient.Value   = '';
 
@@ -130,11 +130,7 @@ switch orientPreset
     case 6
         % Custom Orientation
         if ~isempty(customOrient)
-            parsedStr = strrep(customOrient, '{', '');
-            parsedStr = strrep(parsedStr, '}', '');
-            parsedStr = strrep(parsedStr, '"', '');
-            % Convert to cell array
-            Orient = {parsedStr};
+            Orient = strsplit(customOrient, ', ');  % Splits at the comma and space
         else
             bst_report('Error', sProcess, [], 'Custom orientation is selected but not defined.');
             return;
