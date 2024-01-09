@@ -39,37 +39,10 @@ sProcess.OutputTypes = {'results'};
 sProcess.nInputs     = 1;
 sProcess.nMinFiles   = 1;
 
-% Add an option to select the LI computation method
-sProcess.options.LImethod.Comment = 'Select LI computation method:';
-sProcess.options.LImethod.Type    = 'combobox';
-sProcess.options.LImethod.Value   = {1, {'Counting', 'Bootstrapping'}};
-
-% Modify time interval input
-sProcess.options.time_interval.Comment = 'Choose a time interval:';
-sProcess.options.time_interval.Type    = 'combobox';
-sProcess.options.time_interval.Value   = {1, {'Time Interval', 'Averaged Sources'}};
-
-% Active time window
-sProcess.options.poststim.Comment = 'Enter specific time interval:';
-sProcess.options.poststim.Type    = 'poststim';
-sProcess.options.poststim.Value   = [];
-
-% Add an effect input
+% % Add an effect input
 sProcess.options.effect.Comment = 'Choose an effect:';
 sProcess.options.effect.Type    = 'combobox';
 sProcess.options.effect.Value   = {1, {'Positive values', 'Negative', 'Absolute'}};
-
-% Add a threshold type input
-sProcess.options.threshtype.Comment = 'Threshold type:';
-sProcess.options.threshtype.Type    = 'combobox';
-sProcess.options.threshtype.Value   = {1, {'Global-max: all time and regions combined', ...
-    'Time-max: time of interest (toi) and all regions', ...
-    'Region-max: toi and regions of interests (rois)'}};
-% Add a threshold ratio input
-sProcess.options.ratio4threshold.Comment = 'Threshold ratio (%):';
-sProcess.options.ratio4threshold.Type    = 'value';
-sProcess.options.ratio4threshold.Value   = {50, '%', 0, 100, 1, 1}; % {default value, '', min value, max value, step size, decimal digits}
-% sProcess.options.ratio4threshold.Value   = {0.5};
 
 % Add a folder directory input
 sProcess.options.savedir.Comment = 'Saving Dir.:';
@@ -206,7 +179,26 @@ pow_table_combined = table(group_names', pow_parcel_L', pow_parcel_R', LI', 'Var
 
 disp(pow_table_combined);
 
+%%
+% Initialize cell arrays for the table data
+networkNames = Data_hcp_atlas.groups_labels;
+roisPerNetwork = cell(length(networkNames), 1);
 
+% Iterate over each network
+for i = 1:length(networkNames)
+    % Combine left and right hemisphere ROIs
+    leftROIs = Data_hcp_atlas.glass_net_L_label{i};
+    rightROIs = Data_hcp_atlas.glass_net_R_label{i};
+    combinedROIs = [leftROIs; rightROIs];
+    
+    % Convert cell array of ROIs to a comma-separated string
+    roisPerNetwork{i} = strjoin(combinedROIs, ', ');
+end
+
+% Create the table
+roiTable = table(networkNames', roisPerNetwork, 'VariableNames', {'Network', 'ROIs'});
+
+disp(roiTable);
 
 %%
 % Assuming rois and pow_parcel are already defined
@@ -224,7 +216,7 @@ roi_table = table(rois', pow_parcel', region', 'VariableNames', {'ROI_Label', 'P
 % Assuming roi_table is already defined with columns 'ROI_Label' and 'Power'
 
 % Number of top entries to display
-numTopEntries = 10;
+numTopEntries = 20;
 
 % Sort the table by 'Power' in descending order
 sorted_table = sortrows(roi_table, 'Power', 'descend');
@@ -253,7 +245,7 @@ roi_table = table(rois', pow_parcel', region', 'VariableNames', {'ROI_Label', 'P
 unique_regions = unique(region);
 
 % Create a table to store the aggregated results
-aggregated_table = table('Size', [0 3], 'VariableTypes', {'string', 'double', 'string'}, 'VariableNames', {'Region', 'Average_Power', 'ROIs'});
+aggregated_table = table('Size', [0 3], 'VariableTypes', {'string', 'double', 'string'}, 'VariableNames', {'Region', 'Power_avg', 'ROIs'});
 
 % Iterate over each unique region and calculate the average power
 for i = 1:length(unique_regions)
@@ -269,16 +261,6 @@ disp(aggregated_table);
 
 end
 
-% === HELPER FUNCTIONS ===
-function time_interval = selectTimeInterval(time_interval)
-% Prompt user to select time interval
-
-% Ensure valid selection
-if isempty(time_interval) || ~any(time_interval == [1, 2, 3])
-    error('Invalid time interval selection. Choose 1, 2, or 3.');
-end
-end
-
 function effect = selectEffectType(effect)
 % Prompt user to select effect type
 
@@ -288,10 +270,8 @@ if isempty(effect) || ~any(effect == [1, 2, 3])
 end
 end
 
-
 function ImageGridAmp = processImageGridAmp(ImageGridAmp, effect)
 % Apply the desired effect on the ImageGridAmp
-
 switch effect
     case 1
         % Positive values: No change needed, as ImageGridAmp remains the same
@@ -304,34 +284,11 @@ switch effect
 end
 end
 
-function [AllMax, GlobalMax, t1, t2] = determineMaxValues(time_interval, ImageGridAmp, sResultP, timerange)
-% Compute the maximum values AllMax and GlobalMax
-
-switch time_interval
-    case 2
-        GlobalMax = max(ImageGridAmp(:));  % Max value over all time points
-        AllMax = max(ImageGridAmp(:));     % Max value over the time window of interest
-        t1 = []; t2 = [];
-    otherwise
-        t1 = find(sResultP.Time >= timerange(1), 1);
-        t2 = find(sResultP.Time >= timerange(2), 1);
-        AllMax = max(max(ImageGridAmp(:, t1:t2)));   % Max value over the time window of interest
-        GlobalMax = max(max(ImageGridAmp));           % Max value over all time points
-end
-end
-
-
-
 function Data_hcp_atlas = ecpfunc_hcp_atlas(cfg_main)
-% ECP functions
-% Project: ECP_SD
-% Written by: Vahab Youssof Zadeh
-% Update: 05/31/2023
 
 src_fname = cfg_main.src_fname;
 glass_dir = cfg_main.glass_dir;
 glass_atlas = cfg_main.glass_atlas;
-
 
 %%
 atlas = (glass_atlas);
