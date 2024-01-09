@@ -1,18 +1,18 @@
 function varargout = process_export_screenshot( varargin )
-% PROCESS_EXPORT_SPMVOL: Export source files to NIFTI files readable by SPM.
+% PROCESS_SNAPSHOT: Save snapshot.
 %
-% USAGE:     sProcess = process_export_spmvol('GetDescription')
-%                       process_export_spmvol('Run', sProcess, sInputs)
+% USAGE:     sProcess = process_snapshot('GetDescription')
+%                       process_snapshot('Run', sProcess, sInputs)
 
 % @=============================================================================
 % This function is part of the Brainstorm software:
 % https://neuroimage.usc.edu/brainstorm
-% 
+%
 % Copyright (c) University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
-% 
+%
 % FOR RESEARCH PURPOSES ONLY. THE SOFTWARE IS PROVIDED "AS IS," AND THE
 % UNIVERSITY OF SOUTHERN CALIFORNIA AND ITS COLLABORATORS DO NOT MAKE ANY
 % WARRANTY, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF
@@ -22,7 +22,7 @@ function varargout = process_export_screenshot( varargin )
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors: Vahab Youssof Zadeh, 2023
+% Authors: Francois Tadel, 2012-2022
 
 eval(macro_method);
 end
@@ -30,124 +30,153 @@ end
 
 %% ===== GET DESCRIPTION =====
 function sProcess = GetDescription() %#ok<DEFNU>
-    
-    % Description the process
-sProcess.Comment     = 'Export screenshot (avg. source maps)';
+% Description the process
+sProcess.Comment     = 'Save snapshot (MCW_clinical)';
 sProcess.Category    = 'Custom';
 sProcess.SubGroup    = 'File';
-sProcess.Index       = 980;
-sProcess.Description = 'https://neuroimage.usc.edu/brainstorm/Tutorials/CoregisterSubjects';
-sProcess.InputTypes  = {'results'};
-sProcess.OutputTypes = {'results'};
+sProcess.Index       = 982;
+sProcess.Description = 'https://neuroimage.usc.edu/brainstorm/Tutorials/Scripting';
+% Definition of the input accepted by this process
+sProcess.InputTypes  = {'raw', 'data', 'results', 'timefreq', 'matrix', 'dipoles', 'pdata', 'presults', 'ptimefreq', 'pmatrix'};
+sProcess.OutputTypes = {'raw', 'data', 'results', 'timefreq', 'matrix', 'dipoles', 'pdata', 'presults', 'ptimefreq', 'pmatrix'};
 sProcess.nInputs     = 1;
 sProcess.nMinFiles   = 1;
-    
+% === Orientation Options
+sProcess.options.orientpreset.Comment = 'Orientation Preset: ';
+sProcess.options.orientpreset.Type    = 'combobox';
+sProcess.options.orientpreset.Value   = {1, {
+    'left;right;top;bottom;left_intern;right_intern', ...
+    'bottom;top;left;right;left_intern;right_intern', ...
+    'left;right;top;bottom;right_intern;left_intern', ...
+    'left;bottom;right', ...
+    'left;right;top;bottom', ...
+    'Custom (Specify Below)'
+    }, 'Type', 'Label', 'Label', 'Value'};
+
+% === Custom Orientation
+% sProcess.options.customorient.Comment = 'Custom Orientation (e.g., {"left", "right", "top"}): ';
+sProcess.options.customorient.Comment = 'Custom Orientation (e.g., {left, right, top}): ';
+sProcess.options.customorient.Type    = 'text';
+sProcess.options.customorient.Value   = '';
+
+% === Background Color Selection
+sProcess.options.background.Comment = 'Background color: ';
+sProcess.options.background.Type    = 'combobox';
+sProcess.options.background.Value   = {1, {'White', 'Black'}, 'Type', 'Label', 'Label', 'Value'};
+
+% === TIME: Single view
+sProcess.options.time.Comment = 'Time (in seconds):';
+sProcess.options.time.Type    = 'value';
+sProcess.options.time.Value   = {0, 's', 4};
+% === TIME: Contact sheet
+sProcess.options.contact_time.Comment = 'Contact sheet (start time, stop time):';
+sProcess.options.contact_time.Type    = 'value';
+sProcess.options.contact_time.Value   = {[0,.1], 'list', 4};
+sProcess.options.contact_nimage.Comment = 'Contact sheet (number of images):';
+sProcess.options.contact_nimage.Type    = 'value';
+sProcess.options.contact_nimage.Value   = {12, '', 0};
+% === THRESOLD
+sProcess.options.threshold.Comment = 'Amplitude threshold:';
+sProcess.options.threshold.Type    = 'value';
+sProcess.options.threshold.Value   = {30, '%', 0};
+% === ROW NAMES
+sProcess.options.rowname.Comment    = 'Time-frequency signal name (empty=all): ';
+sProcess.options.rowname.Type       = 'text';
+sProcess.options.rowname.Value      = '';
+sProcess.options.rowname.InputTypes = {'timefreq', 'matrix'};
+
+% === COMMENT
+% Add a folder directory input
+sProcess.options.savedir.Comment = 'Saving Dir.:';
+sProcess.options.savedir.Type    = 'text';
+sProcess.options.savedir.Value   = ''; % Default value can be empty or a specific path
+
+% Add a saving file name input
+sProcess.options.sname.Comment = 'Saving filename:';
+sProcess.options.sname.Type    = 'text';
+sProcess.options.sname.Value   = ''; % Default value can be empty or a specific name
+
 end
+
 
 %% ===== FORMAT COMMENT =====
 function Comment = FormatComment(sProcess) %#ok<DEFNU>
-    Comment = sProcess.Comment;
+iType = strcmpi(sProcess.options.type.Value{1}, sProcess.options.type.Value{2}(2,:));
+Comment = ['Snapshot: ' sProcess.options.type.Value{2}{1,iType}];
 end
 
+%% ===== RUN =====
+function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
+% Returned files: same as input
+OutputFiles = {sInputs.FileName};
+% Get options
 
-function OutputFiles = Run(~, sInput) %#ok<DEFNU>
+% Get Orientation Selection
+orientPreset = sProcess.options.orientpreset.Value{1};
+customOrient = sProcess.options.customorient.Value;
 
-OutputFiles = {};
-
-% sResultP = in_bst_results(sInput.FileName, 1);
-ProtocolInfo =        bst_get('ProtocolInfo');
-[sStudy, ~, ~] = bst_get('AnyFile', sInput.FileName);
-
-
-FileName = sInput.FileName;
-
-if isempty(sStudy)
-    [~, fileBase, fileExt] = bst_fileparts(FileName);
-    fileBase = [fileBase, fileExt];
-else
-    ProtocolInfo = bst_get('ProtocolInfo');
-    [FileName, ~, isAnatomy] = file_fullpath(FileName);
-    if isAnatomy
-        filePath = ProtocolInfo.SUBJECTS;
-    else
-        filePath = ProtocolInfo.STUDIES;
-    end
-    fileBase = file_win2unix(strrep(FileName, filePath, ''));
-end
-
-disp('------------------')
-disp ('Where the map is goingn to be exported to ...')
-disp ('enter saving dir:')
-svdir = input('','s');svdir = strrep(svdir, ' ', '');
-
-BSpath = ProtocolInfo.STUDIES;
-fname = fileBase;
-cd(BSpath)
-
-disp('------------------')
-sfile = load(fname);
-svname = sfile.Comment;
-disp(['suggesting name:',svname]);
-disp('enter saving name:')
-svname = input('', 's');
-
-disp('------------------')
-disp('1: left;right;top;bottom;left_intern;right_intern')
-disp('2: bottom;top;left;right;left_intern;right_intern')
-disp('3: left;right;top;bottom;right_intern;left_intern')
-disp('4: left;bottom;right')
-disp('5: left;right;top;bottom')
-disp('6: optional, e.g, {left;right;top}')
-disp('select views')
-side_sel = input(':');
-
-switch side_sel
+% Determine Orientations based on selection
+switch orientPreset
     case 1
-        Orient = {'left'; 'right';'top';'bottom';'left_intern';'right_intern'};
+        Orient = {'left', 'right', 'top', 'bottom', 'left_intern', 'right_intern'};
     case 2
-        Orient = {'bottom';'top';'left';'right';'left_intern';'right_intern'};
+        Orient = {'bottom', 'top', 'left', 'right', 'left_intern', 'right_intern'};
     case 3
-        Orient = {'left'; 'right';'top';'bottom';'right_intern';'left_intern'};
+        Orient = {'left', 'right', 'top', 'bottom', 'right_intern', 'left_intern'};
     case 4
-        Orient = {'left'; 'bottom';'right'};
+        Orient = {'left', 'bottom', 'right'};
     case 5
-        Orient = {'left'; 'right';'top';'bottom'};
+        Orient = {'left', 'right', 'top', 'bottom'};
     case 6
-        disp('enter selected views, in quotation marks')
-        side_sel_man = input('');
-        Orient = side_sel_man;
+        % Custom Orientation
+        if ~isempty(customOrient)
+            Orient = strsplit(customOrient, ', ');  % Splits at the comma and space
+        else
+            bst_report('Error', sProcess, [], 'Custom orientation is selected but not defined.');
+            return;
+        end
 end
 
-disp('------------------')
-disp('1: White background')
-disp('2: Black background')
-backg_sel = input(':');
+%%
+% Get Background Color Selection
+backgroundSelection = sProcess.options.background.Value{1};
 
-disp('------------------')
-disp('adjust the surface theshold (in BS GUI)')
-disp('then hit enter')
+fname = OutputFiles{1};
+
+% Obtain saving directory
+savedir = sProcess.options.savedir.Value;
+svname = sProcess.options.sname.Value;
 
 close all
 hFig = view_surface_data([], fname, [], 'NewFigure');
-switch backg_sel
-    case 1
-        set(hFig,'color','w');
+
+% Set background color based on user selection
+if backgroundSelection == 1
+    set(hFig, 'color', 'w');
+elseif backgroundSelection == 2
+    set(hFig, 'color', 'k');
+else
+    % Default or error handling
+    disp('Invalid background selection. Using default white background.');
+    set(hFig, 'color', 'w');
 end
+
+% set(hFig,'color','w');
 bst_colormaps('SetColorbarVisible', hFig, 0);
 axis equal
 pause,
 
 a = [];
-for i=1:length(Orient)
-    figure_3d('SetStandardView', hFig, Orient{i});
+for iOrient=1:length(Orient)
+    figure_3d('SetStandardView', hFig, Orient{iOrient});
     img = out_figure_image(hFig, '', '');
-    imgFile = fullfile(svdir, [svname,'.tif']);
+    imgFile = fullfile(savedir, [svname,'.tif']);
     out_image(imgFile, img);
-    b=imread(imgFile);
+    b = imread(imgFile);
     if isa(b,'uint8'), b=double(b)/255; end
     if max(b(:))>1, b=double(b)/double(max(b(:))); end
-    a{i}=double(b);
-    pause(1)    
+    a{iOrient}=double(b);
+    pause(1)
 end
 
 ncut = 16;
@@ -170,13 +199,9 @@ else
 end
 
 imwrite(a,imgFile);
-disp('------------------')
-disp('Completed!, images were saved at,')
-disp(fullfile(svdir, svdir))
-cd(svdir)
-
-bst_progress('stop');
+disp('5: completed!, images were saved at,')
+disp(fullfile(savedir))
+disp('as,')
+disp([svname,'.tif'])
 
 end
-
-
