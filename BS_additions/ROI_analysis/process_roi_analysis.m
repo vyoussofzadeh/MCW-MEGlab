@@ -94,34 +94,11 @@ function OutputFiles = Run(sProcess, sInput)
 OutputFiles = {};
 sResultP = in_bst_results(sInput.FileName, 1);
 
-% Obtain saving directory
-% savedir = sProcess.options.savedir.Value;
-
-% Prompt and select time interval
-% time_interval = selectTimeInterval(sProcess.options.time_interval.Value{1});
-
-% Conditional activation of specific time interval input
-% if time_interval == 1
-%     timerange = sProcess.options.poststim.Value{1};
-% else
-%     timerange = 1; % Follow the existing procedure for other options
-% end
-
 % Select effect type (Positive, Negative, Absolute values)
 effect = selectEffectType(sProcess.options.effect.Value{1});
 
-% Define ROI-related parameters
-
-% Ratio4Threshold = sProcess.options.ratio4threshold.Value{1}/100;
-
-% Define threshold type
-% Threshtype = selectThresholdType(sProcess.options.threshtype.Value{1});
-
 % Process ImageGridAmp based on selected effect
 ImageGridAmp = processImageGridAmp(sResultP.ImageGridAmp, effect);
-
-% Determine max values for various time windows
-% [AllMax, GlobalMax, t1, t2] = determineMaxValues(time_interval, ImageGridAmp, sResultP, timerange);
 
 %%
 ProtocolInfo = bst_get('ProtocolInfo');
@@ -140,20 +117,15 @@ sScout.Scouts = Scouts;
 rois = []; pow_parcel = [];
 for i=1:length(sScout.Scouts)
     pow_parcel(i) = mean(ImageGridAmp(sScout.Scouts(i).Vertices));
-    %     rois{i} = sScout.Scouts(i).Label;
 end
 
 rois = {sScout.Scouts.Label};
 region = {sScout.Scouts.Region};
 
 %%
-glass_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_symmetrical_final_updated.mat';
 glass_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/Glasser';
-src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/cortex_pial_low.fs';
-addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/helper')
-
-cfg = struct('src_fname', src_fname, 'glass_dir', glass_dir, 'glass_atlas', glass_atlas, 'plotflag', 0);
-Data_hcp_atlas = ecpfunc_hcp_atlas2(cfg);
+cfg = struct('src_fname', [], 'glass_dir', glass_dir, 'glass_atlas', sScout, 'plotflag', 0);
+Data_hcp_atlas = ecpfunc_hcp_atlas(cfg);
 
 %%
 group_members = Data_hcp_atlas.glass_net_L_label;
@@ -181,8 +153,6 @@ for i=1:length(group_members)
     end
     idx_R{i} = idx;
 end
-
-idx_LR32 = [idx_L; idx_R];
 
 %%
 % Compute power for each group member in the left hemisphere
@@ -232,18 +202,11 @@ pow_table_R = table(group_names', pow_parcel_R', 'VariableNames', {'Group', 'Pow
 LI = 100.*(pow_parcel_L - pow_parcel_R)./(pow_parcel_L + pow_parcel_R);
 
 % Optionally, combine both tables
-pow_table_combined = table(group_names', pow_parcel_L', pow_parcel_R', LI', 'VariableNames', {'mean_ROIs', 'Power_Left', 'Power_Right', 'LI'});
+pow_table_combined = table(group_names', pow_parcel_L', pow_parcel_R', LI', 'VariableNames', {'network_ROIs', 'Power_Left', 'Power_Right', 'LI'});
 
-% Display the tables
-% disp(pow_table_L);
-% disp(pow_table_R);
 disp(pow_table_combined);
 
 
-%%
-% for i=1:length(Data_hcp_atlas.glass_net_L_label)
-%     disp(Data_hcp_atlas.glass_net_L_label{i})
-% end
 
 %%
 % Assuming rois and pow_parcel are already defined
@@ -255,14 +218,7 @@ if length(rois) ~= length(pow_parcel)
     error('The number of ROI labels does not match the number of power values.');
 end
 
-% Create a table with ROI labels and their corresponding power values
-roi_table = table(rois', pow_parcel', 'VariableNames', {'ROI_Label', 'Power'});
 roi_table = table(rois', pow_parcel', region', 'VariableNames', {'ROI_Label', 'Power', 'Region'});
-
-% disp(roi_table(1:min(end, 5), :));
-
-% Display the table
-% disp(roi_table);
 
 %%
 % Assuming roi_table is already defined with columns 'ROI_Label' and 'Power'
@@ -333,15 +289,6 @@ end
 end
 
 
-function Threshtype = selectThresholdType(Threshtype)
-% Prompt user to select threshold type
-
-% Ensure valid selection
-if isempty(Threshtype) || ~any(Threshtype == [1, 2, 3])
-    error('Invalid threshold type selection. Choose 1, 2, or 3.');
-end
-end
-
 function ImageGridAmp = processImageGridAmp(ImageGridAmp, effect)
 % Apply the desired effect on the ImageGridAmp
 
@@ -373,126 +320,9 @@ switch time_interval
 end
 end
 
-function [sScout, ProtocolInfo] = convertHCPScout(sResultP)
-% Convert the Desikan-Killiany scout to select scouts
-
-ProtocolInfo = bst_get('ProtocolInfo');
-SurfaceFile = load(fullfile(ProtocolInfo.SUBJECTS, sResultP.SurfaceFile));
-
-Scouts = [];
-sScout = [];
-for i = 1:length(SurfaceFile.Atlas)
-    if contains(SurfaceFile.Atlas(i).Name, {'mmp_in_mni_symmetrical_1'})
-        Scouts = SurfaceFile.Atlas(i).Scouts;
-    end
-end
-sScout.Scouts = Scouts;
-
-% Handle case when number of anatomical regions are not identical to atlas regions
-l = length(sScout.Scouts);
-rois = {sScout.Scouts.Label};
-rois_temp = {sScout.Scouts(1:l).Label};
-[C, IA] = setdiff(rois_temp, rois);
-
-warning('The number of anatomical regions are not identical to atlas regions');
-disp('Replacing with zero ...');
-new_eScout = sScout;
-k = 1;
-for i = 1:l
-    if i ~= IA
-        new_eScout.Scouts(i) = sScout.Scouts(k);
-        k = k + 1;
-    else
-        new_eScout.Scouts(i).Vertices = [];
-        new_eScout.Scouts(i).Seed = [];
-    end
-end
-sScout = new_eScout;
-end
-
-function [sScout, ProtocolInfo] = convertDesikanKillianyScout(sResultP)
-% Convert the Desikan-Killiany scout to select scouts
-
-ProtocolInfo = bst_get('ProtocolInfo');
-SurfaceFile = load(fullfile(ProtocolInfo.SUBJECTS, sResultP.SurfaceFile));
-
-Scouts = [];
-sScout = [];
-for i = 1:length(SurfaceFile.Atlas)
-    if contains(SurfaceFile.Atlas(i).Name, {'Desikan-Killiany'})
-        Scouts = SurfaceFile.Atlas(i).Scouts;
-    end
-end
-sScout.Scouts = Scouts;
-
-% Handle case when number of anatomical regions are not identical to atlas regions
-l = length(sScout.Scouts);
-if l ~= 68
-    rois = {sScout.Scouts.Label};
-    rois_temp = {sScout.Scouts(1:68).Label};
-    [C, IA] = setdiff(rois_temp, rois);
-    
-    warning('The number of anatomical regions are not identical to atlas regions');
-    disp('Replacing with zero ...');
-    new_eScout = sScout;
-    k = 1;
-    for i = 1:68
-        if i ~= IA
-            new_eScout.Scouts(i) = sScout.Scouts(k);
-            k = k + 1;
-        else
-            new_eScout.Scouts(i).Vertices = [];
-            new_eScout.Scouts(i).Seed = [];
-        end
-    end
-    sScout = new_eScout;
-end
-end
-
-function [RoiLabels, RoiIndices] = defineROIs()
-% Define regions of interest (ROIs)
-
-AngSmg   = [15,16,63,64];
-Front    = [3,4,5,6,11,12,25,26,29,30,33,34,37,38,39,40,41,42,49,50,53,54,55,56,57,58];
-LatFront = [5,6,11,12,37,38,39,40,41,42,55,56,57,58];
-LatTemp  = [1,2,17,18,31,32,61,62,65,66,67,68];
-PeriSyl  = [15,16,37,38,41,42,61,62,63,64];
-Tanaka   = [37,38,41,42,61,62,63,64];
-Temp     = [1,2,9,10,13,14,17,18,19,20,27,28,31,32,35,36,61,62,65,66,67,68];
-Whole    = 1:68;
-
-RoiLabels = {'AngSmg', 'Front','LatFront','LatTemp', 'PeriSyl', 'Tanaka','Temp','Whole'};
-RoiIndices = {AngSmg, Front, LatFront, LatTemp, PeriSyl, Tanaka, Temp, Whole};
-end
 
 
-function [RoiLabels, RoiIndices] = defineROIs_hcp()
-% Define regions of interest (ROIs)
-
-RoiLabels = {'Angular', 'Frontal', 'Occipital', 'Other', 'PCingPrecun', 'Temporal'};
-
-% glass_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_symmetrical_final_updated.mat';
-% atlas = load(glass_atlas);
-
-glass_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_symmetrical_final_updated.mat';
-glass_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/Glasser';
-
-load(fullfile(glass_dir, 'LI_glasser_manual_net_12.mat'), 'glass_net_L_label', 'glass_net_R_label');
-
-AngSmg   = [15,16,63,64];
-Front    = [3,4,5,6,11,12,25,26,29,30,33,34,37,38,39,40,41,42,49,50,53,54,55,56,57,58];
-LatFront = [5,6,11,12,37,38,39,40,41,42,55,56,57,58];
-LatTemp  = [1,2,17,18,31,32,61,62,65,66,67,68];
-PeriSyl  = [15,16,37,38,41,42,61,62,63,64];
-Tanaka   = [37,38,41,42,61,62,63,64];
-Temp     = [1,2,9,10,13,14,17,18,19,20,27,28,31,32,35,36,61,62,65,66,67,68];
-Whole    = 1:68;
-
-% RoiLabels = {'AngSmg', 'Front','LatFront','LatTemp', 'PeriSyl', 'Tanaka','Temp','Whole'};
-RoiIndices = {AngSmg, Front, LatFront, LatTemp, PeriSyl, Tanaka, Temp, Whole};
-end
-
-function Data_hcp_atlas = ecpfunc_hcp_atlas2(cfg_main)
+function Data_hcp_atlas = ecpfunc_hcp_atlas(cfg_main)
 % ECP functions
 % Project: ECP_SD
 % Written by: Vahab Youssof Zadeh
@@ -503,13 +333,13 @@ glass_dir = cfg_main.glass_dir;
 glass_atlas = cfg_main.glass_atlas;
 
 %%
-
 % '/group/jbinder/ECP/MEG/laterality_index/bilateral_glasser_lateral.tsv'
 
 %%
 % Load atlas
 % atlas = load('/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_symmetrical_final_updated.mat');
-atlas = load(glass_atlas);
+% atlas = load(glass_atlas);
+atlas = (glass_atlas);
 groups_labels = {'Angular', 'Frontal', 'Occipital', 'Other', 'PCingPrecun', 'Temporal'};
 
 rois = {atlas.Scouts.Label};
