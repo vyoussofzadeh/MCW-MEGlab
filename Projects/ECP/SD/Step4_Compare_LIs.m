@@ -159,11 +159,6 @@ network_sel = [1:3,6:11];
 colr = distinguishable_colors(length(network_sel));
 
 %%
-% mLI_sub_hc = squeeze(nanmean(LI_hc.LI_sub,2));
-% mLI_sub_pt = squeeze(nanmean(LI_pt.LI_sub,2));
-
-%%
-% clc
 patn_neuropsych_tle = ecpfunc_read_patn_neuropsych_tle();
 TLESide = patn_neuropsych_tle.TLESide; SUBNO = patn_neuropsych_tle.SUBNO;
 
@@ -177,13 +172,7 @@ TLESide_sel = TLESide(IB);
 
 TLE_left = find(TLESide_sel == 'Left');
 
-% LI_pt_val_left = LI_pt.LI_sub(:,TLE_left,:);
-%
-% mLI_sub_left = squeeze(mean(LI_pt_val_left,2));
-
 %% MEG vs. fMRI lat analysis (PT)
-% pause, close all,
-
 [sub_MF_pt,IA,IB] = intersect(LI_pt_ID, fmri_LIs.ID.language_Lateral');
 
 LI_pt_val = LI_pt.(LI_method_label{1}).LI_sub;
@@ -197,8 +186,6 @@ disp('missing from fMRI')
 disp(difference');
 
 %% MEG LI vs fMRI LI (language_Lateral)
-% pause, close all,
-
 LI_pt_val_new = [];
 for i=1:length(LI_method_label)
     LI_pt_val_new.(LI_method_label{i}) = LI_pt.(LI_method_label{i}).LI_sub(:, IA,:);
