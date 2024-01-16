@@ -221,8 +221,8 @@ end
 
 LI_pt_val = LI_pt.LI_sub;
 
-LI_pt_val_new = LI_pt_val(:,IA,:);
-fmri_LIs_val = (fmri_LIs.val.language_Lateral(IB)); % Lateral regions was used.
+MEG_LI_Data = LI_pt_val(:,IA,:);
+fMRI_LI_Data = (fmri_LIs.val.language_Lateral(IB)); % Lateral regions was used.
 
 % missing from fMRI
 difference = setdiff(LI_pt_ID, sub_MF_pt');
@@ -239,8 +239,8 @@ cfg.savefig = 1;
 cfg.bf = 15;
 cfg.outdir = save_dir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_val = LI_pt_val_new;
-cfg.fmri_LIs_val = fmri_LIs_val;
+cfg.LI_val = MEG_LI_Data;
+cfg.fmri_LIs_val = fMRI_LI_Data;
 % cfg.net_sel = [1,2,6];
 cfg.net_sel = [11]; % 6, 1, 2
 [megLI_sub_pt, fmri_LIs_val, ~, interval_idx] = do_MEG_fMRI_corr_contrast(cfg);
@@ -252,7 +252,61 @@ fmri_LIs_trn = do_ternary_classification(cfg);
 size(fmri_LIs_trn);
 
 %%
-buffervalue = 8;
+close all
+MEG_LI_Data_net = squeeze(MEG_LI_Data(11,:,:));
+
+clc
+timePoints = mean(wi,2);
+IntervalSize = 1;
+[optimalInterval, correlations] = findOptimalMEGInterval(MEG_LI_Data_net, fMRI_LI_Data, timePoints, IntervalSize);
+
+max(correlations)
+
+clc
+IntervalSize = 30;
+StepSize = 5;
+% subjectForPlot = nan;
+[groupCorrelation, optimalIntervals] = computeGroupLevelMEGfMRICorrelation(MEG_LI_Data_net, fMRI_LI_Data, timePoints, IntervalSize, StepSize);
+plotOptimalIntervalsOnMEG(MEG_LI_Data_net, fMRI_LI_Data, timePoints, optimalIntervals);
+
+%%
+clc
+subjectForPlot = 5;
+optimalIntervals = findIndividualOptimalIntervals(MEG_LI_Data_net, fMRI_LI_Data, timePoints, IntervalSize, StepSize, subjectForPlot);
+
+
+concordance = calculateConcordance(MEG_LI_Data_net, fMRI_LI_Data, timePoints, optimalIntervals)
+
+% clc
+% subjectNumber = 2; % Replace with your chosen subject number
+% interval = optimalIntervals(subjectNumber, :); % Retrieve the optimal interval
+% 
+% % Extract interval MEG LI data
+% intervalIndex = find(TimePoints >= interval(1) & TimePoints <= interval(2));
+% intervalMEG_LI = MEG_LI_Data_net(subjectNumber, intervalIndex);
+% 
+% % Replicate the fMRI LI value
+% fMRI_LI_replicated = repmat(fMRI_LI_Data(subjectNumber), 1, length(intervalIndex));
+% 
+% % Linear Regression
+% X = [ones(length(intervalMEG_LI), 1), intervalMEG_LI'];
+% b = regress(fMRI_LI_replicated', X); % Regression coefficients
+% 
+% % Plot
+% figure;
+% scatter(intervalMEG_LI, fMRI_LI_replicated); % Scatter plot
+% hold on;
+% xAxis = linspace(min(intervalMEG_LI), max(intervalMEG_LI), 100);
+% yAxis = b(1) + b(2) * xAxis;
+% plot(xAxis, yAxis, 'r'); % Regression line
+% title(sprintf('Linear Regression for Subject %d', subjectNumber));
+% xlabel('MEG LI');
+% ylabel('Replicated fMRI LI');
+% hold off;
+
+
+%%
+buffervalue = 5;
 
 %% MEG LI vs fMRI LI (Ternary language_Lateral)
 % pause, 
@@ -288,16 +342,16 @@ for i=1:length(discordant_subs)
     tmp = squeeze(LI_pt_val_new(11,idx(i),:));
     figure,plot(wi(:,1),tmp), title([discordant_subs(i), num2str(meg_fMRI_trn(idx(i),:)), 'mean=', num2str(mean(tmp(interval_idx)))])
     hold on
-    xline(mwi(interval_idx(1)))
-    xline(mwi(interval_idx(end)))
+    xline(mwi(interval_idx(1)));
+    xline(mwi(interval_idx(end)));
 end
 
 %% Max abs LI (for detecting optimal time intervals)
 clc
-t_interval = [0.2, 1.8];
-t_interval = [0.3, 0.8];
+% t_interval = [0.3, 1.6];
+% t_interval = [0.3, 0.8];
 t_interval = [0.4, 0.7];
-t_interval = [.2, 0.7];
+% t_interval = [.3, 1.5];
 
 cfg = []; 
 cfg.wi = wi;
@@ -366,6 +420,8 @@ load('/data/MEG/Research/aizadi/process/RT_summary/ResponseTime.mat')
 [sub_rt_li,IA,IB] = intersect(T.Sub_ID,sub_MF_pt);
 
 RT_li = RT_all.rt_time.both(IA);
+% RT_li = RT_all.rt_time.animal(IA);
+
 
 figure, plot(RT_li,megLI_sub_pt,'*')
 figure, plot(RT_li,fmri_LIs_val,'*')
@@ -379,6 +435,9 @@ discordant_indices = find(ismember(T.Sub_ID, discordant_subs));
 
 % Extract RT data for discordant subjects
 discordant_RT = T.Avg(discordant_indices);
+% discordant_RT = T.Animal(discordant_indices);
+% discordant_RT = T.Symbol(discordant_indices);
+
 
 nanmean(T.Avg)
 
