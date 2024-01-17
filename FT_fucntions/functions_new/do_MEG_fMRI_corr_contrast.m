@@ -15,8 +15,7 @@ outdir = cfg_main.outdir;
 crr = [];
 midx = [];
 for i=1:length(wi)
-    if length(net_sel) > 1
-        
+    if length(net_sel) > 1       
         mLI_sub1 = mean(LI_pt_new(net_sel,:,i));
     else
         mLI_sub1 = (LI_pt_new(net_sel,:,i));
@@ -81,42 +80,6 @@ else
     megLI_sub_pt = (mLI_sub1);
 end
 
-%%
-% for i=1:size(LI_pt_new,2)
-%     figure, plot(squeeze(LI_pt_new(net_sel,i,:))),
-%     hold on
-%     yline(fmri_LIs_val(i))
-%     yline(mean(LI_pt_new(net_sel,i,idx-bf:idx+bf)),'r')
-%     mx = max(LI_pt_new(net_sel,i,:));
-%     mn = min(LI_pt_new(net_sel,i,:));
-% %     yline(((abs(mx) - abs(mn))),'c')
-% %     yline((median(LI_pt_new(net_sel,i,:))),'c')
-%     yline(mx,'c')
-%     title(num2str(i))
-%     pause,
-%     close all   
-% end
-
-%%
-% if length(net_sel) > 1
-%     mLI_sub1 = arrayfun(@(idx) mean(LI_pt_val_new(net_sel,idx,:)), max_time_pts);
-%     mLI_sub2 = arrayfun(@(idx) mean(LI_symb_pt_val_new(net_sel,idx,:)), max_time_pts_symb);
-%     
-%     %     mLI_sub1 = arrayfun(@(idx) mean(LI_pt_val_new(net_sel,idx,:)), max_time_pts_diff);
-%     %     mLI_sub2 = arrayfun(@(idx) mean(LI_symb_pt_val_new(net_sel,idx,:)), max_time_pts_diff);
-%     
-%     megLI_sub_pt = mean((mLI_sub1 - mLI_sub2),2);
-%     megLI_sub_pt = (mLI_sub1);
-% else
-%     mLI_sub1 = arrayfun(@(idx) LI_pt_val_new(net_sel,idx), max_time_pts);
-%     mLI_sub2 = arrayfun(@(idx) LI_symb_pt_val_new(net_sel,idx), max_time_pts_symb);
-%     
-%     %     mLI_sub1 = arrayfun(@(idx) LI_pt_val_new(net_sel,idx), max_time_pts_diff);
-%     %     mLI_sub2 = arrayfun(@(idx) LI_symb_pt_val_new(net_sel,idx), max_time_pts_diff);
-%     
-%     megLI_sub_pt = (mLI_sub1 - mLI_sub2);
-%     megLI_sub_pt = (mLI_sub1);
-% end
 
 %%
 if cfg_main.ternary == 1

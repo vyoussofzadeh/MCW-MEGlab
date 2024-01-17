@@ -251,7 +251,14 @@ switch LI_analysis
             cfg.sub_demog_data = sub_demog_data;
             cfg.select_data = dtag_val(select_data);
             S_data_sel = ecpfunc_select_data(cfg);
-           
+            
+%             % Process: Average: Everything
+%             bst_process('CallProcess', 'process_average', S_data_sel.sFiles_in', [], ...
+%                 'avgtype',         1, ...  % Everything
+%                 'avg_func',        1, ...  % Arithmetic average:  mean(x)
+%                 'weighted',        0, ...
+%                 'scalenormalized', 0);
+            
             cfg = [];
             cfg.S_data_sel = S_data_sel;
             cfg.BS_data_dir = BS_data_dir;

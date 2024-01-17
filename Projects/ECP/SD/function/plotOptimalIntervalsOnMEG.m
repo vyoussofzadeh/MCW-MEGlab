@@ -1,4 +1,4 @@
-function plotOptimalIntervalsOnMEG(MEG_LI, fMRI_LI, timePoints, optimalIntervals)
+function plotOptimalIntervalsOnMEG(MEG_LI, fMRI_LI, ID, timePoints, optimalIntervals)
 
     numSubjects = size(MEG_LI, 1);
     
@@ -24,7 +24,7 @@ function plotOptimalIntervalsOnMEG(MEG_LI, fMRI_LI, timePoints, optimalIntervals
         ylim([-100 100]);
 
         hold off;
-        title(sprintf('Subject %d | fMRI LI: %.2f | Mean MEG LI: %.2f', subj, fMRI_LI(subj), meanOptimalMEG_LI));
+        title(sprintf('Subject %s | fMRI LI: %.2f | Mean MEG LI: %.2f', ID{subj}, fMRI_LI(subj), meanOptimalMEG_LI));
         xlabel('Time Points');
         ylabel('MEG LI');
     end

@@ -135,6 +135,15 @@ switch LI_analysis
         LI_pt_ID = S_data_pt.sFiles_subid;
 end
 
+%% avg.
+% sFiles = S_data_anim_pt.sFiles_in;
+% % Process: Average: Everything
+% sFiles = bst_process('CallProcess', 'process_average', sFiles, [], ...
+%     'avgtype',         1, ...  % Everything
+%     'avg_func',        1, ...  % Arithmetic average:  mean(x)
+%     'weighted',        0, ...
+%     'scalenormalized', 0);
+
 %%
 cfg = []; cfg.strt = 0; cfg.spt = 2; cfg.overlap = 0.01; cfg.linterval = 0.3;
 wi  = do_time_intervals(cfg);
@@ -262,48 +271,28 @@ IntervalSize = 1;
 
 max(correlations)
 
+sub_IDs = sub_MF_pt;
+nsub_IDs = [];
+for i=1:length(sub_IDs)
+    nsub_IDs{i} = [num2str(i), ':', sub_IDs{i}];
+end
+
 clc
 IntervalSize = 30;
 StepSize = 5;
 % subjectForPlot = nan;
 [groupCorrelation, optimalIntervals] = computeGroupLevelMEGfMRICorrelation(MEG_LI_Data_net, fMRI_LI_Data, timePoints, IntervalSize, StepSize);
-plotOptimalIntervalsOnMEG(MEG_LI_Data_net, fMRI_LI_Data, timePoints, optimalIntervals);
+plotOptimalIntervalsOnMEG(MEG_LI_Data_net, fMRI_LI_Data, sub_MF_pt, timePoints, optimalIntervals);
 
-%%
+MEG_thre = 0.2; fMRI_thre = 0.1;
+[concordance, discordantSubs] = calculateConcordance(MEG_LI_Data_net, MEG_thre,fMRI_LI_Data, fMRI_thre, timePoints, optimalIntervals)
+nsub_IDs(discordantSubs)
+
+%
 clc
-subjectForPlot = 5;
+disp(nsub_IDs');
+subjectForPlot = input('enter sub number:');
 optimalIntervals = findIndividualOptimalIntervals(MEG_LI_Data_net, fMRI_LI_Data, timePoints, IntervalSize, StepSize, subjectForPlot);
-
-
-concordance = calculateConcordance(MEG_LI_Data_net, fMRI_LI_Data, timePoints, optimalIntervals)
-
-% clc
-% subjectNumber = 2; % Replace with your chosen subject number
-% interval = optimalIntervals(subjectNumber, :); % Retrieve the optimal interval
-% 
-% % Extract interval MEG LI data
-% intervalIndex = find(TimePoints >= interval(1) & TimePoints <= interval(2));
-% intervalMEG_LI = MEG_LI_Data_net(subjectNumber, intervalIndex);
-% 
-% % Replicate the fMRI LI value
-% fMRI_LI_replicated = repmat(fMRI_LI_Data(subjectNumber), 1, length(intervalIndex));
-% 
-% % Linear Regression
-% X = [ones(length(intervalMEG_LI), 1), intervalMEG_LI'];
-% b = regress(fMRI_LI_replicated', X); % Regression coefficients
-% 
-% % Plot
-% figure;
-% scatter(intervalMEG_LI, fMRI_LI_replicated); % Scatter plot
-% hold on;
-% xAxis = linspace(min(intervalMEG_LI), max(intervalMEG_LI), 100);
-% yAxis = b(1) + b(2) * xAxis;
-% plot(xAxis, yAxis, 'r'); % Regression line
-% title(sprintf('Linear Regression for Subject %d', subjectNumber));
-% xlabel('MEG LI');
-% ylabel('Replicated fMRI LI');
-% hold off;
-
 
 %%
 buffervalue = 5;

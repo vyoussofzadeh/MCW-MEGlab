@@ -1,53 +1,47 @@
 function Out = do_LI_maxinterval(cfg_main)
 
-
+% Extracting configuration settings
 wi = cfg_main.wi;
 LI_pt_new = cfg_main.LI_val;
 net_sel = cfg_main.net_sel;
 startTime = cfg_main.startTime;
 endTime = cfg_main.endTime;
 
-%%
-timePoints = mean(wi,2);
-% Define time range in seconds
-startTime = startTime; % 200 ms
-endTime = endTime; % 1 sec
+% Average time points across intervals
+timePoints = mean(wi, 2);
 
-% Find columns corresponding to the desired time range
+% Extract Lateralization Index for selected network
+LI_int = squeeze(LI_pt_new(net_sel, :, :));
+
+% Define the selected interval
 startCol = find(timePoints >= startTime, 1, 'first');
 endCol = find(timePoints <= endTime, 1, 'last');
+LI_int_sel = LI_int(:, startCol:endCol);
 
-% Determine the time point of max LI for each subject
-LI_int = squeeze(LI_pt_new(net_sel,:,:));
+% Find the time point of maximum LI within the selected interval
+[~, max_time_pts_sel] = max(abs(LI_int_sel), [], 2);
+% [~, max_time_pts_sel] = max((LI_int_sel), [], 2);
+max_time_vals_sel = timePoints(startCol - 1 + max_time_pts_sel);
 
-%%
-abs_LI = squeeze(abs(LI_int));
-% abs_LI = squeeze((LI_int));
+% Adjusting max_time_pts_sel to reflect their positions in the full LI array
+max_time_pts_full_range = max_time_pts_sel + startCol - 1;
 
-abs_LI2 = abs_LI(:,startCol:endCol);
+% Output
+Out = struct();
+Out.max_time_pts_sel = max_time_pts_full_range; % Indices of max time points in full time range
+Out.max_time_vals_sel = max_time_vals_sel;      % Time stamps of max LI points in selected interval
 
-[~, max_time_pts] = max(abs_LI2);
-
-tsel = timePoints(startCol:endCol);
-
-clc, close all
-for i=1:size(abs_LI,1)
-    
-    %     figure, plot(tsel, abs_LI(i,startCol:endCol))
-    %     xline(tsel(max_time_pts(i)),'r')
-    figure, plot(abs_LI(i,:))
-    hold on, xline((max_time_pts(i)) + startCol-1)
-    
-    figure, plot(timePoints, abs_LI(i,:))
-    hold on, xline(tsel(max_time_pts(i)))
-    pause,
-end
-
-%% Out
-Out = [];
-Out.max_time_pts = max_time_pts;
-Out.tsel = tsel;
-Out.max_time_idx = max_time_pts + startCol-1;
+% Sanity Check Plot
+% for i = 1:size(LI_int, 1)
+%     figure; hold on;
+%     plot(timePoints, LI_int(i, :));
+%     xline(Out.max_time_vals_sel(i), 'r', 'LineWidth', 1.5);
+%     xlabel('Time (s)');
+%     ylabel('Lateralization Index');
+%     title(['Sanity Check: Max LI Point in Selected Interval for Subject ' num2str(i)]);
+%     legend('LI Time Course', 'Max LI Point', 'Location', 'best');
+%     hold off;
+%     pause;  % Pause to view each figure
+% end
 
 end
-
