@@ -97,9 +97,6 @@ end
 isAcceptZero = sProcess.options.zero.Value;
 MinDuration = sProcess.options.min_duration.Value{1};
 
-% Masking responses
-applyMask = sProcess.options.checkboxMask.Value;
-
 % ===== GET FILE DESCRIPTOR =====
 % Load the raw file descriptor
 isRaw = strcmpi(sInput.FileType, 'raw');
@@ -199,33 +196,9 @@ if isempty(StimChan) || isequal(StimChan, 'ask') || isequal(StimChan, {'ask'})
             % Status Channel
             iStiChan = channel_find(ChannelMat.Channel, 'BDF');
     end
-    %     % No valid events channel
-    %     if isempty(iStiChan)
-    %         bst_error('No valid events channel found in this file.', 'Read events', 0);
-    %         return
-    %     end
-    %     % If only one choice: select it by default
-    %     if (length(iStiChan) == 1)
-    %         StimChan = ch_names(iStiChan);
-    %         % Else: offer multiple choices to the user
-    %     else
-    %         StimChan = java_dialog('checkbox', ...
-    %             ['You can try to rebuild the events list using one or more technical tracks, or ' 10 ...
-    %             'ignore this step and process the file as continuous recordings without events.' 10 10 ...
-    %             'Available technical tracks: '], ...
-    %             'Read events', [], ch_names(iStiChan));
-    %         if isempty(StimChan)
-    %             events = [];
-    %             return
-    %         end
-    %     end
-    
-    
-    % EDITED BY VY
+        % No valid events channel
     if (length(iStiChan) == 1)
         StimChan = ch_names(iStiChan);
-        % Default mask option when only one channel is available
-        applyMask = false;
     else
         % Prepare the message for the dialog
         dialogMessage = ['You can try to rebuild the events list using one or more technical tracks, or ' 10 ...
@@ -252,11 +225,7 @@ if isempty(StimChan) || isequal(StimChan, 'ask') || isequal(StimChan, {'ask'})
             events = [];
             return;
         end
-        
-        % Determine if 'Apply Mask' was selected
-        applyMask = strcmp(maskSelection, 'Apply Mask');
     end
-
 end
 
 % CTF: Select only upper or lower bytes
