@@ -99,7 +99,7 @@ Run_BS
 Run_load_surface_template
 
 %%
-LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_basline','LCMV_contrast','DICS_anim'};
+LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_basline','LCMV_contrast','DICS_anim', 'DICS_contrast_prestim'};
 
 for i = 1:length(LI_analysis_label)
     disp([num2str(i) ') ' LI_analysis_label{i}]);
@@ -135,6 +135,9 @@ switch LI_analysis
         S_data = ecpfunc_read_sourcemaps(cfg);
     case 4
         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
+    case 6
+        cfg.datatag = 'PSTwDICS_contrast_18_4';
+        S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
 end
 
 %% TLE side (PT only)
@@ -146,7 +149,7 @@ switch LI_analysis
         cfg = []; cfg.subjs_3 = S_data.subjs_3; cfg.subjs_2 = S_data.subjs_2;
         cfg.sFiles_3 = S_data.sFiles_3; cfg.sFiles_2 = S_data.sFiles_2;
         sub_demog_data = ecpfunc_read_sub_demog(cfg);
-    case {2, 4}
+    case {2, 4, 6}
         cfg = []; cfg.subjs = S_data.subjs;
         cfg.sFiles = S_data.sFiles_32;
         sub_demog_data = ecpfunc_read_sub_demog_contrast(cfg);
@@ -213,7 +216,7 @@ switch LI_analysis
             [label_8net, LI_sub] = do_group_LI_net_baseline(cfg); % Anim vs. Baseline vs. Symb vs. Baseline
         end
         
-    case {2, 4}
+    case {2, 4, 6}
         dtag = {'Ctrl';'Patn'};
         
         for select_data = 1:length(dtag)
