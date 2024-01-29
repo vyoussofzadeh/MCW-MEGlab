@@ -68,7 +68,7 @@ cd(data_info_dir)
     
     cd(BS_data_dir)
 %     dd = rdir(fullfile('./Group_analysis/2_LCMV_Subjects/results_average*.mat'));
-    dd = rdir(fullfile('./Group_analysis/2_LCMV_Subjects/results*.mat'));
+    dd = rdir(fullfile('./Group_analysis/LCMV/*ssmooth.mat'));
     for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
     
     sFiles_name = [];
@@ -103,8 +103,8 @@ cd(data_info_dir)
         end
     end
     
-    idx_anim = find(contains(Comment, 'Anim_')==1);
-    idx_symb = find(contains(Comment, 'Symbol_')==1);
+    idx_anim = find(contains(Comment, '3 (')==1);
+    idx_symb = find(contains(Comment, '2 (')==1);
     
     sFiles_3 = sFiles_name(idx_anim);
     sFiles_2 = sFiles_name(idx_symb);

@@ -20,7 +20,8 @@ flags.plot_atlasnetworks = 0;
 %% HCP Atlas
 clc, close all
 src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/cortex_pial_low.fs';
-data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/';
+data_save_dir = '/data/MEG/Research/ECP/Semantic_Decision/Results';
+% data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/';
 glass_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_symmetrical_final_updated.mat';
 glass_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/Glasser';
 
@@ -38,8 +39,8 @@ cfg.fixedcolor = [0,0.7,0];
 [idx_L, idx_R, src]  = do_plot_hcp_network(cfg);
 net_rois = 'ftp';
 
-camlight(80,-10);
-camlight(-80,-10);
+% camlight(80,-10);
+% camlight(-80,-10);
 
 %
 disp(Data_hcp_atlas.groups_labels)
@@ -125,12 +126,10 @@ cfg.BS_data_dir = BS_data_dir;
 
 switch LI_analysis
     case {1,5}
-%         cfg.datatag = 'wDICS_22_4_baseline';
         cfg.datatag = 'wDICS_baseline_18_4';
         S_data = ecpfunc_read_sourcemaps_dics(cfg);
     case 2
         cfg.datatag = 'wDICS_contrast_18_4';
-%         cfg.datatag = 'wDICS_contrast_22_4';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
     case 3
         S_data = ecpfunc_read_sourcemaps(cfg);
@@ -271,8 +270,7 @@ switch LI_analysis
             cfg.method = mlabel;
             cfg.Threshtype = 3;
             [label_8net, LI_sub] = do_group_LI_net_contrast(cfg); % Anim vs. Baseline vs. Symb vs. Baseline
-        end
-        
+        end    
 end
 
 %%

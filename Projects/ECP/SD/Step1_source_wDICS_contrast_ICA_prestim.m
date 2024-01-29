@@ -144,7 +144,7 @@ for i=1:length(d)
     
     if isempty(results)
         flag = 1;
-    elseif isempty(find(contains(results, 'wDICS')==1, 1))
+    elseif isempty(find(contains(results, '-0.300s-2.000s')==1, 1))
         flag = 1;
     else
         flag = 0;
@@ -176,10 +176,10 @@ for i=1:length(d)
 %         pause,
         disp(i)
         
-        % Process: FieldTrip: ft_sourceanalysis (wDICS) window contrast
+                % Process: FieldTrip: ft_sourceanalysis (wDICS) window contrast
         bst_process('CallProcess', 'process_ft_sourceanalysis_dics_wcontrast', sFiles, sFiles2, ...
             'sensortype', 'MEG', ...  % MEG
-            'poststim',   [7.21644966e-16, 2], ...
+            'poststim',   [-0.3, 2], ...
             'foi',        18, ...
             'tpr',        4, ...
             'tlength',    0.3, ...
@@ -234,7 +234,7 @@ for ii = 1:length(subj)
         for jj=1:length(dd)
             tmp = load(dd(jj).name);
             disp(tmp.Comment);
-            if contains(tmp.Comment,'wDICS: subtraction')
+            if contains(tmp.Comment,'-0.300s-2.000s')
                 sel = [sel,jj];
             end
         end
@@ -282,7 +282,7 @@ for ii = 1:length(subj)
                 for kk=1:length(dd1)
                     tmp = load(dd1(kk).name);
                     disp(tmp.Comment);
-                    if contains(tmp.Comment,[subj{ii}, '_wDICS_'])
+                    if contains(tmp.Comment,[subj{ii}, '_PSTwDICS_'])
                         runok = 0; break,
                     else
                         runok = 1;
@@ -298,7 +298,7 @@ for ii = 1:length(subj)
                     'avgtype',         1, ...  % Everything
                     'avg_func',        1, ...  % Arithmetic average:  mean(x)
                     'weighted',        0, ...
-                    'Comment', [subj{ii}, '_wDICS_contrast'], ...
+                    'Comment', [subj{ii}, '_PSTwDICS_contrast'], ...
                     'scalenormalized', 0);
             else
                 warning(['check data:', subj{ii}])
@@ -318,8 +318,6 @@ for ii=1:length(dd), d{ii}=dd(ii).name; disp(dd(ii).name); end
 for ii=1:length(dd1), d2{ii}=dd1(ii).name; disp(dd1(ii).name); end
 dd3 = setdiff(d,d2);
 
-% atag = {'3','2'};
-
 subj = []; comm_data = []; sel = []; dconn = []; kk = 1;
 sFiles_name = [];
 for ii=1:length(dd3)
@@ -328,7 +326,7 @@ for ii=1:length(dd3)
     cd(pp)
     tmp = load(dd3{ii});
     comm_data{ii} = tmp.Comment;
-    if contains(comm_data{ii}, ['_wDICS_contrast'])
+    if contains(comm_data{ii}, ['_PSTwDICS_contrast'])
         %             pause,
         sel = [sel,ii];
         tkz = tokenize(comm_data{ii},'_');
@@ -342,7 +340,7 @@ end
 d_sel = dd3(sel);
 
 % looking for already caculated maps ..
-dd = rdir(fullfile (BS_data_dir,'/Group*/wDICS_contrast_18_4/results*.mat'));
+dd = rdir(fullfile (BS_data_dir,'/Group*/PSTwDICS_contrast_18_4/results*.mat'));
 subj_comp = []; comm_data = []; sel = []; dconn = []; kk = 1;
 sFiles_name_completed = [];
 for ii=1:length(dd)
@@ -352,7 +350,7 @@ for ii=1:length(dd)
     tmp = load(dd(ii).name);
     comm_data{ii} = tmp.Comment;
     disp(comm_data{ii})
-    if contains(comm_data{ii}, ['_wDICS_contrast'])
+    if contains(comm_data{ii}, ['_PSTwDICS_contrast'])
         %         pause,
         sel = [sel,ii];
         tkz = tokenize(comm_data{ii},'_');
@@ -367,7 +365,7 @@ if isempty(sFiles_name_completed)
 end
 
 % Project on default anatomy (for group mapping)
-idx = find(contains(sFiles_name,'wDICS')==1);
+idx = find(contains(sFiles_name,'PSTwDICS')==1);
 destSurfFile = '@default_subject/tess_cortex_pial_low.mat';
 
 load(protocol);
@@ -399,5 +397,5 @@ if length(idx)>1
     end
 end
 
-
+%%
 

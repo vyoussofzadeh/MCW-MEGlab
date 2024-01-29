@@ -36,7 +36,7 @@ disp('3: Bootstrapping')
 % LI_method = input(':');
 
 %%
-data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/';
+data_save_dir = '/data/MEG/Research/ECP/Semantic_Decision/Results';
 cd(data_save_dir)
 
 %%
@@ -60,7 +60,7 @@ fmri_LIs = ecpfunc_read_fmri_lat();
 
 %%
 datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data';
-BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data_all_subjects';
+BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data';
 
 cfg = [];
 cfg.protocol = protocol;
@@ -69,7 +69,7 @@ cfg.BS_data_dir = BS_data_dir;
 
 switch LI_analysis
     case {1,5}
-        cfg.datatag = 'wDICS_22_4_baseline';
+        cfg.datatag = 'wDICS_baseline_18_4';
         S_data = ecpfunc_read_sourcemaps_dics(cfg);
     case 2
         cfg.datatag = 'wDICS_contrast_18_4';

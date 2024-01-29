@@ -67,12 +67,10 @@ cfg.BS_data_dir = BS_data_dir;
 
 switch LI_analysis
     case {1,5}
-%         cfg.datatag = 'wDICS_22_4_baseline';
         cfg.datatag = 'wDICS_baseline_18_4';
         S_data = ecpfunc_read_sourcemaps_dics(cfg);
     case 2
         cfg.datatag = 'wDICS_contrast_18_4';
-%         cfg.datatag = 'wDICS_contrast_22_4';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
     case 3
         S_data = ecpfunc_read_sourcemaps(cfg);
