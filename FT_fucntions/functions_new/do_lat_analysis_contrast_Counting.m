@@ -6,18 +6,8 @@ idx_L = cfg_main.index_L;
 idx_R = cfg_main.index_R;
 thre = cfg_main.thre;
 sinput = cfg_main.sinput;
-% Threshtype = cfg_main.Threshtype;
 
-%% Parcel_based (mean parcels) LI analysis
-% tmp_1 = load(fullfile(cfg_main.BS_data_dir, sinput{1}));
-% tmp_2 = load(fullfile(cfg_main.BS_data_dir, sinput{2}));
-% 
-% disp([tmp_1.Comment; tmp_2.Comment ])
-% 
-% tmp = tmp_1;
-% tmp.ImageGridAmp = tmp_1.ImageGridAmp - tmp_2.ImageGridAmp;
-
-%%
+% Parcel_based (mean parcels) LI analysis
 tmp = load(fullfile(cfg_main.BS_data_dir, sinput));
 
 %%
@@ -46,7 +36,7 @@ if cfg_main.fplot ==1
     set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
     set(gca,'FontSize',8,'XTickLabelRotation',90);
     set(gcf, 'Position', [1000   400   1000   300]);
-    title([cfg_main.tit, ' - ', tmp.Comment]),
+%     title([cfg_main.tit, ' - ', tmp.Comment]),
     xlabel('temporal windows (sec)')
     ylabel('LI')
     set(gca,'color','none');

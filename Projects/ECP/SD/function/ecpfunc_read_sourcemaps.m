@@ -68,7 +68,8 @@ cd(data_info_dir)
     
     cd(BS_data_dir)
 %     dd = rdir(fullfile('./Group_analysis/2_LCMV_Subjects/results_average*.mat'));
-    dd = rdir(fullfile('./Group_analysis/LCMV/*ssmooth.mat'));
+%     dd = rdir(fullfile('./Group_analysis/LCMV/*ssmooth.mat'));
+    dd = rdir(fullfile(['./Group_analysis/',cfg_main.datatag, '/results*abs_ssmooth.mat']));
     for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
     
     sFiles_name = [];

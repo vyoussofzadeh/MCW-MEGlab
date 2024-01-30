@@ -1,22 +1,22 @@
 
 
 % Assuming your data is stored in a variable named 'brainstormData'
+startTime = -0.3; % Example start time in seconds
+endTime = 0;   % Example end time in seconds
+
 startTime = 0; % Example start time in seconds
-endTime = 0.2;   % Example end time in seconds
+endTime = .200;   % Example end time in seconds
 
-[avgTMap, avgPMap] = calculateIntervalAverage(brainstormData, startTime, endTime);
+startTime = .200; % Example start time in seconds
+endTime = .400;   % Example end time in seconds
 
-% tmp = avgTMap;
-% tmp = (tmp - min(tmp(:))) ./ (max(tmp(:)) - min(tmp(:)));
-% avgTMap = tmp;
+startTime = .400; % Example start time in seconds
+endTime = .600;   % Example end time in seconds
 
-% avgTMap (avgTMap < 0.7.*max(avgTMap(:))) = 0;
+startTime = .600; % Example start time in seconds
+endTime = .800;   % Example end time in seconds
 
-newbrainstormData = brainstormData;
+startTime = .800; % Example start time in seconds
+endTime = 1;   % Example end time in seconds
 
-newbrainstormData.tmap = avgTMap;  % Replace 'data' with the actual variable name if different
-newbrainstormData.pmap = avgPMap;
-
-newbrainstormData.Comment = ['avg_', num2str(startTime), '_', num2str(endTime)]
-
-newbrainstormData.Time = [1 1];
+newbrainstormData = calculateIntervalAverage(brainstormData, startTime, endTime);

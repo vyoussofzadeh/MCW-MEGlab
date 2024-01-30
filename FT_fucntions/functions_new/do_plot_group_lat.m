@@ -1,3 +1,8 @@
+
+% Additional functions for plotLINetworks, plotMeanLIWithStdDev, plotGeneralMeanLI, and saveFigure
+% can be defined similarly with the relevant code blocks from the original script.
+
+
 function do_plot_group_lat(cfg_main)
 
 
@@ -20,9 +25,9 @@ for j=1:length(network_sel)
     val = round(nanmean(wi(:,1),2),2);
     set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
     set(gca,'FontSize',8,'XTickLabelRotation',90);
-    set(gcf, 'Position', [1000   400   1100   500]);
+    set(gcf, 'Position', [1000   700   800   300]);
     hold on
-    
+
 %     [peak_y, peak_x] = max(LI_val(j,:));
 %     xline(peak_x, 'color', colr(j,:),'LineWidth',1);
 %     val = round(mean(wi(:,1),2),2);
@@ -56,7 +61,7 @@ if cfg_main.savefig == 1
     filename = ['meanLIs_', S_data_sel.s_tag];
     cfg.filename = filename;
     cfg.type = 'fig';
-    do_export_fig(cfg)   
+    do_export_fig(cfg)
 end
 
 %%
@@ -86,15 +91,14 @@ for j=1:length(network_sel)
     text(peak_x, peak_y, txt, 'Rotation', 90)
 end
 
-set(gcf, 'Position', [800   400   1600   500]);
-
+set(gcf, 'Position', [1000   700   800   300]);
 if cfg_main.savefig == 1
     cfg = [];
     cfg.outdir = outdir;
     filename = ['meanLIs_ROIs_', S_data_sel.s_tag];
     cfg.filename = filename;
     cfg.type = 'fig';
-    do_export_fig(cfg)   
+    do_export_fig(cfg)
 end
 
 %% plot mean LI
@@ -121,14 +125,14 @@ end
 %     txt = num2str(x);
 % %     text(peak_x, peak_y, txt, 'Rotation', 90)
 % end
-% 
+%
 % if cfg_main.savefig == 1
 %     cfg = [];
 %     cfg.outdir = outdir;
 %     filename = ['meanLIs_meanROIs_', S_data_sel.s_tag];
 %     cfg.filename = filename;
 %     cfg.type = 'fig';
-%     do_export_fig(cfg)   
+%     do_export_fig(cfg)
 % end
 
 %%
@@ -139,19 +143,19 @@ for j=1:size(mm,1)
     b = 1:numel(a);
     curve1 = a + std_dev(j,:);
     curve2 = a - std_dev(j,:);
-    
+
     x2 = [b, fliplr(b)];
     inBetween = [curve1, fliplr(curve2)];
     hold on;
     h = plot(b, a, 'color', colr(j,:), 'LineWidth', 2);
     h2 = fill(x2, inBetween, colr(j,:), 'EdgeColor', 'none', 'facealpha', 0.1);
     h2.Annotation.LegendInformation.IconDisplayStyle = 'off'; % make the legend for step plot off
-    
+
 end
 lgnd = legend(net_sel_mutiple_label(network_sel));
 set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
 set(gca,'FontSize',8,'XTickLabelRotation',90);
-set(gcf, 'Position', [1000   400   1100   500]);
+set(gcf, 'Position', [1000   700   800   300]);
 % title(['subject LIs: ', S_data_sel.s_tag,])
 set(gca,'color','none');
 set(lgnd,'color','none');
@@ -164,18 +168,18 @@ if cfg_main.savefig == 1
     filename = ['meanLIs_meanROIs_withvar_', S_data_sel.s_tag];
     cfg.filename = filename;
     cfg.type = 'fig';
-    do_export_fig(cfg)   
+    do_export_fig(cfg)
 end
 
 %%
 d_in = mean(mean(LI_sub,1),3); L = length(d_in);
 figure, bar(d_in,0.4)
-% set(gca,'Xtick', 1:L,'XtickLabel',S_data_sel.sFiles_subid);
+set(gca,'Xtick', 1:length(d_in),'XtickLabel',1:length(d_in));
 set(gca,'FontSize',8,'XTickLabelRotation',90);
-set(gcf, 'Position', [1000   600   1000   300]);
+set(gcf, 'Position', [1000   700   800   300]);
 set(gca,'color','none');
-title(['mean LI'])
-% axis square
+title('mean LI')
+xlabel('Subj')
 set(lgnd,'color','none');
 ylabel('Laterality')
 grid
@@ -186,7 +190,9 @@ if cfg_main.savefig == 1
     filename = ['gmeanLIs_', S_data_sel.s_tag];
     cfg.filename = filename;
     cfg.type = 'fig';
-    do_export_fig(cfg)   
+    do_export_fig(cfg)
 end
 
 end
+
+
