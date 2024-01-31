@@ -114,7 +114,10 @@ function OutputFiles = Run(sProcess, sInput) %#ok<DEFNU>
         bst_report('Error', sProcess, sInput, ['Channel name(s) "' StimChan '" does not exist.']);
         return
     end
-        
+    
+    % Additional step to get the maskresponses option
+    isMaskResponses = sProcess.options.maskresponses.Value;
+    
     % ===== DETECTION =====
     % CTF: Read separately upper and lower bytes
     if ismember(sFile.format, {'CTF', 'CTF-CONTINUOUS'})
@@ -132,7 +135,7 @@ function OutputFiles = Run(sProcess, sInput) %#ok<DEFNU>
         end
         events = [eventsL, eventsU];
     else
-        events = Compute(sFile, ChannelMat, StimChan, EventsTrackMode, isAcceptZero, MinDuration);
+        events = Compute(sFile, ChannelMat, StimChan, EventsTrackMode, isAcceptZero, MinDuration,isMaskResponses);
     end
     
     % ===== SAVE RESULT =====
@@ -142,8 +145,7 @@ function OutputFiles = Run(sProcess, sInput) %#ok<DEFNU>
         sFile = import_events(sFile, [], events);
         % Report changes in .mat structure
         if isRaw
-            DataMat.F = sFile;        fprintf('BST> %d events shorter than %d sample(s) removed.\n', nTooShort, MinDuration);
-
+            DataMat.F = sFile;
         else
             DataMat.Events = sFile.events;
         end
@@ -159,7 +161,7 @@ end
 
 
 %% ===== COMPUTE =====
-function [events, EventsTrackMode, StimChan] = Compute(sFile, ChannelMat, StimChan, EventsTrackMode, isAcceptZero, MinDuration)
+function [events, EventsTrackMode, StimChan] = Compute(sFile, ChannelMat, StimChan, EventsTrackMode, isAcceptZero, MinDuration, maskSelection)
     % Parse inputs
     if (nargin < 6)
         MinDuration = 0;
@@ -184,7 +186,7 @@ function [events, EventsTrackMode, StimChan] = Compute(sFile, ChannelMat, StimCh
         switch (sFile.format)
             case 'FIF'
                 % Channel name must contains 'STI'
-                iStiChan = find(contains(ch_names, 'STI'));
+                iStiChan = find(~cellfun(@isempty, strfind(ch_names, 'STI')));
             case '4D'
                 % TRIGGER Channels
                 iStiChan = channel_find(ChannelMat.Channel, 'Stim');
@@ -206,13 +208,13 @@ function [events, EventsTrackMode, StimChan] = Compute(sFile, ChannelMat, StimCh
         % If only one choice: select it by default
         if (length(iStiChan) == 1)
             StimChan = ch_names(iStiChan);
-            % Else: offer multiple choices to the user
+        % Else: offer multiple choices to the user
         else
             StimChan = java_dialog('checkbox', ...
                 ['You can try to rebuild the events list using one or more technical tracks, or ' 10 ...
-                'ignore this step and process the file as continuous recordings without events.' 10 10 ...
-                'Available technical tracks: '], ...
-                'Read events', [], ch_names(iStiChan));
+                 'ignore this step and process the file as continuous recordings without events.' 10 10 ...
+                 'Available technical tracks: '], ...
+                 'Read events', [], ch_names(iStiChan));
             if isempty(StimChan)
                 events = [];
                 return
@@ -224,14 +226,10 @@ function [events, EventsTrackMode, StimChan] = Compute(sFile, ChannelMat, StimCh
                 'Do Not Apply Mask - Use for original stim triggers'
                 };
             maskSelection = java_dialog('radio', 'Select Mask Option', 'Mask Responses', [], maskOptions);
-             
-            % Check if user made a mask selection
-            if isempty(maskSelection)
-                events = [];
-                return;
-            end
+
         end
     end
+    
     % CTF: Select only upper or lower bytes
     isCtfUp = 0;
     isCtfLow = 0;
@@ -311,7 +309,7 @@ function [events, EventsTrackMode, StimChan] = Compute(sFile, ChannelMat, StimCh
             
             % === APPLY MASK IF OPTION IS SELECTED ===
             if maskSelection == 1
-                maskedTracks = (track - min(track)); % Normalize
+                maskedTracks = track - min(track); % Normalize
                 maskedTracks = bitand(maskedTracks, 255); % Apply mask
                 track = maskedTracks; % Use masked track for further processing
             end
@@ -460,7 +458,7 @@ function [events, EventsTrackMode, StimChan] = Compute(sFile, ChannelMat, StimCh
     end
     % Display warning with removed events
     if (nTooShort > 0)
-        fprintf('BST> %d events shorter than %d sample(s) removed.\n', nTooShort, MinDuration);
+        disp(sprintf('BST> %d events shorter than %d sample(s) removed.', nTooShort, MinDuration));
     end
     % Close progress bar
     if ~isProgressBar
