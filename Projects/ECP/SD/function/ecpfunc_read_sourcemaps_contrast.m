@@ -24,7 +24,7 @@ unq_bs_subj = unique(subjs_bs);
 cd(data_info_dir)
 
 cd(BS_data_dir)
-dd = rdir(fullfile('./Group_analysis/LCMV_contrast/results*.mat'));
+dd = rdir(fullfile(['./Group_analysis/',cfg_main.datatag, '/results*abs_ssmooth.mat']));
 for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
 
 sFiles_name = [];
@@ -48,12 +48,14 @@ for jj=1:length(sFiles_name)
         kk=kk+1;
         disp(Comment{jj})
         idx = strfind(Comment{jj},'_');
-        subjs{k} = Comment{jj}(idx(1)+1:idx(1)+6);
-        k=1+k;
+        if ~isempty(idx)
+            subjs{k} = Comment{jj}(idx(1)+1:idx(1)+6);
+            k=1+k;
+        end
     end
 end
 
-idx_anim_symb = contains(Comment, 'Avg: ssmooth')==1;
+idx_anim_symb = contains(Comment, 'ssmooth_')==1;
 sFiles_32 = sFiles_name(idx_anim_symb);
 
 %%

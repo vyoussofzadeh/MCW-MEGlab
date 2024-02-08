@@ -69,6 +69,7 @@ if cfg_main.ternary == 1
     Concordance = (length(find([megLI_sub_pt - fmri_LIs_val] == 0))/length(fmri_LIs_val)).*100;
 end
 
+disp(['time interval:', num2str(mwi_interval(1)), '-', num2str(mwi_interval(end)), ' sec'])
 disp(['LI concordance (MEG-vs-fMRI): ', num2str(Concordance)])
 
 lgd = {'meg', 'fmri'};

@@ -4,7 +4,7 @@
 % Script: BS Process (Laterality analysis)
 % Project: ECP_SD
 % Writtern by: Vahab Youssof Zadeh
-% Update: 08/09/2023
+% Update: 12/06/2023
 
 clear; clc, close('all'); warning off,
 
@@ -36,7 +36,7 @@ disp('3: Bootstrapping')
 % LI_method = input(':');
 
 %%
-data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/';
+data_save_dir = '/data/MEG/Research/ECP/Semantic_Decision/Results';
 cd(data_save_dir)
 
 %%
@@ -60,7 +60,7 @@ fmri_LIs = ecpfunc_read_fmri_lat();
 
 %%
 datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data';
-BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data_all_subjects';
+BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data';
 
 cfg = [];
 cfg.protocol = protocol;
@@ -69,7 +69,7 @@ cfg.BS_data_dir = BS_data_dir;
 
 switch LI_analysis
     case {1,5}
-        cfg.datatag = 'wDICS_22_4_baseline';
+        cfg.datatag = 'wDICS_baseline_18_4';
         S_data = ecpfunc_read_sourcemaps_dics(cfg);
     case 2
         cfg.datatag = 'wDICS_contrast_18_4';
@@ -79,6 +79,7 @@ switch LI_analysis
     case 4
         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
 end
+
 
 %% Subject demog details
 switch LI_analysis
@@ -158,11 +159,6 @@ network_sel = [1:3,6:11];
 colr = distinguishable_colors(length(network_sel));
 
 %%
-% mLI_sub_hc = squeeze(nanmean(LI_hc.LI_sub,2));
-% mLI_sub_pt = squeeze(nanmean(LI_pt.LI_sub,2));
-
-%%
-% clc
 patn_neuropsych_tle = ecpfunc_read_patn_neuropsych_tle();
 TLESide = patn_neuropsych_tle.TLESide; SUBNO = patn_neuropsych_tle.SUBNO;
 
@@ -176,13 +172,7 @@ TLESide_sel = TLESide(IB);
 
 TLE_left = find(TLESide_sel == 'Left');
 
-% LI_pt_val_left = LI_pt.LI_sub(:,TLE_left,:);
-%
-% mLI_sub_left = squeeze(mean(LI_pt_val_left,2));
-
 %% MEG vs. fMRI lat analysis (PT)
-% pause, close all,
-
 [sub_MF_pt,IA,IB] = intersect(LI_pt_ID, fmri_LIs.ID.language_Lateral');
 
 LI_pt_val = LI_pt.(LI_method_label{1}).LI_sub;
@@ -196,82 +186,11 @@ disp('missing from fMRI')
 disp(difference');
 
 %% MEG LI vs fMRI LI (language_Lateral)
-% pause, close all,
-
 LI_pt_val_new = [];
 for i=1:length(LI_method_label)
     LI_pt_val_new.(LI_method_label{i}) = LI_pt.(LI_method_label{i}).LI_sub(:, IA,:);
 end
 
-%% Incomplete
-close all
-
-% Assuming LI_matrix is your 75x170 matrix
-% And timePoints is a 1x170 array representing the time in seconds for each column
-
-timePoints = mean(wi,2);
-net_sel = 11;
-
-% Define time range in seconds
-startTime = 0.3; % 200 ms
-endTime = 0.7; % 1 sec
-
-% Find columns corresponding to the desired time range
-startCol = find(timePoints >= startTime, 1, 'first');
-endCol = find(timePoints <= endTime, 1, 'last');
-
-LI_matrix = squeeze(LI_pt_val_new.Bootstrapping(net_sel,:,:));
-
-t_sel = startCol:endCol;
-
-
-% Initialize array to store peak data
-% Each row will have subject number, peak value, and time of peak
-peakData = [];
-
-for i = 1:size(LI_matrix, 1) % Iterate over each subject
-    
-    %         your_threshold_value = 0.9.*max(abs(LI_matrix(i, startCol:endCol)));
-    %     [pks, locs] = findpeaks(abs(LI_matrix(i, startCol:endCol)), 'MaxPeakWidth',your_threshold_value);
-    [pks, locs] = max(abs(LI_matrix(i, startCol:endCol)));
-    %     'MinPeakProminence', 0
-    opt_time(i) = timePoints(t_sel(locs));
-    opt_time_idx(i) = find(timePoints >= opt_time(i), 1, 'first');
-    
-    %     time_opt = find(timePoints >= t_sel(locs), 1, 'first');
-    
-    figure;
-    plot(wi(:,1), mean(LI_matrix(i, :),1));
-    figure;
-    plot(timePoints, LI_matrix(i, :));
-    figure,
-    plot(timePoints(startCol:endCol), abs(LI_matrix(i, startCol:endCol)));
-    hold on; % Hold on to the current figure
-    if ~isempty(pks)
-        % Overlay the detected peaks
-        peakTimes = timePoints(locs + startCol - 1); % Convert locs to actual time points
-        plot(peakTimes(1), pks(1), 'ro'); % 'ro' plots red circles at peak locations
-    end
-    hold off
-    title(['Subject ', num2str(i), ' LI Peaks']);
-    xlabel('Time (seconds)');
-    ylabel('LI Value');
-    
-    pause,
-    
-end
-
-% Display or process peakData as needed
-%%
-LI_pt_timeopt = LI_pt_val_new;
-
-tmp = [];
-for i=1:size(LI_pt_timeopt.Bootstrapping,2)
-%     for j=1:size(LI_pt_timeopt.Bootstrapping,1)
-        LI_pt_timeopt.Bootstrapping(net_sel,i,:) = LI_pt_timeopt.Bootstrapping(net_sel,i,opt_time_idx(i));
-%     end
-end
-
 % Corr, MEG-fMRI
 cfg = []; cfg.wi = wi;
 cfg.ID = sub_MF_pt;
@@ -281,50 +200,12 @@ cfg.savefig = 1;
 cfg.bf = 5;
 cfg.outdir = save_dir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_val = LI_pt_timeopt;
+cfg.LI_val = LI_pt_val_new;
 cfg.fmri_LIs_val = fmri_LIs_val;
 cfg.LI_method_label = LI_method_label;
 % cfg.net_sel = [1,2,6];
 cfg.net_sel = [11]; % 6, 1, 2
-[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_all(cfg);
-
-%%
-
-% Corr, MEG-fMRI
-cfg = []; cfg.wi = wi;
-cfg.ID = sub_MF_pt;
-cfg.ternary = 0;
-cfg.thre = .2;
-cfg.savefig = 1;
-cfg.bf = 5;
-cfg.outdir = save_dir;
-cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_val = LI_pt_timeopt.Bootstrapping;
-cfg.fmri_LIs_val = fmri_LIs_val;
-% cfg.net_sel = [1,2,6];
-cfg.net_sel = [11]; % 6, 1, 2
-[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast(cfg);
-
-cfg = [];
-cfg.thre = .2; cfg.LI = fmri_LIs_val;
-fmri_LIs_trn = do_ternary_classification(cfg);
-size(fmri_LIs_trn);
-
-% concordance, MEG-fMRI
-cfg = [];
-cfg.wi = wi;
-cfg.ID = sub_MF_pt;
-cfg.ternary = 1;
-cfg.savefig = 1;
-cfg.outdir = save_dir;
-cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_val = LI_pt_timeopt.Bootstrapping;
-cfg.fmri_LIs_val = fmri_LIs_trn;
-% cfg.net_sel = [1,2,6];
-cfg.net_sel = [11];
-cfg.thre = 0.1;
-cfg.buffervalue = 1;
-[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast(cfg);
+[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
 
 %% MEG LI vs fMRI LI (Ternary language_Lateral)
 % pause, close all,
@@ -343,61 +224,39 @@ cfg.ternary = 1;
 cfg.savefig = 1;
 cfg.outdir = save_dir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_val = LI_pt_timeopt;
+cfg.LI_val = LI_pt_val_new;
 cfg.fmri_LIs_val = fmri_LIs_trn;
 cfg.LI_method_label = LI_method_label;
 % cfg.net_sel = [1,2,6];
 cfg.net_sel = [11];
 cfg.thre = 0.1;
-cfg.buffervalue = 1;
-[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_all(cfg);
+cfg.buffervalue = 5;
+[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
+cfg.net_sel = [1];
+[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
+cfg.net_sel = [5];
+[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
+cfg.net_sel = [2];
+[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
+cfg.net_sel = [6];
+[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
+cfg.net_sel = [2,6];
+[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
+cfg.net_sel = [1,2,6];
+[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
+cfg.net_sel = [9];
+[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
 
 %% mean MEG li vs. fMRI
-% pause, close all,
+% pause, 
+% 
+close all,
+clc
 
 for i=1:length(LI_method_label)
+    disp('====')
+    disp(['correlation analysis: ',LI_method_label{i}])
     
-    cfg = [];
-    cfg.DataArray = [megLIs_trn{i}, fmri_LIs_trn];
-    cfg.savefig = 1;
-    cfg.outdir = save_dir;
-    cfg.title = ['trn-', LI_method_label{i}];%'SD task, 58 PTs, raw LIs';
-    do_plot_LIs(cfg)
-    
-    cfg = [];
-    cfg.DataArray = [megLI_sub_pt{i}, fmri_LIs_val];
-    cfg.savefig = 1;
-    cfg.outdir = save_dir;
-    cfg.title = ['LI-', LI_method_label{i}];%'SD task, 58 PTs, raw LIs';
-    do_plot_LIs(cfg)
-    %
-    %     size(fmri_LIs_val)
-    
-    %
-    [C, order] = confusionmat(megLIs_trn{i}, fmri_LIs_trn);
-    % Visualize the confusion matrix
-    figure;
-    h = heatmap(C);
-    h.XDisplayLabels = {'-1','0', '1'};
-    h.YDisplayLabels = {'-1','0', '1'};
-    xlabel('MEG');
-    ylabel('fMRI');
-    title(LI_method_label{i})%'Confusion Matrix');
-    colorbar off
-    colorbar('location', 'eastoutside')
-    
-    %%
-    % - export figs
-    cfg = []; cfg.outdir = save_dir; cfg.filename = ['Confusion Matrix: ', LI_method_label{i}];
-    cfg.type = 'fig'; do_export_fig(cfg)
-    
-    % end
-    % cd(save_dir)
-    
-    % ROIs (corr MEG vs. fMRI)
-    % pause, close all,
-    
-    % clc
     cfg = []; cfg.wi = wi;
     cfg.ID = sub_MF_pt;
     cfg.thre = 0.1;
@@ -412,10 +271,35 @@ for i=1:length(LI_method_label)
     cfg.fmri_LIs_val = fmri_LIs;
     cfg.idx = IB;
     cfg.title = LI_method_label{i};
-    crr = do_MEG_fMRI_corr_contrast_rois(cfg);
+    do_MEG_fMRI_corr_contrast_rois(cfg);
     
     % - export figs
-    cfg = []; cfg.outdir = save_dir; filename = ['net ROIs_', LI_method_label{i}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+    cfg = []; cfg.outdir = save_dir; filename = ['corr ROIs_', LI_method_label{i}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+    
+    
+    disp(['Concordance analysis: ',LI_method_label{i}])
+    
+    % clc
+    cfg = []; cfg.wi = wi;
+    cfg.ID = sub_MF_pt;
+    cfg.thre = 0.1;
+    cfg.bf = 10;
+    cfg.ternary = 1;
+    cfg.savefig = 0;
+    cfg.outdir = save_dir;
+    cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+    cfg.net_sel_id = [1,2,5,6,11];
+    cfg.lang_id = {'language_Angular'; 'language_Frontal';'language_PCingPrecun'; 'language_Temporal'; 'language_Lateral'};
+    cfg.LI_val = LI_pt_val_new.(LI_method_label{i});
+    cfg.fmri_LIs_val = fmri_LIs_trn;
+    cfg.idx = IB;
+    cfg.title = LI_method_label{i};
+    cfg.buffervalue = 10;
+    do_MEG_fMRI_concordance_contrast_rois(cfg);
+    
+    % - export figs
+    cfg = []; cfg.outdir = save_dir; filename = ['concor ROIs_', LI_method_label{i}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg) 
     
 end
 
+cd(save_dir)

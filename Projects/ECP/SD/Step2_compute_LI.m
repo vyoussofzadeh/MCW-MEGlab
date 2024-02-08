@@ -20,37 +20,34 @@ flags.plot_atlasnetworks = 0;
 %% HCP Atlas
 clc, close all
 src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/cortex_pial_low.fs';
-data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/';
+data_save_dir = '/data/MEG/Research/ECP/Semantic_Decision/Results';
+% data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/';
 glass_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_symmetrical_final_updated.mat';
 glass_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/Glasser';
 
-cfg = struct('src_fname', src_fname, 'glass_dir', glass_dir, 'glass_atlas', glass_atlas, 'plotflag', 1);
+cfg = struct('src_fname', src_fname, 'glass_dir', glass_dir, 'glass_atlas', glass_atlas, 'plotflag', 0);
 Data_hcp_atlas = ecpfunc_hcp_atlas2(cfg);
 
-%% HCP Atlas, plotting
-close all
+%%
+% Lateral network
+% close all
 cfg = [];
 cfg.src_fname = src_fname;
-cfg.network_sel = [1,2,6];
+cfg.network_sel = [11];
 cfg.Data_hcp_atlas = Data_hcp_atlas;
-cfg.plotflag = 1;
+cfg.plotflag = 0;
 cfg.fixedcolor = [0,0.7,0];
 [idx_L, idx_R, src]  = do_plot_hcp_network(cfg);
 net_rois = 'ftp';
-
-camlight(80,-10);
-camlight(-80,-10);
-
-%
 disp(Data_hcp_atlas.groups_labels)
 
-
+%
 cfg = []; cfg.idx_L = idx_L; cfg.idx_R = idx_R; cfg.Data_hcp_atlas = Data_hcp_atlas;
 cfg.src_fname = src_fname;
 
-cfg.export = 1; cfg.savedir = fullfile(outdir,'group');
-cfg.network_sel = [1,2,6]; do_map_HCP_net_sel(cfg);
-net_label = 'Fronto_tempro_pri';
+% cfg.export = 1; cfg.savedir = fullfile(outdir,'group');
+% cfg.network_sel = [1,2,6]; do_map_HCP_net_sel(cfg);
+% net_label = 'Fronto_tempro_pri';
 
 save_dir_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/atlas_roi';
 
@@ -98,7 +95,7 @@ Run_BS
 Run_load_surface_template
 
 %%
-LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_basline','LCMV_contrast','DICS_anim'};
+LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_baseline','LCMV_contrast','DICS_anim', 'DICS_contrast_prestim', 'dSPM_contrast'};
 
 for i = 1:length(LI_analysis_label)
     disp([num2str(i) ') ' LI_analysis_label{i}]);
@@ -116,7 +113,7 @@ LI_method = input(':');
 
 %%
 datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data';
-BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data_all_subjects';
+BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data';
 
 cfg = [];
 cfg.protocol = protocol;
@@ -125,16 +122,22 @@ cfg.BS_data_dir = BS_data_dir;
 
 switch LI_analysis
     case {1,5}
-%         cfg.datatag = 'wDICS_22_4_baseline';
         cfg.datatag = 'wDICS_baseline_18_4';
         S_data = ecpfunc_read_sourcemaps_dics(cfg);
     case 2
         cfg.datatag = 'wDICS_contrast_18_4';
-%         cfg.datatag = 'wDICS_contrast_22_4';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
     case 3
+        cfg.datatag = 'LCMV';
         S_data = ecpfunc_read_sourcemaps(cfg);
     case 4
+        cfg.datatag = 'LCMV';
+        S_data = ecpfunc_read_sourcemaps_contrast(cfg);
+    case 6
+        cfg.datatag = 'PSTwDICS_contrast_18_4';
+        S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
+    case 7
+        cfg.datatag = 'dSPM_contrast';
         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
 end
 
@@ -147,7 +150,7 @@ switch LI_analysis
         cfg = []; cfg.subjs_3 = S_data.subjs_3; cfg.subjs_2 = S_data.subjs_2;
         cfg.sFiles_3 = S_data.sFiles_3; cfg.sFiles_2 = S_data.sFiles_2;
         sub_demog_data = ecpfunc_read_sub_demog(cfg);
-    case {2, 4}
+    case {2, 4, 6, 7}
         cfg = []; cfg.subjs = S_data.subjs;
         cfg.sFiles = S_data.sFiles_32;
         sub_demog_data = ecpfunc_read_sub_demog_contrast(cfg);
@@ -214,7 +217,7 @@ switch LI_analysis
             [label_8net, LI_sub] = do_group_LI_net_baseline(cfg); % Anim vs. Baseline vs. Symb vs. Baseline
         end
         
-    case {2, 4}
+    case {2, 4, 6, 7}
         dtag = {'Ctrl';'Patn'};
         
         for select_data = 1:length(dtag)
@@ -251,7 +254,14 @@ switch LI_analysis
             cfg.sub_demog_data = sub_demog_data;
             cfg.select_data = dtag_val(select_data);
             S_data_sel = ecpfunc_select_data(cfg);
-           
+            
+%             % Process: Average: Everything
+%             bst_process('CallProcess', 'process_average', S_data_sel.sFiles_in', [], ...
+%                 'avgtype',         1, ...  % Everything
+%                 'avg_func',        1, ...  % Arithmetic average:  mean(x)
+%                 'weighted',        0, ...
+%                 'scalenormalized', 0);
+            
             cfg = [];
             cfg.S_data_sel = S_data_sel;
             cfg.BS_data_dir = BS_data_dir;
@@ -264,13 +274,11 @@ switch LI_analysis
             cfg.method = mlabel;
             cfg.Threshtype = 3;
             [label_8net, LI_sub] = do_group_LI_net_contrast(cfg); % Anim vs. Baseline vs. Symb vs. Baseline
-        end
-        
+        end    
 end
 
-%%
+%% Plot LI subjects
 clc, close all
-% %- Plot LI subjects
 cfg = [];
 cfg.LI_sub = LI_sub;
 cfg.wi = wi;
