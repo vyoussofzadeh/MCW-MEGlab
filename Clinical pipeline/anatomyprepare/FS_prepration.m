@@ -48,7 +48,7 @@ switch DT
 end
 
 %%
-set_ft
+addpath(cd_org), set_ft
 mri = ft_read_mri(dfile);
 
 %%

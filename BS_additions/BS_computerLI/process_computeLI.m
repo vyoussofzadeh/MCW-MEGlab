@@ -231,7 +231,7 @@ l = length(sScout.Scouts);
 if l ~= 68
     rois = {sScout.Scouts.Label};
     rois_temp = {sScout.Scouts(1:68).Label};
-    [C, IA] = setdiff(rois_temp, rois);
+    [~, IA] = setdiff(rois_temp, rois);
     
     warning('The number of anatomical regions are not identical to atlas regions');
     disp('Replacing with zero ...');
@@ -283,7 +283,7 @@ t1 = cfg_LI.t1;
 t2 = cfg_LI.t2;
 savedir = cfg_LI.savedir;
 
-TotROI = 8;
+TotROI = length(RoiIndices);
 
 s1='LI_';
 Summ_LI=zeros(1,TotROI); % initialize the vector that summarizes the final LIs  % added JL 11212014
@@ -298,9 +298,8 @@ for i=1:length(sScout.Scouts)
 end
 
 %%
-plot_ind=1;
 LI_label_out={};
-for ii = 1:8
+for ii = 1:length(RoiIndices)
     
     s2 = RoiLabels{ii};
     hemi_roi_num=length(RoiIndices{ii});
@@ -441,3 +440,4 @@ disp(d)
 
 
 end
+
