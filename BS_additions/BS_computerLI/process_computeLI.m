@@ -44,10 +44,10 @@ sProcess.options.LImethod.Comment = 'Select LI computation method:';
 sProcess.options.LImethod.Type    = 'combobox';
 sProcess.options.LImethod.Value   = {1, {'Counting', 'Bootstrapping'}};
 
-% Modify time interval input
+% Modify time interval input to include "Averaged Time Interval"
 sProcess.options.time_interval.Comment = 'Choose a time interval:';
 sProcess.options.time_interval.Type    = 'combobox';
-sProcess.options.time_interval.Value   = {1, {'Time Interval', 'Averaged Sources'}};
+sProcess.options.time_interval.Value   = {1, {'Specific Time Interval', 'Averaged Time Interval'}};
 
 % Active time window
 sProcess.options.poststim.Comment = 'Enter specific time interval:';
@@ -126,6 +126,17 @@ ImageGridAmp = processImageGridAmp(sResultP.ImageGridAmp, effect);
 % Convert Desikan-Killiany scout to selected scouts
 [sScout, ~] = convertDesikanKillianyScout(sResultP);
 
+% Example modification in the part that processes ImageGridAmp
+if sProcess.options.time_interval.Value{1} == 2 && length(sResultP.Time) > 10
+    timerange = sProcess.options.poststim.Value{1};
+    % Compute the average across the selected time range
+    [~, t1] = min(abs(sResultP.Time - timerange(1)));
+    [~, t2] = min(abs(sResultP.Time - timerange(2)));
+    ImageGridAmp = mean(ImageGridAmp(:, t1:t2), 2);
+else
+    % Existing logic for specific time intervals or other options
+end
+
 % Define ROIs
 [RoiLabels, RoiIndices] = defineROIs();
 
@@ -145,7 +156,13 @@ cfg_LI.t1 = t1;
 cfg_LI.t2 = t2;
 cfg_LI.savedir = savedir;
 cfg_LI.sname =  sProcess.options.sname.Value;
-computeLI(cfg_LI);
+
+switch sProcess.options.LImethod.Value{1}
+    case 1
+        computeLI(cfg_LI);
+    case 2
+        computeLI_bootstrap(cfg_LI)
+end
 
 disp('To edit the LI script, first ensure Brainstorm is running. Then, open process_computeLI.m in Matlab.');
 disp('Pipeline update: 09/25/23');
@@ -264,6 +281,71 @@ Whole    = 1:68;
 
 RoiLabels = {'AngSmg', 'Front','LatFront','LatTemp', 'PeriSyl', 'Tanaka','Temp','Whole'};
 RoiIndices = {AngSmg, Front, LatFront, LatTemp, PeriSyl, Tanaka, Temp, Whole};
+
+end
+
+function computeLI_bootstrap(cfg_LI)
+% Computes the Laterality Index (LI) using bootstrapping and exports the results.
+
+% Setup - Assuming cfg_LI contains all necessary configurations including:
+% ImageGridAmp, Time, RoiLabels, RoiIndices, sScout, t1, t2, savedir
+
+% Perform bootstrapping for each ROI
+RoiLabels = cfg_LI.RoiLabels;
+TotROI = length(cfg_LI.RoiIndices);
+Summ_LI = zeros(1, TotROI); % Initialize the vector for final LIs
+L_count = zeros(1, TotROI);
+R_count = zeros(1, TotROI);
+LI_label_out = cell(1, TotROI);
+
+for ii = 1:TotROI
+    
+    disp(['network ', num2str(ii), ' of ', num2str(TotROI)])
+    cfg_main = [];
+    cfg_main.atlas = cfg_LI.sScout;
+    cfg_main.RoiIndices = cfg_LI.RoiIndices{ii}; % Pass current ROI indices
+    cfg_main.divs = 10; % Example, adjust as needed
+    cfg_main.n_resampling = 100; % Example, adjust as needed
+    cfg_main.RESAMPLE_RATIO = 0.75; % Example, adjust as needed
+    cfg_main.t1 = cfg_LI.t1;
+    cfg_main.t2 = cfg_LI.t2;
+    cfg_main.ImageGridAmp = cfg_LI.ImageGridAmp;
+    
+    % Call bootstrapping function for current ROI
+    [weighted_li, ~] = do_LI_bootstrap(cfg_main);
+    
+    % Store results
+    Summ_LI(ii) = weighted_li; % Assuming weighted_li represents the LI for simplicity
+    LI_label_out{ii} = RoiLabels{ii};
+    
+end
+
+% Save or display results
+savedir = cfg_LI.savedir; % Directory to save the results
+sname = 'bootstrap_results.xls'; % Example filename, adjust as needed
+filename = fullfile(savedir, sname);
+
+% Open file for writing
+fid = fopen(filename, 'w');
+fprintf(fid, 'ROI\tLI\tLeft_count\tRight_count\n');
+for i = 1:TotROI
+    fprintf(fid, '%s\t%f\t%d\t%d\n', LI_label_out{i}, Summ_LI(i), L_count(i), R_count(i));
+end
+fclose(fid);
+
+disp(['Results saved to: ' filename]);
+
+%%
+% Display the path to the saved file
+disp(['Results saved to: ' filename]);
+
+% Optional: Display results
+disp('=================')
+disp('                 ')
+a = table(RoiLabels'); a.Properties.VariableNames{'Var1'} = 'ROI';
+b = table(Summ_LI'); b.Properties.VariableNames{'Var1'} = 'LI';
+disp([a,b])
+
 end
 
 function computeLI(cfg_LI)
@@ -407,7 +489,6 @@ fprintf(tempfile, 'ROI\tLI\tLeft_count\tRight_count\n');
 L_count1 = L_count(:);
 R_count1 = R_count(:);
 
-
 % Printing the labels, LI values, L_count, and R_count on separate lines
 for i = 1:length(LI_label_out)
     fprintf(tempfile, '%s\t', LI_label_out{i});
@@ -424,7 +505,6 @@ fprintf(tempfile, 'Threshold\t%f\n', threshold);
 
 fclose(tempfile);
 
-
 %%
 % Display the path to the saved file
 disp(['Results saved to: ' filename]);
@@ -438,6 +518,101 @@ c = table([L_count;R_count]'); c.Properties.VariableNames{'Var1'} = 'Left_vs_rig
 d = [a,b,c];
 disp(d)
 
+end
+
+function [weighted_li, num_threshvals] = do_LI_bootstrap(cfg_main)
+% Modified to use RoiIndices for distinguishing between left and right hemisphere ROIs.
+
+% Extract necessary configurations
+divs = cfg_main.divs;
+n_resampling = cfg_main.n_resampling;
+RESAMPLE_RATIO = cfg_main.RESAMPLE_RATIO;
+% time_interval = [cfg_main.t1, cfg_main.t2];
+RoiIndices = cfg_main.RoiIndices; % Assuming RoiIndices is passed in cfg_main
+MIN_NUM_THRESH_VOXELS = round(5 / RESAMPLE_RATIO);
+
+% Assuming the ImageGridAmp data is already in cfg_main
+ImageGridAmp = cfg_main.ImageGridAmp;
+
+% Initialize output variables
+weighted_li = 0;
+num_threshvals = 0;
+
+% Preprocess data for the specified time interval
+% d_in = mean(ImageGridAmp(:, time_interval(1):time_interval(2)), 2);
+% d_in = ImageGridAmp;
+% ImageGridAmp = (d_in); % Ensure non-negative values
+
+%%
+hemi_roi_num=length(RoiIndices);
+curr_subregion=cfg_main.atlas.Scouts(RoiIndices);
+
+%Odd indices are left Rois
+Ltemp_region = [];
+Ltemp_label  = [];
+k = 1;
+for i=1:2:hemi_roi_num
+    Ltemp_region=[Ltemp_region,curr_subregion(i).Vertices];
+    Ltemp_label{k} = curr_subregion(i).Label; k = k+1;
+end
+
+%Even indices are right Rois
+Rtemp_region = [];
+Rtemp_label  = [];
+k = 1;
+for i=2:2:hemi_roi_num
+    Rtemp_region=[Rtemp_region,curr_subregion(i).Vertices];
+    Rtemp_label{k} = curr_subregion(i).Label; k = k+1;
+end
+
+LHscout = Ltemp_region;
+RHscout = Rtemp_region;
+
+%%
+
+% Extract amplitude values for left and right regions
+LHvals = ImageGridAmp(LHscout,:);
+RHvals = ImageGridAmp(RHscout,:);
+
+% Determine thresholds based on max value across both hemispheres
+ROIMax = max([max(LHvals), max(RHvals)]);
+threshvals = linspace(0, ROIMax, divs);
+
+% Perform bootstrapping for each threshold
+for thresh_idx = 1:numel(threshvals)
+    thresh = threshvals(thresh_idx);
+    l_above_thresh = LHvals(LHvals >= thresh);
+    r_above_thresh = RHvals(RHvals >= thresh);
+    
+    % Ensure both hemispheres have enough voxels above threshold
+    if numel(l_above_thresh) < MIN_NUM_THRESH_VOXELS || numel(r_above_thresh) < MIN_NUM_THRESH_VOXELS
+        break; % Stop if not enough voxels
+    end
+    
+    % Resample and compute LI for the current threshold
+    TB_LIs = bootstrapLI(l_above_thresh, r_above_thresh, n_resampling, RESAMPLE_RATIO);
+    
+    % Weight the LI by threshold index (heavier weight for higher thresholds)
+    weighted_li = weighted_li + mean(TB_LIs) * thresh_idx;
+    num_threshvals = thresh_idx;
+end
+
+% Normalize the weighted LI by the sum of threshold indices
+if num_threshvals > 0
+    weighted_li = (weighted_li / sum(1:num_threshvals)) * 100;
+end
 
 end
 
+function TB_LIs = bootstrapLI(Lvals, Rvals, n_samples, resample_ratio)
+% Bootstrap Laterality Index computation for given left and right hemisphere values.
+l_n = max(round(numel(Lvals) * resample_ratio), 1);
+r_n = max(round(numel(Rvals) * resample_ratio), 1);
+
+TB_LIs = zeros(n_samples, 1);
+for i = 1:n_samples
+    l_sample = datasample(Lvals, l_n);
+    r_sample = datasample(Rvals, r_n);
+    TB_LIs(i) = (mean(l_sample) - mean(r_sample)) / (mean(l_sample) + mean(r_sample));
+end
+end
