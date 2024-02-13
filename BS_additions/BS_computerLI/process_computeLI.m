@@ -39,10 +39,38 @@ sProcess.OutputTypes = {'results'};
 sProcess.nInputs     = 1;
 sProcess.nMinFiles   = 1;
 
+% % Modify LI computation method selection to include "Both"
+% sProcess.options.LImethod.Comment = 'Select LI computation method:';
+% sProcess.options.LImethod.Type    = 'combobox';
+% sProcess.options.LImethod.Value   = {1, {'Counting', 'Bootstrapping', 'Both'}};
+
 % Add an option to select the LI computation method
-sProcess.options.LImethod.Comment = 'Select LI computation method:';
-sProcess.options.LImethod.Type    = 'combobox';
-sProcess.options.LImethod.Value   = {1, {'Counting', 'Bootstrapping'}};
+% sProcess.options.LImethod.Comment = 'Select LI computation method:';
+% sProcess.options.LImethod.Type    = 'combobox';
+% sProcess.options.LImethod.Value   = {1, {'Counting', 'Bootstrapping', 'Both'}};
+
+% Add options to select the LI computation method as checkboxes
+sProcess.options.methodCounting.Comment = 'Use Counting Method';
+sProcess.options.methodCounting.Type    = 'checkbox';
+sProcess.options.methodCounting.Value   = 0; % Not selected by default
+
+sProcess.options.methodBootstrap.Comment = 'Use Bootstrapping Method';
+sProcess.options.methodBootstrap.Type    = 'checkbox';
+sProcess.options.methodBootstrap.Value   = 0; % Not selected by default
+
+% Add bootstrap parameters
+sProcess.options.divs.Comment = 'Number of divisions for bootstrap:';
+sProcess.options.divs.Type    = 'value';
+sProcess.options.divs.Value   = {10, '', 1, 100, 1}; % default 10, min 1, max 100, step 1
+
+sProcess.options.n_resampling.Comment = 'Number of resampling iterations:';
+sProcess.options.n_resampling.Type    = 'value';
+sProcess.options.n_resampling.Value   = {20, '', 1, 1000, 1}; % default 20, min 1, max 1000, step 1
+
+sProcess.options.RESAMPLE_RATIO.Comment = 'Resample ratio:';
+sProcess.options.RESAMPLE_RATIO.Type    = 'value';
+sProcess.options.RESAMPLE_RATIO.Value   = {0.95, '', 0, 1, 0.01}; % default 0.95, min 0, max 1, step 0.01
+
 
 % Modify time interval input to include "Averaged Time Interval"
 sProcess.options.time_interval.Comment = 'Choose a time interval:';
@@ -140,6 +168,8 @@ end
 % Define ROIs
 [RoiLabels, RoiIndices] = defineROIs();
 
+
+
 % Compute LI
 cfg_LI = [];
 cfg_LI.time_interval = time_interval;
@@ -157,11 +187,21 @@ cfg_LI.t2 = t2;
 cfg_LI.savedir = savedir;
 cfg_LI.sname =  sProcess.options.sname.Value;
 
-switch sProcess.options.LImethod.Value{1}
-    case 1
-        computeLI(cfg_LI);
-    case 2
-        computeLI_bootstrap(cfg_LI)
+% Handle the selected LI computation method
+if sProcess.options.methodCounting.Value ==1
+    computeLI(cfg_LI);  % Counting-based method
+end
+if sProcess.options.methodBootstrap.Value ==1
+    % Extract bootstrap parameters from the menu
+    divs = sProcess.options.divs.Value{1};
+    n_resampling = sProcess.options.n_resampling.Value{1};
+    RESAMPLE_RATIO = sProcess.options.RESAMPLE_RATIO.Value{1};
+    % Bootstrapping method
+    %     disp(['t = ', num2str(timerange)]);
+    cfg_LI.divs = divs;  % Adjust as needed
+    cfg_LI.n_resampling = n_resampling;  % Adjust as needed
+    cfg_LI.RESAMPLE_RATIO = RESAMPLE_RATIO;  % Adjust as needed
+    computeLI_bootstrap(cfg_LI);
 end
 
 disp('To edit the LI script, first ensure Brainstorm is running. Then, open process_computeLI.m in Matlab.');
@@ -285,66 +325,57 @@ RoiIndices = {AngSmg, Front, LatFront, LatTemp, PeriSyl, Tanaka, Temp, Whole};
 end
 
 function computeLI_bootstrap(cfg_LI)
-% Computes the Laterality Index (LI) using bootstrapping and exports the results.
-
-% Setup - Assuming cfg_LI contains all necessary configurations including:
-% ImageGridAmp, Time, RoiLabels, RoiIndices, sScout, t1, t2, savedir
+% Computes the Laterality Index (LI) using bootstrapping and exports the results, including vertex counts.
 
 % Perform bootstrapping for each ROI
 RoiLabels = cfg_LI.RoiLabels;
 TotROI = length(cfg_LI.RoiIndices);
 Summ_LI = zeros(1, TotROI); % Initialize the vector for final LIs
-L_count = zeros(1, TotROI);
-R_count = zeros(1, TotROI);
+L_vertices_total = zeros(1, TotROI); % Initialize vectors for left vertices count
+R_vertices_total = zeros(1, TotROI); % Initialize vectors for right vertices count
 LI_label_out = cell(1, TotROI);
 
+disp('Bootstrapping ..')
 for ii = 1:TotROI
-    
-    disp(['network ', num2str(ii), ' of ', num2str(TotROI)])
+    disp(['Processing ROI ', num2str(ii), ' of ', num2str(TotROI)])
     cfg_main = [];
     cfg_main.atlas = cfg_LI.sScout;
     cfg_main.RoiIndices = cfg_LI.RoiIndices{ii}; % Pass current ROI indices
-    cfg_main.divs = 10; % Example, adjust as needed
-    cfg_main.n_resampling = 100; % Example, adjust as needed
-    cfg_main.RESAMPLE_RATIO = 0.75; % Example, adjust as needed
+    cfg_main.divs = cfg_LI.divs; % Adjust as needed
+    cfg_main.n_resampling = cfg_LI.n_resampling; % Corrected to use n_resampling from cfg_LI
+    cfg_main.RESAMPLE_RATIO = cfg_LI.RESAMPLE_RATIO; % Adjust as needed
     cfg_main.t1 = cfg_LI.t1;
     cfg_main.t2 = cfg_LI.t2;
     cfg_main.ImageGridAmp = cfg_LI.ImageGridAmp;
     
     % Call bootstrapping function for current ROI
-    [weighted_li, ~] = do_LI_bootstrap(cfg_main);
+    [weighted_li, ~, L_vertices_above_thresh, R_vertices_above_thresh] = do_LI_bootstrap(cfg_main);
     
     % Store results
     Summ_LI(ii) = weighted_li; % Assuming weighted_li represents the LI for simplicity
+    L_vertices_total(ii) = sum(L_vertices_above_thresh); % Summing vertices counts for left hemisphere
+    R_vertices_total(ii) = sum(R_vertices_above_thresh); % Summing vertices counts for right hemisphere
     LI_label_out{ii} = RoiLabels{ii};
-    
 end
 
 % Save or display results
 savedir = cfg_LI.savedir; % Directory to save the results
-sname = 'bootstrap_results.xls'; % Example filename, adjust as needed
+sname = cfg_LI.sname; % Use sname from cfg_LI for file naming
 filename = fullfile(savedir, sname);
 
 % Open file for writing
 fid = fopen(filename, 'w');
-fprintf(fid, 'ROI\tLI\tLeft_count\tRight_count\n');
+fprintf(fid, 'ROI\tLI\tL_Vertices\tR_Vertices\n'); % Updated header to include vertex counts
 for i = 1:TotROI
-    fprintf(fid, '%s\t%f\t%d\t%d\n', LI_label_out{i}, Summ_LI(i), L_count(i), R_count(i));
+    fprintf(fid, '%s\t%f\t%d\t%d\n', LI_label_out{i}, Summ_LI(i), L_vertices_total(i), R_vertices_total(i));
 end
 fclose(fid);
 
-disp(['Results saved to: ' filename]);
+disp(['Results saved to: ', filename]);
 
-%%
-% Display the path to the saved file
-disp(['Results saved to: ' filename]);
-
-% Optional: Display results
-disp('=================')
-disp('                 ')
-a = table(RoiLabels'); a.Properties.VariableNames{'Var1'} = 'ROI';
-b = table(Summ_LI'); b.Properties.VariableNames{'Var1'} = 'LI';
-disp([a,b])
+% Optional: Display results in console for quick viewing
+disp('Bootstrap LI Results with Vertex Counts:');
+disp(table(RoiLabels', Summ_LI', L_vertices_total', R_vertices_total', 'VariableNames', {'ROI', 'LI', 'L_Vertices', 'R_Vertices'}));
 
 end
 
@@ -520,74 +551,55 @@ disp(d)
 
 end
 
-function [weighted_li, num_threshvals] = do_LI_bootstrap(cfg_main)
-% Modified to use RoiIndices for distinguishing between left and right hemisphere ROIs.
+function [weighted_li, num_threshvals, L_vertices_above_thresh, R_vertices_above_thresh] = do_LI_bootstrap(cfg_main)
+% Modified to use RoiIndices for distinguishing between left and right hemisphere ROIs
+% and to refine the reporting of vertices above threshold across bootstrapping.
 
 % Extract necessary configurations
 divs = cfg_main.divs;
 n_resampling = cfg_main.n_resampling;
 RESAMPLE_RATIO = cfg_main.RESAMPLE_RATIO;
-% time_interval = [cfg_main.t1, cfg_main.t2];
-RoiIndices = cfg_main.RoiIndices; % Assuming RoiIndices is passed in cfg_main
-MIN_NUM_THRESH_VOXELS = round(5 / RESAMPLE_RATIO);
+RoiIndices = cfg_main.RoiIndices;
+MIN_NUM_THRESH_VOXELS = divs / RESAMPLE_RATIO; % Adjust based on your specific logic
 
-% Assuming the ImageGridAmp data is already in cfg_main
-ImageGridAmp = cfg_main.ImageGridAmp;
+% Assuming the ImageGridAmp data is already filtered by cfg_main.t1:cfg_main.t2
+ImageGridAmp = cfg_main.ImageGridAmp(:, cfg_main.t1:cfg_main.t2);
 
 % Initialize output variables
 weighted_li = 0;
 num_threshvals = 0;
 
-% Preprocess data for the specified time interval
-% d_in = mean(ImageGridAmp(:, time_interval(1):time_interval(2)), 2);
-% d_in = ImageGridAmp;
-% ImageGridAmp = (d_in); % Ensure non-negative values
+% Initialize cumulative variables for counting vertices above threshold
+cumulative_L_vertices_above_thresh = 0;
+cumulative_R_vertices_above_thresh = 0;
 
-%%
-hemi_roi_num=length(RoiIndices);
-curr_subregion=cfg_main.atlas.Scouts(RoiIndices);
-
-%Odd indices are left Rois
-Ltemp_region = [];
-Ltemp_label  = [];
-k = 1;
-for i=1:2:hemi_roi_num
-    Ltemp_region=[Ltemp_region,curr_subregion(i).Vertices];
-    Ltemp_label{k} = curr_subregion(i).Label; k = k+1;
-end
-
-%Even indices are right Rois
-Rtemp_region = [];
-Rtemp_label  = [];
-k = 1;
-for i=2:2:hemi_roi_num
-    Rtemp_region=[Rtemp_region,curr_subregion(i).Vertices];
-    Rtemp_label{k} = curr_subregion(i).Label; k = k+1;
-end
-
-LHscout = Ltemp_region;
-RHscout = Rtemp_region;
-
-%%
+% Distinguish between left and right hemisphere ROIs
+LHscout = horzcat(cfg_main.atlas.Scouts(RoiIndices(1:2:end)).Vertices);
+RHscout = horzcat(cfg_main.atlas.Scouts(RoiIndices(2:2:end)).Vertices);
 
 % Extract amplitude values for left and right regions
-LHvals = ImageGridAmp(LHscout,:);
-RHvals = ImageGridAmp(RHscout,:);
+LHvals = ImageGridAmp(LHscout, :);
+RHvals = ImageGridAmp(RHscout, :);
 
 % Determine thresholds based on max value across both hemispheres
-ROIMax = max([max(LHvals), max(RHvals)]);
+ROIMax = max([LHvals(:); RHvals(:)]);
 threshvals = linspace(0, ROIMax, divs);
+% threshvals = 0.5.*ROIMax;
 
 % Perform bootstrapping for each threshold
 for thresh_idx = 1:numel(threshvals)
+    
     thresh = threshvals(thresh_idx);
-    l_above_thresh = LHvals(LHvals >= thresh);
-    r_above_thresh = RHvals(RHvals >= thresh);
+    l_above_thresh = LHvals >= thresh;
+    r_above_thresh = RHvals >= thresh;
     
     % Ensure both hemispheres have enough voxels above threshold
-    if numel(l_above_thresh) < MIN_NUM_THRESH_VOXELS || numel(r_above_thresh) < MIN_NUM_THRESH_VOXELS
+    if sum(l_above_thresh(:)) < MIN_NUM_THRESH_VOXELS && sum(r_above_thresh(:)) < MIN_NUM_THRESH_VOXELS
         break; % Stop if not enough voxels
     end
+    
+    cumulative_L_vertices_above_thresh = cumulative_L_vertices_above_thresh + sum(l_above_thresh(:));
+    cumulative_R_vertices_above_thresh = cumulative_R_vertices_above_thresh + sum(r_above_thresh(:));
     
     % Resample and compute LI for the current threshold
     TB_LIs = bootstrapLI(l_above_thresh, r_above_thresh, n_resampling, RESAMPLE_RATIO);
@@ -601,6 +613,10 @@ end
 if num_threshvals > 0
     weighted_li = (weighted_li / sum(1:num_threshvals)) * 100;
 end
+
+% Adjust final vertex counts to reflect average contribution if needed
+L_vertices_above_thresh = round(cumulative_L_vertices_above_thresh / num_threshvals);
+R_vertices_above_thresh = round(cumulative_R_vertices_above_thresh / num_threshvals);
 
 end
 
