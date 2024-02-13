@@ -67,10 +67,9 @@ sProcess.options.n_resampling.Comment = 'Number of resampling iterations:';
 sProcess.options.n_resampling.Type    = 'value';
 sProcess.options.n_resampling.Value   = {20, '', 1, 1000, 1}; % default 20, min 1, max 1000, step 1
 
-sProcess.options.RESAMPLE_RATIO.Comment = 'Resample ratio:';
+sProcess.options.RESAMPLE_RATIO.Comment = 'Resample ratio (%):';
 sProcess.options.RESAMPLE_RATIO.Type    = 'value';
-sProcess.options.RESAMPLE_RATIO.Value   = {0.95, '', 0, 1, 0.01}; % default 0.95, min 0, max 1, step 0.01
-
+sProcess.options.RESAMPLE_RATIO.Value   = {75, '%', 0, 100, 1, 1};  % Now represented as a percentage
 
 % Modify time interval input to include "Averaged Time Interval"
 sProcess.options.time_interval.Comment = 'Choose a time interval:';
@@ -168,8 +167,6 @@ end
 % Define ROIs
 [RoiLabels, RoiIndices] = defineROIs();
 
-
-
 % Compute LI
 cfg_LI = [];
 cfg_LI.time_interval = time_interval;
@@ -192,18 +189,13 @@ if sProcess.options.methodCounting.Value ==1
     computeLI(cfg_LI);  % Counting-based method
 end
 if sProcess.options.methodBootstrap.Value ==1
-    % Extract bootstrap parameters from the menu
-    divs = sProcess.options.divs.Value{1};
-    n_resampling = sProcess.options.n_resampling.Value{1};
-    RESAMPLE_RATIO = sProcess.options.RESAMPLE_RATIO.Value{1};
-    % Bootstrapping method
-    %     disp(['t = ', num2str(timerange)]);
-    cfg_LI.divs = divs;  % Adjust as needed
-    cfg_LI.n_resampling = n_resampling;  % Adjust as needed
-    cfg_LI.RESAMPLE_RATIO = RESAMPLE_RATIO;  % Adjust as needed
+    cfg_LI.divs =  sProcess.options.divs.Value{1};  % Adjust as needed
+    cfg_LI.n_resampling =  sProcess.options.n_resampling.Value{1};  % Adjust as needed
+    cfg_LI.RESAMPLE_RATIO = sProcess.options.RESAMPLE_RATIO.Value{1} / 100;  % Adjust as needed
     computeLI_bootstrap(cfg_LI);
 end
 
+disp(['Time: ', num2str(timerange(1)), '-', num2str(timerange(2))]);
 disp('To edit the LI script, first ensure Brainstorm is running. Then, open process_computeLI.m in Matlab.');
 disp('Pipeline update: 09/25/23');
 
@@ -584,7 +576,10 @@ RHvals = ImageGridAmp(RHscout, :);
 % Determine thresholds based on max value across both hemispheres
 ROIMax = max([LHvals(:); RHvals(:)]);
 threshvals = linspace(0, ROIMax, divs);
-% threshvals = 0.5.*ROIMax;
+
+if divs ==1
+    disp('divs should be greater than 1.')
+end
 
 % Perform bootstrapping for each threshold
 for thresh_idx = 1:numel(threshvals)
