@@ -1,150 +1,167 @@
+% function S_data = ecpfunc_read_sourcemaps(cfg_main)
+% 
+% % Set directories
+% BS_data_dir = cfg_main.BS_data_dir;
+% 
+% % Change to BS_data_dir
+% cd(BS_data_dir)
+% 
+% % Get file information
+% % datamask = fullfile('./Group_analysis/ec*/results*abs_ssmooth.mat');
+% dd = rdir(cfg_main.datamask);
+% for jj = 1:length(dd)
+%     disp([num2str(jj), ':', dd(jj).name]);
+% end
+% 
+% % Store filenames
+% sFiles_name = arrayfun(@(x) fullfile(x.name(3:end)), dd, 'UniformOutput', false);
+% 
+% % Initialize variables
+% Comment = []; %cell(1, length(sFiles_name));
+% Comment_sel = [];
+% kk = 1;
+% 
+% % Process files
+% for jj = 1:length(sFiles_name)
+%     disp([num2str(jj), '/', num2str(length(sFiles_name))]);
+%     tmp = load(sFiles_name{jj});
+%     
+%     % Extract and append run number
+%     run_str = regexp(sFiles_name{jj}, '_run\d+', 'match');
+%     if ~isempty(run_str)
+%         run_number = run_str{1}(5:end); % Extracts the number after '_run'
+%         Comment{jj} = [tmp.Comment, ' Run: ', run_number];
+%     else
+%         Comment{jj} = tmp.Comment;
+%     end
+% 
+%     if contains(Comment{jj}, 'Avg:')
+%         Comment_sel{kk} = sFiles_name{jj};
+%         kk = kk + 1;
+%     end
+% end
+% 
+% % Filter by comment content
+% idx_anim = contains(Comment, '3 (');
+% idx_symb = contains(Comment, '2 (');
+% 
+% % Define sFiles
+% sFiles_3 = sFiles_name(idx_anim);
+% sFiles_2 = sFiles_name(idx_symb);
+% 
+% % Extract Subject ID and Run number
+% % extractSubRun = @(c) cellfun(@(x) regexp(x, 'ssmooth_(\w+)/.*Run: (\d+)', 'tokens'), c, 'UniformOutput', false);
+% 
+% % Process Comments
+% Comment_3 = Comment(idx_anim);
+% Comment_2 = Comment(idx_symb);
+% sub_3_run = extractSubRun(Comment_3);
+% sub_2_run = extractSubRun(Comment_2);
+% 
+% % Store data
+% S_data = struct();
+% S_data.sFiles_3 = sFiles_3;
+% S_data.sFiles_2 = sFiles_2;
+% S_data.subjs_3 = extractSubjects(sFiles_3);
+% S_data.subjs_2 = extractSubjects(sFiles_2);
+% S_data.run_3 = sub_3_run;
+% S_data.run_2 = sub_2_run;
+% 
+% end
+% 
+% % Helper function to extract subject ids
+% function subjects = extractSubjects(sFiles)
+%     subjects = cell(1, length(sFiles));
+%     k = 1;
+%     for i = 1:length(sFiles)
+%         tmp = load(sFiles{i});
+%         idx = strfind(tmp.Comment, '_');
+%         subjects{k} = tmp.Comment(idx+1:idx+6);
+%         k = k + 1;
+%     end
+% end
+% 
+% function extractedData = extractSubRun(comments)
+%     extractedData = cell(size(comments));
+%     for i = 1:length(comments)
+%         match = regexp(comments{i}, 'ssmooth_(\w+)/.*Run: (\d+)', 'tokens');
+%         if ~isempty(match)
+%             extractedData{i} = [match{1}{1}, '_Run', match{1}{2}];
+%         else
+%             extractedData{i} = '';
+%         end
+%     end
+% end
+
+
+
+
 function S_data = ecpfunc_read_sourcemaps(cfg_main)
 
-protocol = cfg_main.protocol;
 data_info_dir = cfg_main.datadir;
 BS_data_dir = cfg_main.BS_data_dir;
 
-%%
-load(protocol);
-Subj_bs = ProtocolSubjects.Subject;
 
-L = length(Subj_bs);
-k = 1;
-clear subjs_bs
-for i=1:length(Subj_bs)
-    if ~contains(Subj_bs(i).Name, 'Group_analysis')
-        datafile{k} = Subj_bs(i).FileName;
-        subjs_bs{k} = Subj_bs(i).Name;
-        k=1+k;
+%%
+cd(BS_data_dir)
+% dd = rdir(fullfile('./Group_analysis/ec*/results*abs_ssmooth.mat'));
+dd = rdir(cfg_main.datamask);
+for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
+
+sFiles_name = [];
+for jj=1:length(dd)
+    sFiles_name{jj} = fullfile(dd(jj).name(3:end));
+end
+Comment = []; kk=1;
+for jj=1:length(sFiles_name)
+    disp([num2str(jj), '/' , num2str(length(sFiles_name))]);
+    cd(BS_data_dir)
+    tmp  = load(sFiles_name{jj});
+    
+    % Extract run number from filename
+%     run_str = strfind(sFiles_name{jj}, '_run'); sFiles_name{jj}(run_str+4);
+    Comment{jj} = tmp.Comment;
+%     Comment{jj} = [tmp.Comment, ' Run: ', sFiles_name{jj}(run_str+4)]; % Append run_number to Comment
+    if contains(Comment{jj}, 'Avg:')
+        Comment_sel{kk} = sFiles_name{jj};
+        kk=kk+1;
+        disp(Comment{jj})
     end
 end
-unq_bs_subj = unique(subjs_bs);
-%%
-% no_anat = {'EC1036'
-%     'EC1037'
-%     'EC1038'
-%     'EC1040'
-%     'EC1045'
-%     'EC1049'
-%     'EC1061'
-%     'EC1065'
-%     'EC1085'
-%     'EC1092'
-%     'EC1094'
-%     'EC1096'
-%     'EC1110'
-%     'EC1111'
-%     'EC1112'
-%     'EC1141'
-%     'EC1153'
-%     'EC1162'
-%     'EC1090'};
 
+idx_anim = contains(Comment, '3 (')==1;
+idx_symb = contains(Comment, '2 (')==1;
 
-no_anat = {'EC1036'
-    'EC1037'
-    'EC1038'
-    'EC1040'
-    'EC1045'
-    'EC1049'
-    'EC1061'
-    'EC1065'
-    'EC1085'
-    'EC1094'
-    'EC1096'
-    'EC1110'
-    'EC1111'
-    'EC1090'
-    };
+idx_anim = contains(Comment, 'Anim_')==1;
+idx_symb = contains(Comment, 'Symbol_')==1;
 
-sub_all1 = setdiff(unq_bs_subj,no_anat);
+sFiles_3 = sFiles_name(idx_anim);
+sFiles_2 = sFiles_name(idx_symb);
 
 %%
 cd(data_info_dir)
-% if exist(fullfile(data_info_dir,'comments_subject.mat'),'file') == 2
-%     load(fullfile(data_info_dir,'comments_subject.mat')),
-% else
-    subj_del = [];
-    
-    cd(BS_data_dir)
-%     dd = rdir(fullfile('./Group_analysis/2_LCMV_Subjects/results_average*.mat'));
-%     dd = rdir(fullfile('./Group_analysis/LCMV/*ssmooth.mat'));
-    dd = rdir(fullfile(['./Group_analysis/',cfg_main.datatag, '/results*abs_ssmooth.mat']));
-    for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
-    
-    sFiles_name = [];
-    for jj=1:length(dd)
-        sFiles_name{jj} = fullfile(dd(jj).name(3:end));
-    end
-    Comment = []; k=1; kk=1;
-    need_correction = [];
-    for jj=1:length(sFiles_name)
-        disp([num2str(jj), '/' , num2str(length(sFiles_name))])
-        cd(BS_data_dir)
-        tmp  = load(sFiles_name{jj});
-        Comment{jj} = tmp.Comment;
-        if length(tmp.Time) < 4000 && ~contains(Comment{jj}, 'Avg')
-            disp(length(tmp.Time))
-            need_correction(k) = jj;
-            k=k+1;
-        end
-        if contains(Comment{jj}, 'Avg:')
-            Comment_sel{kk} = sFiles_name{jj};
-            kk=kk+1;
-            disp(Comment{jj})
-        end
-    end
-    
-    removing_sFiles  = sFiles_name(need_correction);
-    for i=1:length(removing_sFiles)
-        %         removing_sFiles{i};
-        [path, ~] = fileparts(removing_sFiles{i});
-        if exist(path,'dir') == 7
-            rmdir(fullfile(BS_data_dir, path),'s')
-        end
-    end
-    
-    idx_anim = find(contains(Comment, '3 (')==1);
-    idx_symb = find(contains(Comment, '2 (')==1);
-    
-    sFiles_3 = sFiles_name(idx_anim);
-    sFiles_2 = sFiles_name(idx_symb);
-    
-%     save(fullfile(data_info_dir,'comments_subject.mat'),'Comment','sFiles_name','sFiles_3','sFiles_2'),
-% end
+cd(BS_data_dir)
+L = length(sFiles_3); k = 1;
+clear subjs_3
+for i=1:length(sFiles_3)
+    %     disp([num2str(i), '/' , num2str(length(sFiles_3))])
+    tmp = load(sFiles_3{i});
+    idx = strfind(tmp.Comment,'_');
+    subjs_3{k} = tmp.Comment(idx+1:idx+6);
+    disp([subjs_3{k}, ': ', num2str(i), '/' , num2str(length(sFiles_3))])
+    k=1+k;
+end
 
-%%
-cd(data_info_dir)
-% if exist(fullfile(data_info_dir,'subjects_ID.mat'),'file') == 2
-%     load(fullfile(data_info_dir,'subjects_ID.mat')),
-% else
-    cd(BS_data_dir)
-    L = length(sFiles_3); k = 1;
-    clear subjs_3
-    for i=1:length(sFiles_3)
-        %     disp([num2str(i), '/' , num2str(length(sFiles_3))])
-        tmp = load(sFiles_3{i});
-        idx = strfind(tmp.Comment,'_');
-        subjs_3{k} = tmp.Comment(idx+1:idx+6);
-        disp([subjs_3{k}, ': ', num2str(i), '/' , num2str(length(sFiles_3))])
-        k=1+k;
-    end
-    unq_bs_subj_3 = unique(subjs_3);
-    
-    L = length(sFiles_2); k = 1;
-    clear subjs_2
-    for i=1:length(sFiles_2)
-        %     disp([num2str(i), '/' , num2str(length(sFiles_3))])
-        tmp = load(sFiles_2{i});
-        idx = strfind(tmp.Comment,'_');
-        subjs_2{k} = tmp.Comment(idx+1:idx+6);
-        disp([subjs_2{k}, ': ', num2str(i), '/' , num2str(length(sFiles_2))])
-        k=1+k;
-    end
-    unq_bs_subj_2 = unique(subjs_2);
-    
-%     save(fullfile(data_info_dir,'subjects_ID.mat'),'subjs_2','subjs_3'),
-% end
+L = length(sFiles_2); k = 1;
+clear subjs_2
+for i=1:length(sFiles_2)
+    %     disp([num2str(i), '/' , num2str(length(sFiles_3))])
+    tmp = load(sFiles_2{i});
+    idx = strfind(tmp.Comment,'_');
+    subjs_2{k} = tmp.Comment(idx+1:idx+6);
+    disp([subjs_2{k}, ': ', num2str(i), '/' , num2str(length(sFiles_2))])
+    k=1+k;
+end
 
 %%
 S_data = [];
@@ -152,4 +169,5 @@ S_data.sFiles_3 = sFiles_3;
 S_data.sFiles_2 = sFiles_2;
 S_data.subjs_3 = subjs_3;
 S_data.subjs_2 = subjs_2;
+
 

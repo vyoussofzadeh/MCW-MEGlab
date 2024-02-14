@@ -44,8 +44,8 @@ for j=1:size(LI_method_label,2)
     [mx, idx] = max(conc(j,:)); 
     interval = idx-bf:idx+bf;
     if length(net_sel) > 1
-        mLI_sub1 = squeeze(mean(LI_pt_val_new(net_sel,:,interval)));
-        megLI_sub_pt = mean((mLI_sub1),2);
+        mLI_sub1 = squeeze(nanmean(LI_pt_val_new(net_sel,:,interval)));
+        megLI_sub_pt = nanmean((mLI_sub1),2);
     else
         mLI_sub1 = mean(LI_pt_val_new(net_sel,:,interval),3);
         megLI_sub_pt = (mLI_sub1)';

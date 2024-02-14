@@ -3,6 +3,7 @@ function [LI_ROIval,pow] = do_LI_magnitude(cfg_main)
 
 % Load dSPM image grid and scout information
 ImageGridAmp = abs(cfg_main.d_in);
+% ImageGridAmp = (cfg_main.d_in);
 sScout = cfg_main.atlas;
 
 % Get left and right subregions from scout data
@@ -17,8 +18,8 @@ for i = 1:length(cfg_main.idx_R)
 end
 
 % Extract amplitude values for left and right subregions
-LHvals = ImageGridAmp(LHscout);
-RHvals = ImageGridAmp(RHscout);
+LHvals = ImageGridAmp(LHscout,:);
+RHvals = ImageGridAmp(RHscout,:);
 
 % Calculate maximum values for left and right subregions
 LH_max = max(LHvals(:));
@@ -36,8 +37,8 @@ switch cfg_main.Threshtype
 end
 
 % Mag significant voxels in each hemisphere
-pow_left = sum(ImageGridAmp(LHvals > threshold));
-pow_right = sum(ImageGridAmp(RHvals > threshold));
+pow_left = sum(ImageGridAmp(LHvals(:) > threshold));
+pow_right = sum(ImageGridAmp(RHvals(:) > threshold));
 
 % Calculate laterality index and total significant voxels
 LI_ROIval = 100 * ((pow_left - pow_right) / (pow_left + pow_right));

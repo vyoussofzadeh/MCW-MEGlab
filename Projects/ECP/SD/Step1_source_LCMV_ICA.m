@@ -378,7 +378,7 @@ end
 %% Apply smoothing, for group source analysis
 cd(BS_data_dir)
 clc
-dd = rdir(fullfile('./Group_analysis/*clean/results_*.mat'));
+dd = rdir(fullfile('./Group_analysis/ec*clean/results_*.mat'));
 ft_progress('init', 'text',     'please wait ...');
 comment = [];
 for j=1:length(dd)
@@ -444,6 +444,18 @@ for ii=1:length(dd)
 end
 % ft_progress('close');
 
+%% Contrast data conditions 3 - 2
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/function')
+datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data';
+
+cfg = [];
+cfg.protocol = protocol;
+cfg.datadir = datadir;s
+cfg.BS_data_dir = BS_data_dir;
+S_data = ecpfunc_read_sourcemaps(cfg);
+
+bst_process('CallProcess', 'process_diff_ab', S_data.sFiles_3, S_data1.sFiles_2, ...
+    'source_abs', 1);
 
 %% Intra-subject averaging
 % db_reload_database('current',1)

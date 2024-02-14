@@ -9,6 +9,7 @@ idx_L = cfg_main.index_L;
 idx_R = cfg_main.index_R;
 divs = cfg_main.divs; % divs: number of divisions between 0 and max value in img
 n_resampling = cfg_main.n_resampling; % 200
+doavg = cfg_main.doavg;
 
 sinput = cfg_main.sinput;
 
@@ -16,6 +17,10 @@ RESAMPLE_RATIO = cfg_main.RESAMPLE_RATIO; % 0.75
 MIN_NUM_THRESH_VOXELS = round(5 / RESAMPLE_RATIO);
 
 tmp = load(fullfile(cfg_main.BS_data_dir, sinput));
+
+% removing the negive effects
+% tmp.ImageGridAmp(tmp.ImageGridAmp<0) = 0;
+
 sScout = atlas;
 
 weighted_li = [];
@@ -27,7 +32,12 @@ for j = 1:size(wi, 1)
     timind1 = nearest(tmp.Time, wi(j,1));
     timind2 = nearest(tmp.Time, wi(j,2));
     
-    d_in = mean(tmp.ImageGridAmp(:, timind1:timind2), 2);
+    if doavg ==  1
+        d_in = mean(tmp.ImageGridAmp(:, timind1:timind2), 2);
+    else
+        d_in = tmp.ImageGridAmp(:, timind1:timind2);
+    end
+    
     ImageGridAmp = abs(d_in);
     
     % Get left and right subregions from scout data
@@ -42,8 +52,8 @@ for j = 1:size(wi, 1)
     end
     
     % Extract amplitude values for left and right subregions
-    LHvals = ImageGridAmp(LHscout);
-    RHvals = ImageGridAmp(RHscout);
+    LHvals = ImageGridAmp(LHscout(:),:);
+    RHvals = ImageGridAmp(RHscout(:),:);
     
     % Calculate maximum values for left and right subregions
     LH_max = max(LHvals(:));
@@ -51,8 +61,8 @@ for j = 1:size(wi, 1)
     ROIMax = max(LH_max, RH_max);
     
 %     divs = 5; % divs: number of divisions between 0 and max value in img
-    lvals_nonnegative = LHvals(LHvals >= 0);
-    rvals_nonnegative = RHvals(RHvals >= 0);
+    lvals_nonnegative = LHvals(LHvals(:) >= 0);
+    rvals_nonnegative = RHvals(RHvals(:) >= 0);
     
     % creating an array of values between 0 and the maximum amplitude
     % (ROIMax) observed in the brain regions of interest. 
@@ -66,8 +76,8 @@ for j = 1:size(wi, 1)
     
     for i = 1:numel(threshvals)
         threshval = threshvals(i);
-        l_threshvals = lvals_nonnegative(lvals_nonnegative >= threshval);
-        r_threshvals = rvals_nonnegative(rvals_nonnegative >= threshval);
+        l_threshvals = lvals_nonnegative(lvals_nonnegative(:) >= threshval);
+        r_threshvals = rvals_nonnegative(rvals_nonnegative(:) >= threshval);
         
         %- Check if both hemispheres have enough voxels above the threshold
         % (MIN_NUM_THRESH_VOXELS)

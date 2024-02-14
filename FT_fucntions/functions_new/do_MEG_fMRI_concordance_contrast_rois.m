@@ -50,11 +50,12 @@ for j=1:length(lang_id)
             conc(j,i,:) = (megLI_sub_pt .* fmri_LIs_val);
         end
     end
-    
+%     disp(j)
+%     figure, plot(conc(j,:))
     [mx, idx] = max(conc(j,:));
     interval = idx-bf:idx+bf;
     
-    mLI_sub1 = mean(LI_pt_new(net_sel,:,interval),3);
+    mLI_sub1 = nanmean(LI_pt_new(net_sel,:,interval),3);
     megLI_sub_pt = (mLI_sub1)';
     disp(['selected time for ', cfg_main.lang_id{j}, ':', num2str(m_wi(interval(1))),'-',num2str(m_wi(interval(end))),' ms'])
 

@@ -3,6 +3,7 @@ function LI_ROIcount = do_LI_clincial(cfg_main)
 
 % Load dSPM image grid and scout information
 ImageGridAmp = abs(cfg_main.d_in);
+% ImageGridAmp = (cfg_main.d_in);
 sScout = cfg_main.atlas;
 
 % Get left and right subregions from scout data
@@ -17,8 +18,8 @@ for i = 1:length(cfg_main.idx_R)
 end
 
 % Extract amplitude values for left and right subregions
-LHvals = ImageGridAmp(LHscout);
-RHvals = ImageGridAmp(RHscout);
+LHvals = ImageGridAmp(LHscout(:),:);
+RHvals = ImageGridAmp(RHscout(:),:);
 
 % Calculate maximum values for left and right subregions
 LH_max = max(LHvals(:));
@@ -36,8 +37,8 @@ switch cfg_main.Threshtype
 end
 
 % Count the number of significant voxels in each hemisphere
-L_ROIcount = sum(LHvals > threshold);
-R_ROIcount = sum(RHvals > threshold);
+L_ROIcount = sum(LHvals(:) > threshold);
+R_ROIcount = sum(RHvals(:) > threshold);
 
 % Calculate laterality index and total significant voxels
 LI_ROIcount = 100 * ((L_ROIcount - R_ROIcount) / (L_ROIcount + R_ROIcount));

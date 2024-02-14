@@ -8,6 +8,10 @@ function fmri_LIs = ecpfunc_read_fmri_lat()
 % filename = '/group/jbinder/ECP/alternate/derivatives/laterality_indices/censor/all_volume_li.tsv'; % please replace with your actual path
 filename = '/group/jbinder/ECP/alternate/derivatives/laterality_indices/censor/all_cifti_li.tsv';
 
+disp('task info')
+disp('Semantic task: storymath task'); 
+disp('language task: semantic decision tone task');
+
 T = readtable(filename, 'FileType', 'text', 'Delimiter', '\t');
 
 % get unique tasks and regions
@@ -44,6 +48,7 @@ end
 fmri_LIs = [];
 fmri_LIs.val = li_values_all;
 fmri_LIs.ID = li_values_part_all;
+fmri_LIs.taskinfo = {'Semantic=storymath task', 'language=semantic decision tone task'};
 
 
 

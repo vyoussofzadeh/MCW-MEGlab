@@ -39,16 +39,6 @@ sProcess.OutputTypes = {'results'};
 sProcess.nInputs     = 1;
 sProcess.nMinFiles   = 1;
 
-% % Modify LI computation method selection to include "Both"
-% sProcess.options.LImethod.Comment = 'Select LI computation method:';
-% sProcess.options.LImethod.Type    = 'combobox';
-% sProcess.options.LImethod.Value   = {1, {'Counting', 'Bootstrapping', 'Both'}};
-
-% Add an option to select the LI computation method
-% sProcess.options.LImethod.Comment = 'Select LI computation method:';
-% sProcess.options.LImethod.Type    = 'combobox';
-% sProcess.options.LImethod.Value   = {1, {'Counting', 'Bootstrapping', 'Both'}};
-
 % Add options to select the LI computation method as checkboxes
 sProcess.options.methodCounting.Comment = 'Use Counting Method';
 sProcess.options.methodCounting.Type    = 'checkbox';
@@ -138,7 +128,6 @@ end
 effect = selectEffectType(sProcess.options.effect.Value{1});
 
 % Define ROI-related parameters
-
 Ratio4Threshold = sProcess.options.ratio4threshold.Value{1}/100;
 
 % Define threshold type
@@ -195,7 +184,9 @@ if sProcess.options.methodBootstrap.Value ==1
     computeLI_bootstrap(cfg_LI);
 end
 
-disp(['Time: ', num2str(timerange(1)), '-', num2str(timerange(2))]);
+if time_interval ~=2
+    disp(['Time: ', num2str(timerange(1)), '-', num2str(timerange(2))]);
+end
 disp('To edit the LI script, first ensure Brainstorm is running. Then, open process_computeLI.m in Matlab.');
 disp('Pipeline update: 09/25/23');
 
@@ -329,6 +320,7 @@ LI_label_out = cell(1, TotROI);
 
 disp('Bootstrapping ..')
 for ii = 1:TotROI
+    
     disp(['Processing ROI ', num2str(ii), ' of ', num2str(TotROI)])
     cfg_main = [];
     cfg_main.atlas = cfg_LI.sScout;
@@ -339,6 +331,7 @@ for ii = 1:TotROI
     cfg_main.t1 = cfg_LI.t1;
     cfg_main.t2 = cfg_LI.t2;
     cfg_main.ImageGridAmp = cfg_LI.ImageGridAmp;
+    cfg_main.time_interval = cfg_LI.time_interval;
     
     % Call bootstrapping function for current ROI
     [weighted_li, ~, L_vertices_above_thresh, R_vertices_above_thresh] = do_LI_bootstrap(cfg_main);
@@ -554,8 +547,12 @@ RESAMPLE_RATIO = cfg_main.RESAMPLE_RATIO;
 RoiIndices = cfg_main.RoiIndices;
 MIN_NUM_THRESH_VOXELS = divs / RESAMPLE_RATIO; % Adjust based on your specific logic
 
-% Assuming the ImageGridAmp data is already filtered by cfg_main.t1:cfg_main.t2
-ImageGridAmp = cfg_main.ImageGridAmp(:, cfg_main.t1:cfg_main.t2);
+
+if cfg_main.time_interval == 2 || size(cfg_main.ImageGridAmp,2) == 1
+    ImageGridAmp = mean(cfg_main.ImageGridAmp,2);
+else
+    ImageGridAmp = cfg_main.ImageGridAmp(:, cfg_main.t1:cfg_main.t2);
+end
 
 % Initialize output variables
 weighted_li = 0;

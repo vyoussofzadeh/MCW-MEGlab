@@ -24,7 +24,9 @@ unq_bs_subj = unique(subjs_bs);
 cd(data_info_dir)
 
 cd(BS_data_dir)
-dd = rdir(fullfile(['./Group_analysis/',cfg_main.datatag, '/results*abs_ssmooth.mat']));
+% dd = rdir(fullfile(['./Group_analysis/ec*/results_abs*.mat']));
+dd = rdir(cfg_main.datamask);
+% dd = rdir(fullfile(['./Group_analysis/',cfg_main.datatag, '/results*abs_ssmooth.mat']));
 for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
 
 sFiles_name = [];
@@ -55,8 +57,10 @@ for jj=1:length(sFiles_name)
     end
 end
 
-idx_anim_symb = contains(Comment, 'ssmooth_')==1;
-sFiles_32 = sFiles_name(idx_anim_symb);
+% idx_anim_symb = contains(Comment, 'ssmooth_')==1;
+% sFiles_32 = sFiles_name(idx_anim_symb);
+
+sFiles_32 = sFiles_name;
 
 %%
 % cd(BS_data_dir)

@@ -17,14 +17,24 @@ Run_setpath
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/other/')
 
 %%
-LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_basline','LCMV_contrast','DICS_anim', 'DICS_contrast_prestim'};
+% LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_basline','LCMV_contrast','DICS_anim', 'DICS_contrast_prestim'};
+% 
+% disp('1) DICS_baseline (Anim-vs-bsl vs. Symb-vs-bsl)')
+% disp('2) DICS_contrast (Anim-vs-Symb)')
+% disp('3) LCMV_basline (Anim-vs-bsl vs. Symb-vs-bsl)')
+% disp('4) LCMV_contrast (Anim-vs-Symb)')
+% disp('5) DICS_anim (Anim)')
+% disp('6) DICS_contrast prestim (Anim-vs-Symb)')
+% 
+% LI_analysis = input('');
 
-disp('1) DICS_baseline (Anim-vs-bsl vs. Symb-vs-bsl)')
-disp('2) DICS_contrast (Anim-vs-Symb)')
-disp('3) LCMV_basline (Anim-vs-bsl vs. Symb-vs-bsl)')
-disp('4) LCMV_contrast (Anim-vs-Symb)')
-disp('5) DICS_anim (Anim)')
-disp('6) DICS_contrast prestim (Anim-vs-Symb)')
+% LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_baseline','LCMV_contrast','DICS_anim', 'DICS_contrast_prestim', 'dSPM_contrast'};
+LI_analysis_label = {'DICS_indirect','DICS_directcontrast','LCMV_anim_vs_Symb','-','DICS_anim', 'DICS_contrast_prestim', 'dSPM_contrast'};
+
+
+for i = 1:length(LI_analysis_label)
+    disp([num2str(i) ') ' LI_analysis_label{i}]);
+end
 
 LI_analysis = input('');
 
@@ -75,12 +85,17 @@ switch LI_analysis
         cfg.datatag = 'wDICS_contrast_18_4';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
     case 3
+        cfg.datamask = fullfile('./Group_analysis/LCMV/results_average*.mat');
         S_data = ecpfunc_read_sourcemaps(cfg);
-    case 4
-        S_data = ecpfunc_read_sourcemaps_contrast(cfg);
+%     case 4
+%         cfg.datamask = fullfile('./Group_analysis/LCMV/results_abs*.mat');
+%         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
     case 6
         cfg.datatag = 'PSTwDICS_contrast_18_4';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
+    case 7
+        cfg.datatag = 'dSPM_contrast';
+        S_data = ecpfunc_read_sourcemaps_contrast(cfg);
 end
 
 %% Subject demog details
@@ -231,11 +246,97 @@ for j=1:length(LI_class_label)
     
 end
 
-%% Power analysis
-% switch LI_method
-%     case 'Magnitude'
-%         run_power_analysis
-% end
+%% Plot power
+if  LI_method ==1
+    
+    pow_hc = transformPowSubTo3DArrays(LI_hc.pow_sub);
+    pow_pt = transformPowSubTo3DArrays(LI_pt.pow_sub);
+    
+    mPow_sub_hc_left = squeeze(nanmean(pow_hc.left,2)); mPow_sub_hc_right = squeeze(nanmean(pow_hc.right,2));
+    mPow_sub_pt_left = squeeze(nanmean(pow_pt.left,2)); mPow_sub_pt_right = squeeze(nanmean(pow_pt.right,2));
+    
+    
+    % clc
+    % LI_class_label = {'HC', 'PT','HC-PT','PT-Left','HC - PT-Left'};
+    %
+    % for j=1:length(LI_class_label)
+    
+    cfg = [];
+    cfg.labels = net_sel_mutiple_label(network_sel);
+    cfg.colors = colr;
+    cfg.wi = wi;
+    cfg.power_left = mPow_sub_hc_left;
+    cfg.power_right = mPow_sub_hc_right;
+    plotPower(cfg)
+    
+    cfg.power_left = mPow_sub_pt_left;
+    cfg.power_right = mPow_sub_pt_right;
+    plotPower(cfg)
+    
+    % - export figs
+    %     cfg = []; cfg.outdir = save_dir; filename = LI_class_label{j}; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+    %
+    % end
+    
+    %%
+    % pow = [];
+    % if LI_method == 1
+    %     for j=1:size(LI_anim_hc.pow_sub,1)
+    %         for i=1:size(LI_anim_hc.pow_sub,2)
+    %             pow.left_hc(j,i,:) = LI_hc.pow_sub(j,i).left;
+    %             pow.right_hc(j,i,:) = LI_hc.pow_sub(j,i).right;
+    %         end
+    %     end
+    % end
+    %
+    % mPow_sub1 = squeeze(mean(pow.left_hc,2));
+    mlabel = 'Magnitude';
+    tag = [mlabel,'; anim vs. symb, hc, left'];
+    
+    
+    %-
+    clc
+    mPow_sub_hc = mPow_sub_hc_left;
+    
+    figure,
+    clear LI_val
+    for j=1:length(network_sel)
+        hold on
+        do_createPlot(mPow_sub_hc(network_sel(j),:), wi, colr(j,:), net_sel_mutiple_label(network_sel), [mlabel,'; hc - pt'], 'LI')
+    end
+    lgnd = legend([net_sel_mutiple_label(network_sel); 'mean']);
+    title(tag)
+    ylabel('Pow')
+    xlabel('time')
+    set(gca,'color','none');
+    set(lgnd,'color','none');
+    
+    
+    %-
+    clc
+    close all
+    mPow_sub_hc = mPow_sub_hc_right;
+    
+    figure,
+    clear LI_val
+    for j=1:length(network_sel)
+        hold on
+        do_createPlot(mPow_sub_hc(network_sel(j),:), wi, colr(j,:), net_sel_mutiple_label(network_sel), [mlabel,'; hc - pt'], 'LI')
+    end
+    lgnd = legend([net_sel_mutiple_label(network_sel); 'mean']);
+    title(tag)
+    ylabel('Pow')
+    xlabel('time')
+    set(gca,'color','none');
+    set(lgnd,'color','none');
+    
+    
+    % switch LI_method
+    %     case 'Magnitude'
+    %         run_power_analysis
+    % end
+    
+end
 
 %% MEG vs. fMRI lat analysis (PT)
 % pause, close all,
@@ -307,30 +408,30 @@ concordant_subs = sub_MF_pt(conc_idx);
 
 %% Discordant samples
 % close all
-mwi = mean(wi,2);
-for i=1:length(discordant_subs)
-    tmp = squeeze(LI_pt_val_new(11,disc_idx(i),:));
-    figure,plot(wi(:,1),tmp), title([discordant_subs(i), num2str(meg_fMRI_trn(disc_idx(i),:)), 'mean=', num2str(mean(tmp(interval_idx)))])
-    hold on
-    xline(mwi(interval_idx(1)))
-    xline(mwi(interval_idx(end)))
-    
-%     cfg = []; cfg.outdir = save_dir; filename = 'net ROIs'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
-    
-end
+% mwi = mean(wi,2);
+% for i=1:length(discordant_subs)
+%     tmp = squeeze(LI_pt_val_new(11,disc_idx(i),:));
+%     figure,plot(wi(:,1),tmp), title([discordant_subs(i), num2str(meg_fMRI_trn(disc_idx(i),:)), 'mean=', num2str(mean(tmp(interval_idx)))])
+%     hold on
+%     xline(mwi(interval_idx(1)))
+%     xline(mwi(interval_idx(end)))
+%     
+% %     cfg = []; cfg.outdir = save_dir; filename = 'net ROIs'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+%     
+% end
 
 %% Concordant samples
-mwi = mean(wi,2);
-for i=1:5%length(concordant_subs)
-    tmp = squeeze(LI_pt_val_new(11,conc_idx(i),:));
-    figure,plot(wi(:,1),tmp), title([concordant_subs(i), num2str(meg_fMRI_trn(conc_idx(i),:)), 'mean=', num2str(mean(tmp(interval_idx)))])
-    hold on
-    xline(mwi(interval_idx(1)))
-    xline(mwi(interval_idx(end)))
-    
-%     cfg = []; cfg.outdir = save_dir; filename = 'net ROIs'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
-    
-end
+% mwi = mean(wi,2);
+% for i=1:5%length(concordant_subs)
+%     tmp = squeeze(LI_pt_val_new(11,conc_idx(i),:));
+%     figure,plot(wi(:,1),tmp), title([concordant_subs(i), num2str(meg_fMRI_trn(conc_idx(i),:)), 'mean=', num2str(mean(tmp(interval_idx)))])
+%     hold on
+%     xline(mwi(interval_idx(1)))
+%     xline(mwi(interval_idx(end)))
+%     
+% %     cfg = []; cfg.outdir = save_dir; filename = 'net ROIs'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+%     
+% end
 
 %%
 % pause, close all,

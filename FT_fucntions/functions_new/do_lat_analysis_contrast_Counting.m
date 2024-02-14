@@ -6,9 +6,13 @@ idx_L = cfg_main.index_L;
 idx_R = cfg_main.index_R;
 thre = cfg_main.thre;
 sinput = cfg_main.sinput;
+doavg =  cfg_main.doavg;
 
 % Parcel_based (mean parcels) LI analysis
 tmp = load(fullfile(cfg_main.BS_data_dir, sinput));
+
+% removing the negive effects
+% tmp.ImageGridAmp(tmp.ImageGridAmp<0) = 0;
 
 %%
 % figure, plot(tmp.ImageGridAmp(:,1))
@@ -21,8 +25,13 @@ for j=1:size(wi,1)
     cfg = [];
     cfg.thre = thre;
     cfg.atlas = atlas;
-    cfg.d_in = mean(tmp.ImageGridAmp(:,timind1:timind2),2);
-%     cfg.d_in = (tmp.ImageGridAmp(:,timind1:timind2));
+    
+    if doavg == 1
+        cfg.d_in = mean(tmp.ImageGridAmp(:,timind1:timind2),2);
+    else
+        cfg.d_in = tmp.ImageGridAmp(:,timind1:timind2);
+    end
+    
     cfg.idx_L = idx_L;
     cfg.idx_R = idx_R;
     cfg.Threshtype = cfg_main.Threshtype;

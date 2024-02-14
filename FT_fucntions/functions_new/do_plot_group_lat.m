@@ -1,8 +1,3 @@
-
-% Additional functions for plotLINetworks, plotMeanLIWithStdDev, plotGeneralMeanLI, and saveFigure
-% can be defined similarly with the relevant code blocks from the original script.
-
-
 function do_plot_group_lat(cfg_main)
 
 
@@ -172,7 +167,7 @@ if cfg_main.savefig == 1
 end
 
 %%
-d_in = mean(mean(LI_sub,1),3); L = length(d_in);
+d_in = nanmean(nanmean(LI_sub,1),3); L = length(d_in);
 figure, bar(d_in,0.4)
 set(gca,'Xtick', 1:length(d_in),'XtickLabel',1:length(d_in));
 set(gca,'FontSize',8,'XTickLabelRotation',90);

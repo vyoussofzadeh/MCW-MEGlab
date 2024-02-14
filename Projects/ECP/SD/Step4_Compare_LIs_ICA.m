@@ -17,13 +17,13 @@ Run_setpath
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/other/')
 
 %%
-LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_basline','LCMV_contrast','DICS_anim'};
+% LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_baseline','LCMV_contrast','DICS_anim', 'DICS_contrast_prestim', 'dSPM_contrast'};
+LI_analysis_label = {'DICS_indirect','DICS_directcontrast','LCMV_anim_vs_Symb','-','DICS_anim', 'DICS_contrast_prestim', 'dSPM_contrast'};
 
-disp('1) DICS_baseline (Anim-vs-bsl vs. Symb-vs-bsl)')
-disp('2) DICS_contrast (Anim-vs-Symb)')
-disp('3) LCMV_basline (Anim-vs-bsl vs. Symb-vs-bsl)')
-disp('4) LCMV_contrast (Anim-vs-Symb)')
-disp('5) DICS_anim (Anim)')
+
+for i = 1:length(LI_analysis_label)
+    disp([num2str(i) ') ' LI_analysis_label{i}]);
+end
 
 LI_analysis = input('');
 
@@ -75,11 +75,18 @@ switch LI_analysis
         cfg.datatag = 'wDICS_contrast_18_4';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
     case 3
+        cfg.datamask = fullfile('./Group_analysis/LCMV/results_average*.mat');
         S_data = ecpfunc_read_sourcemaps(cfg);
-    case 4
+%     case 4
+%         cfg.datamask = fullfile('./Group_analysis/LCMV/results_abs*.mat');
+%         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
+    case 6
+        cfg.datatag = 'PSTwDICS_contrast_18_4';
+        S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
+    case 7
+        cfg.datatag = 'dSPM_contrast';
         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
 end
-
 
 %% Subject demog details
 switch LI_analysis
@@ -87,7 +94,7 @@ switch LI_analysis
         cfg = []; cfg.subjs_3 = S_data.subjs_3; cfg.subjs_2 = S_data.subjs_2;
         cfg.sFiles_3 = S_data.sFiles_3; cfg.sFiles_2 = S_data.sFiles_2;
         sub_demog_data = ecpfunc_read_sub_demog(cfg);
-    case {2,4}
+    case {2,4,6}
         clc
         cfg = []; cfg.subjs = S_data.subjs;
         cfg.sFiles = S_data.sFiles_32;
@@ -104,7 +111,7 @@ switch LI_analysis
         cfg.sub_demog_data = sub_demog_data;
         cfg.patn_neuropsych_data = patn_neuropsych_data;
         sub_TLE_sub_data = ecpfunc_read_sub_TLE_sub(cfg);
-    case {2,4}
+    case {2,4,6}
         clc
         cfg = [];
         cfg.sub_demog_data = sub_demog_data;
@@ -127,7 +134,7 @@ switch LI_analysis
         cfg.select_data = 4; S_data_symb_pt = ecpfunc_select_data(cfg);
         [LI_pt_ID,~,~] = intersect(S_data_anim_pt.sFiles_subid, S_data_symb_pt.sFiles_subid);
         [LI_hc_ID,~,~] = intersect(S_data_anim_hc.sFiles_subid, S_data_symb_hc.sFiles_subid);
-    case {2,4}
+    case {2,4,6}
         disp('1: Ctrl')
         disp('2: Patn')
         cfg = [];
@@ -206,6 +213,20 @@ cfg.LI_method_label = LI_method_label;
 % cfg.net_sel = [1,2,6];
 cfg.net_sel = [11]; % 6, 1, 2
 [megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
+cfg.net_sel = [1];
+[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
+cfg.net_sel = [5];
+[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
+cfg.net_sel = [2];
+[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
+cfg.net_sel = [6];
+[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
+cfg.net_sel = [2,6];
+[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
+cfg.net_sel = [1,2,6];
+[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
+cfg.net_sel = [9];
+[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
 
 %% MEG LI vs fMRI LI (Ternary language_Lateral)
 % pause, close all,
@@ -230,7 +251,7 @@ cfg.LI_method_label = LI_method_label;
 % cfg.net_sel = [1,2,6];
 cfg.net_sel = [11];
 cfg.thre = 0.1;
-cfg.buffervalue = 5;
+cfg.buffervalue = 1;
 [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
 cfg.net_sel = [1];
 [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
@@ -254,13 +275,13 @@ close all,
 clc
 
 for i=1:length(LI_method_label)
-    disp('====')
+    
     disp(['correlation analysis: ',LI_method_label{i}])
     
     cfg = []; cfg.wi = wi;
     cfg.ID = sub_MF_pt;
-    cfg.thre = 0.1;
-    cfg.bf = 10;
+    cfg.thre = 0.10;
+    cfg.bf = 1;
     cfg.ternary = 0;
     cfg.savefig = 0;
     cfg.outdir = save_dir;
@@ -282,8 +303,7 @@ for i=1:length(LI_method_label)
     % clc
     cfg = []; cfg.wi = wi;
     cfg.ID = sub_MF_pt;
-    cfg.thre = 0.1;
-    cfg.bf = 10;
+    cfg.thre = 0.10;
     cfg.ternary = 1;
     cfg.savefig = 0;
     cfg.outdir = save_dir;
@@ -294,7 +314,7 @@ for i=1:length(LI_method_label)
     cfg.fmri_LIs_val = fmri_LIs_trn;
     cfg.idx = IB;
     cfg.title = LI_method_label{i};
-    cfg.buffervalue = 10;
+    cfg.buffervalue = 5;
     do_MEG_fMRI_concordance_contrast_rois(cfg);
     
     % - export figs

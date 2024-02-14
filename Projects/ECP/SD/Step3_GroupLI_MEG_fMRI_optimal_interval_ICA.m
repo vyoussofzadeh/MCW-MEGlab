@@ -35,7 +35,8 @@ disp('3: Bootstrapping')
 LI_method = input(':');
 
 %%
-data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/';
+% data_save_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/';
+data_save_dir = '/data/MEG/Research/ECP/Semantic_Decision/Results';
 cd(data_save_dir)
 
 %%
@@ -66,16 +67,16 @@ cfg.BS_data_dir = BS_data_dir;
 
 switch LI_analysis
     case {1,5}
-%         cfg.datatag = 'wDICS_22_4_baseline';
         cfg.datatag = 'wDICS_baseline_18_4';
         S_data = ecpfunc_read_sourcemaps_dics(cfg);
     case 2
         cfg.datatag = 'wDICS_contrast_18_4';
-%         cfg.datatag = 'wDICS_contrast_22_4';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
     case 3
+        cfg.datamask = fullfile('./Group_analysis/LCMV/results_average*.mat');
         S_data = ecpfunc_read_sourcemaps(cfg);
     case 4
+        cfg.datamask = fullfile('./Group_analysis/LCMV/results_abs*.mat');
         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
 end
 
@@ -260,8 +261,14 @@ cfg.thre = .2; cfg.LI = fmri_LIs_val;
 fmri_LIs_trn = do_ternary_classification(cfg);
 size(fmri_LIs_trn);
 
+%%
+% Define thresholds for MEG and fMRI
+MEG_thre = 0.2; % MEG threshold
+fMRI_thre = 0.1; % fMRI threshold
+
 %% Optimal intervals LIs.
-close all
+close, 
+clc
 MEG_LI = squeeze(MEG_LI_Data(11,:,:));
 % 
 clc
@@ -269,196 +276,126 @@ timePoints = mean(wi,2);
 IntervalSize = 1;
 [optimalInterval, correlations] = findOptimalMEGInterval(MEG_LI, fMRI_LI, timePoints, IntervalSize);
 
-max(correlations)
+% max(correlations)
 
 sub_IDs = sub_MF_pt;
 nsub_IDs = [];
 for i=1:length(sub_IDs)
     nsub_IDs{i} = [num2str(i), ':', sub_IDs{i}];
 end
-% 
-% clc
-% IntervalSize = 30;
-% StepSize = 5;
-% % subjectForPlot = nan;
-% [groupCorrelation, optimalIntervals] = computeGroupLevelMEGfMRICorrelation(MEG_LI, fMRI_LI, timePoints, IntervalSize, StepSize);
-% plotOptimalIntervalsOnMEG(MEG_LI, fMRI_LI, sub_IDs, timePoints, optimalIntervals);
-% 
-% MEG_thre = 0.3; fMRI_thre = 0.15;
-% [concordance, discordantSubs] = calculateConcordance(MEG_LI, MEG_thre,fMRI_LI, fMRI_thre, timePoints, optimalIntervals);
-% nsub_IDs(discordantSubs)
-% 
-% %
-% clc
-% disp(nsub_IDs');
-% subjectForPlot = input('enter sub number:');
-% optimalIntervals = findIndividualOptimalIntervals(MEG_LI, fMRI_LI, timePoints, IntervalSize, StepSize, subjectForPlot);
+
+optimalInterval_constant = ones (size(timePoints,1),1).*optimalInterval;
+
+bf = 0.1;
+lowerBound = optimalInterval - bf;
+upperBound =  optimalInterval + bf;
+[groupCorrelation_cnst, optimalTimePoints_cnst] = computeGroupLevelMEGfMRICorrelation_timepoints(MEG_LI, fMRI_LI, timePoints, lowerBound, upperBound);
+
+[concordance_cnst, discordantSubs_cnst] = calculateConcordanceForTimePoints(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalInterval_constant);
+
+% Display IDs of discordant subjects, if any
+if ~isempty(discordantSubs_cnst)
+    disp('Discordant Subjects:');
+    disp(nsub_IDs(discordantSubs_cnst));
+else
+    disp('No Discordant Subjects Found');
+end
 
 %% Optimal time points LIs.
-clc
+% Clear the command window and close all figures
+disp('========')
+% clc
 close all
 
 % Define the time interval bounds
-lowerBound = 0.4; % 200 ms
-upperBound = 0.9; % 1.5 sec
+lowerBound = 0.5; % 
+upperBound = 0.9; % 
 
-clc
+% Compute group-level MEG-fMRI correlation and find optimal time points
 [groupCorrelation, optimalTimePoints] = computeGroupLevelMEGfMRICorrelation_timepoints(MEG_LI, fMRI_LI, timePoints, lowerBound, upperBound);
-plotOptimalTimePointsOnMEG(MEG_LI, fMRI_LI, sub_IDs, timePoints, optimalTimePoints);
 
-mean(optimalTimePoints)
+% Plot optimal time points on MEG data
+% plotOptimalTimePointsOnMEG(MEG_LI, fMRI_LI, sub_IDs, timePoints, optimalTimePoints);
 
-MEG_thre = 0.2; fMRI_thre = 0.1;
+% Calculate and display the mean of the optimal time points
+meanOptimalTime = mean(optimalTimePoints);
+disp(['Mean of optimal time points: ', num2str(meanOptimalTime)]);
+
+% Calculate concordance for the identified time points and identify discordant subjects
 [concordance, discordantSubs] = calculateConcordanceForTimePoints(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalTimePoints);
-nsub_IDs(discordantSubs)
 
+% Display concordance rate
+disp(['Concordance: ', num2str(concordance)]);
 
+% Display IDs of discordant subjects, if any
+if ~isempty(discordantSubs)
+    disp('Discordant Subjects:');
+    disp(nsub_IDs(discordantSubs));
+else
+    disp('No Discordant Subjects Found');
+end
+
+%%
+% Assuming optimalTimePoints is an array with one entry per subject
+
+% Number of subjects
+numSubjects = length(optimalTimePoints);
+
+% Generate subject IDs (if not already provided)
+subjectIDs = 1:numSubjects; % Adjust as necessary based on your data structure
+
+% Create a scatter plot of optimal time points for each subject
+figure; % Create a new figure
+scatter(subjectIDs, optimalTimePoints, 'filled');
+title('Optimal Time Points for Each Subject');
+xlabel('Subject ID');
+ylabel('Optimal Time Point (s)');
+grid on; % Add a grid for easier visualization
+set(gca,'color','none');
+
+% L = length(sub_MF_pt);
+% set(gca,'Xtick', 1:L,'XtickLabel',sub_MF_pt);
+% set(gca,'FontSize',8,'XTickLabelRotation',90);
+
+cfg = []; cfg.outdir = save_dir; filename = ['optimalTimePoints_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+
+%%
 disp(nsub_IDs');
 nsub_IDs(discordantSubs)'
 subjectForPlot = input('enter sub number:');
 findIndividualOptimalTimePoints(MEG_LI, fMRI_LI, timePoints, subjectForPlot, lowerBound, upperBound);
 
-%%
-buffervalue = 5;
-
-%% MEG LI vs fMRI LI (Ternary language_Lateral)
-% pause, 
-close all,
-clc
-
-% concordance, MEG-fMRI
-cfg = [];
-cfg.wi = wi;
-cfg.ID = sub_IDs;
-cfg.ternary = 1;
-cfg.savefig = 1;
-cfg.outdir = save_dir;
-cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_val = MEG_LI_Data;
-cfg.fmri_LIs_val = fmri_LIs_trn;
-% cfg.net_sel = [1,2,6];
-cfg.net_sel = [11];
-cfg.thre = 0.1;
-cfg.buffervalue = buffervalue;
-[megLIs_trn_constant, fmri_LIs_trn, mwi_interval] = do_MEG_fMRI_concordance_contrast(cfg);
-
-% disp([megLIs_trn, fmri_LIs_trn])
-
-meg_fMRI_trn = [megLIs_trn_constant, fmri_LIs_trn];
-
-idx = find(abs(megLIs_trn_constant - fmri_LIs_trn) > 0);
-discordant_subs = sub_MF_pt(idx);
-
-%%
-mwi = mean(wi,2);
-for i=1:length(discordant_subs)
-    tmp = squeeze(MEG_LI_Data(11,idx(i),:));
-    figure,plot(wi(:,1),tmp), title([discordant_subs(i), num2str(meg_fMRI_trn(idx(i),:)), 'mean=', num2str(mean(tmp(interval_idx)))])
-    hold on
-    xline(mwi(interval_idx(1)));
-    xline(mwi(interval_idx(end)));
-end
-
-%% Max abs LI (for detecting optimal time intervals)
-clc
-% t_interval = [0.3, 1.6];
-% t_interval = [0.3, 0.8];
-t_interval = [0.4, 0.7];
-% t_interval = [.3, 1.5];
-
-cfg = []; 
-cfg.wi = wi;
-cfg.LI_val = MEG_LI_Data;
-cfg.net_sel = [11]; % 6, 1, 2
-% cfg.startTime = 0.4; cfg.endTime = 0.7;
-cfg.startTime = t_interval(1); cfg.endTime = t_interval(2);
-absmax_idx = do_LI_maxinterval(cfg);
-
-% Initialize array for indices
-interval_idx = zeros(size(t_interval));
-
-% Find indices
-for i = 1:length(t_interval)
-    [~, interval_idx(i)] = min(abs(mwi - t_interval(i)));
-end
-
-%%
-close all
-clc
-
-cfg = [];
-cfg.wi = wi;
-cfg.ID = sub_MF_pt;
-cfg.ternary = 1;
-cfg.savefig = 0;
-cfg.outdir = save_dir;
-cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_val = MEG_LI_Data;
-cfg.fmri_LIs_val = fmri_LIs_trn;
-% cfg.net_sel = [1,2,6];
-cfg.net_sel = [11];
-cfg.thre = 0.1;
-cfg.absmax = absmax_idx;
-cfg.buffervalue = buffervalue;
-[megLIs_trn_opt, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_absmax(cfg);
-
-idx = find(abs(megLIs_trn_opt - fmri_LIs_trn) > 0);
-discordant_subs = sub_MF_pt(idx);
-
-disp('discordant_subs:')
-disp(discordant_subs)
-
-%% 
-meg_fMRI_trn_opt = [megLIs_trn_opt, fmri_LIs_trn];
-
-% clc
-% close all
-mwi = mean(wi,2);
-for i=1:length(discordant_subs)
-    tmp = squeeze(MEG_LI_Data(11,idx(i),:));
-    figure,plot(wi(:,1),tmp), title([discordant_subs(i), ['meg:', num2str(meg_fMRI_trn_opt(idx(i),1)), ' fmri:', num2str(meg_fMRI_trn_opt(idx(i),2))], 'mean=', num2str(mean(tmp(interval_idx)))])
-    hold on
-    xline(mwi(interval_idx(1)));
-    xline(mwi(interval_idx(end)));
-end
-
+cfg = []; cfg.outdir = save_dir; filename = ['optimalTimePoints_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
 
 %% Response time data
 % source code: /data/MEG/Research/aizadi/Scripts/Pipelines/ReactionTimeAnalysis/Pipe_process_task_RT_summary.m
 load('/data/MEG/Research/aizadi/process/RT_summary/ResponseTime.mat')
 
-%% LI vs. RT
-% T1_Sub_ID = T.Sub_ID(~cellfun('isempty', T.Sub_ID));
-
-[sub_rt_li,IA,IB] = intersect(T.Sub_ID,sub_MF_pt);
-
-RT_li = RT_all.rt_time.both(IA);
-% RT_li = RT_all.rt_time.animal(IA);
-
-
-figure, plot(RT_li,megLI_sub_pt,'*')
-figure, plot(RT_li,fmri_LIs_val,'*')
-
-%%
-% Assuming discordant_subs contains the IDs of the discordant subjects
-% and RT_all.sub contains the subject IDs corresponding to the RT data
+discordant_subs = sub_MF_pt(discordantSubs);
 
 % Find indices of discordant subjects in RT data
 discordant_indices = find(ismember(T.Sub_ID, discordant_subs));
 
 % Extract RT data for discordant subjects
 discordant_RT = T.Avg(discordant_indices);
-% discordant_RT = T.Animal(discordant_indices);
-% discordant_RT = T.Symbol(discordant_indices);
 
+% Calculate the mean response time
+meanRT = nanmean(discordant_RT);
 
-nanmean(T.Avg)
-
-%%
 % Plotting
 figure;
 bar(discordant_RT);
 xlabel('Subjects');
+set(gca,'color','none');
 ylabel('Response Time (sec)');
 title('Response Time of Discordant Subjects');
 set(gca, 'XTick', 1:length(discordant_subs), 'XTickLabel', discordant_subs, 'XTickLabelRotation', 45);
+set(gcf, 'Position', [1000   100   300   300]);
+
+% Draw a horizontal line at the mean response time
+hold on; % Keep the current bar plot
+line(get(gca,'xlim'), [meanRT meanRT], 'Color', 'red', 'LineStyle', '--'); % Draw line
+hold off; % Release the plot
+
+cfg = []; cfg.outdir = save_dir; filename = ['ReactionTime_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+

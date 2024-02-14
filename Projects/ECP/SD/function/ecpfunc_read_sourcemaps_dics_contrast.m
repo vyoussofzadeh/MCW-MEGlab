@@ -36,7 +36,7 @@ no_anat = {'EC1036'
     'EC1090'
     };
 
-sub_all1 = setdiff(unq_bs_subj,no_anat);
+% sub_all1 = setdiff(unq_bs_subj,no_anat);
 
 %%
 cd(data_info_dir)

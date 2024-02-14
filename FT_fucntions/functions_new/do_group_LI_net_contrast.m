@@ -13,6 +13,7 @@ wi = cfg_main.wi;
 data_save_dir = cfg_main.data_save_dir;
 method = cfg_main.method;
 Threshtype = cfg_main.Threshtype;
+doavg = cfg_main.doavg;
 
 %%
 % net_sel_mutiple_label = {'Angular'; 'Frontal'; 'Occipital'; 'Other'; 'PCingPrecun';'Temporal'; 'BTLA'; 'VWFA'};
@@ -49,6 +50,7 @@ else
         cfg.index_L = idx_L{j};
         cfg.index_R = idx_R{j};
         cfg.Threshtype = Threshtype;
+        cfg.doavg = doavg;
         
         for i=1:length(sFiles_in)
             pause(0.1);
@@ -61,8 +63,8 @@ else
             elseif contains(method, 'Counting')
                 [LI, ~] = do_lat_analysis_contrast_Counting(cfg);
             elseif contains (method, 'Bootstrapping')
-                cfg.divs = 100;
-                cfg.n_resampling = 200;
+                cfg.divs = 20;
+                cfg.n_resampling = 2;
                 cfg.RESAMPLE_RATIO = 0.75;
                 cfg.dvd = 5;
                 [LI, ~] = do_LI_bootstrap(cfg);
@@ -73,12 +75,18 @@ else
         
     end
     ft_progress('close')
+    
+    setup = [];
+    setup.BS_data_dir = BS_data_dir;
+    setup.thre = thre;
+    setup.Threshtype = Threshtype;
+    setup.S_data = S_data_sel;
+    
     switch method
-        case 'threshold'
-            save(savefilename,'LI_sub','m_LI_max_sub','pow_sub'),
+        case 'Magnitude'
+            save(savefilename,'LI_sub','m_LI_max_sub','pow_sub', 'setup'),
         otherwise
-            save(savefilename,'LI_sub','m_LI_max_sub'),
+            save(savefilename,'LI_sub','m_LI_max_sub', 'setup'),
     end
 end
-
 end

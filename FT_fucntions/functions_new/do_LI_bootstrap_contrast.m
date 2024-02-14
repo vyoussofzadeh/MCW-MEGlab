@@ -10,6 +10,7 @@ idx_R = cfg_main.index_R;
 divs = cfg_main.divs; % divs: number of divisions between 0 and max value in img
 n_resampling = cfg_main.n_resampling; % 200
 dvd = cfg_main.dvd; % 5
+doavg = cfg_main.doavg;
 
 sinput = cfg_main.sinput;
 
@@ -28,6 +29,9 @@ tmp_2 = load(fullfile(cfg_main.BS_data_dir, sinput{2}));
 tmp = tmp_1;
 tmp.ImageGridAmp = tmp_1.ImageGridAmp - tmp_2.ImageGridAmp;
 
+% removing the negive effects
+tmp.ImageGridAmp(tmp.ImageGridAmp<0) = 0;
+
 %%
 sScout = atlas;
 
@@ -40,7 +44,12 @@ for j = 1:size(wi, 1)
     timind1 = nearest(tmp.Time, wi(j,1));
     timind2 = nearest(tmp.Time, wi(j,2));
     
-    d_in = mean(tmp.ImageGridAmp(:, timind1:timind2), 2);
+    if doavg == 1
+        d_in = mean(tmp.ImageGridAmp(:, timind1:timind2), 2);
+    else
+        d_in = tmp.ImageGridAmp(:, timind1:timind2);
+    end
+    
     ImageGridAmp = abs(d_in);
     
     % Get left and right subregions from scout data

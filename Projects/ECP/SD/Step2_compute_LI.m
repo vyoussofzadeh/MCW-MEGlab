@@ -95,7 +95,9 @@ Run_BS
 Run_load_surface_template
 
 %%
-LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_baseline','LCMV_contrast','DICS_anim', 'DICS_contrast_prestim', 'dSPM_contrast'};
+% LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_baseline','LCMV_contrast','DICS_anim', 'DICS_contrast_prestim', 'dSPM_contrast'};
+LI_analysis_label = {'DICS_indirect','DICS_directcontrast','LCMV_anim_vs_Symb','-','DICS_anim', 'DICS_contrast_prestim', 'dSPM_contrast'};
+
 
 for i = 1:length(LI_analysis_label)
     disp([num2str(i) ') ' LI_analysis_label{i}]);
@@ -128,11 +130,11 @@ switch LI_analysis
         cfg.datatag = 'wDICS_contrast_18_4';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
     case 3
-        cfg.datatag = 'LCMV';
+        cfg.datamask = fullfile('./Group_analysis/LCMV/results_average*.mat');
         S_data = ecpfunc_read_sourcemaps(cfg);
-    case 4
-        cfg.datatag = 'LCMV';
-        S_data = ecpfunc_read_sourcemaps_contrast(cfg);
+%     case 4
+%         cfg.datamask = fullfile('./Group_analysis/LCMV/results_abs*.mat');
+%         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
     case 6
         cfg.datatag = 'PSTwDICS_contrast_18_4';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
@@ -150,7 +152,7 @@ switch LI_analysis
         cfg = []; cfg.subjs_3 = S_data.subjs_3; cfg.subjs_2 = S_data.subjs_2;
         cfg.sFiles_3 = S_data.sFiles_3; cfg.sFiles_2 = S_data.sFiles_2;
         sub_demog_data = ecpfunc_read_sub_demog(cfg);
-    case {2, 4, 6, 7}
+    case {2, 6, 7}
         cfg = []; cfg.subjs = S_data.subjs;
         cfg.sFiles = S_data.sFiles_32;
         sub_demog_data = ecpfunc_read_sub_demog_contrast(cfg);
@@ -161,6 +163,7 @@ cfg.strt = 0;
 cfg.spt = 2;
 cfg.overlap = 0.01;
 cfg.linterval = 0.3;
+% cfg.linterval = 0.1;
 wi  = do_time_intervals(cfg);
 
 %%
@@ -214,10 +217,11 @@ switch LI_analysis
             cfg.data_save_dir = save_dir;
             cfg.method = mlabel;
             cfg.Threshtype = 3;
+            cfg.doavg = 1;
             [label_8net, LI_sub] = do_group_LI_net_baseline(cfg); % Anim vs. Baseline vs. Symb vs. Baseline
         end
         
-    case {2, 4, 6, 7}
+    case {2, 6, 7}
         dtag = {'Ctrl';'Patn'};
         
         for select_data = 1:length(dtag)
@@ -240,6 +244,7 @@ switch LI_analysis
             cfg.data_save_dir = save_dir;
             cfg.method = mlabel;
             cfg.Threshtype = 3;
+            cfg.doavg = 1;
             [label_8net, LI_sub] = do_group_LI_net_contrast(cfg);
         end
     case 5
@@ -255,13 +260,6 @@ switch LI_analysis
             cfg.select_data = dtag_val(select_data);
             S_data_sel = ecpfunc_select_data(cfg);
             
-%             % Process: Average: Everything
-%             bst_process('CallProcess', 'process_average', S_data_sel.sFiles_in', [], ...
-%                 'avgtype',         1, ...  % Everything
-%                 'avg_func',        1, ...  % Arithmetic average:  mean(x)
-%                 'weighted',        0, ...
-%                 'scalenormalized', 0);
-            
             cfg = [];
             cfg.S_data_sel = S_data_sel;
             cfg.BS_data_dir = BS_data_dir;
@@ -273,12 +271,13 @@ switch LI_analysis
             cfg.data_save_dir = save_dir;
             cfg.method = mlabel;
             cfg.Threshtype = 3;
+            cfg.doavg = 1;
             [label_8net, LI_sub] = do_group_LI_net_contrast(cfg); % Anim vs. Baseline vs. Symb vs. Baseline
         end    
 end
 
 %% Plot LI subjects
-clc, close all
+% clc, close all
 cfg = [];
 cfg.LI_sub = LI_sub;
 cfg.wi = wi;
