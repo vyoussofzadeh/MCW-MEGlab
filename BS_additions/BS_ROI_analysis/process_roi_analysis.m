@@ -201,19 +201,19 @@ roiTable = table(networkNames', roisPerNetwork, 'VariableNames', {'Network', 'RO
 disp(roiTable);
 
 %%
-% Assuming top_entries, Data_hcp_atlas are already defined
-
-% Create an array to store the network for each ROI
-networks = cell(height(top_entries), 1);
-
-% Iterate through each top entry
-for i = 1:height(top_entries)
-    % Find the network for each ROI
-    networks{i} = findNetworkForROI(top_entries.ROI_Label{i}, Data_hcp_atlas);
-end
-
-% Add the network information as a new column in top_entries
-top_entries.Network = networks;
+% % Assuming top_entries, Data_hcp_atlas are already defined
+% 
+% % Create an array to store the network for each ROI
+% networks = cell(height(top_entries), 1);
+% 
+% % Iterate through each top entry
+% for i = 1:height(top_entries)
+%     % Find the network for each ROI
+%     networks{i} = findNetworkForROI(top_entries.ROI_Label{i}, Data_hcp_atlas);
+% end
+% 
+% % Add the network information as a new column in top_entries
+% top_entries.Network = networks;
 
 
 %%
@@ -230,30 +230,30 @@ roi_table = table(rois', pow_parcel', region', 'VariableNames', {'ROI_Label', 'P
 
 %%
 % Number of top entries to display
-numTopEntries = 20;
-
-% Sort the table by 'Power' in descending order
-sorted_table = sortrows(roi_table, 'Power', 'descend');
-
-% Select the top entries
-top_entries = sorted_table(1:min(end, numTopEntries), :);
-
-% Add a new column for the network
-networks = cell(height(top_entries), 1);
-
-for i = 1:height(top_entries)
-    roi = top_entries.ROI_Label{i};
-    if isKey(roiToNetworkMap, roi)
-        networks{i} = roiToNetworkMap(roi);
-    else
-        networks{i} = 'Unknown';  % or handle as needed
-    end
-end
-
-top_entries.Network = networks;
-
-% Display the top entries
-disp(top_entries);
+% numTopEntries = 20;
+% 
+% % Sort the table by 'Power' in descending order
+% sorted_table = sortrows(roi_table, 'Power', 'descend');
+% 
+% % Select the top entries
+% top_entries = sorted_table(1:min(end, numTopEntries), :);
+% 
+% % Add a new column for the network
+% networks = cell(height(top_entries), 1);
+% 
+% for i = 1:height(top_entries)
+%     roi = top_entries.ROI_Label{i};
+%     if isKey(roiToNetworkMap, roi)
+%         networks{i} = roiToNetworkMap(roi);
+%     else
+%         networks{i} = 'Unknown';  % or handle as needed
+%     end
+% end
+% 
+% top_entries.Network = networks;
+% 
+% % Display the top entries
+% disp(top_entries);
 
 %%
 % Assuming rois, pow_parcel, and region are already defined
@@ -446,4 +446,3 @@ for i = 1:length(Data_hcp_atlas.groups_labels)
     end
 end
 end
-
