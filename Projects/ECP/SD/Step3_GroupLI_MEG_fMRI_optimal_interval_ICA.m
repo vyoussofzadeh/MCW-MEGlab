@@ -208,8 +208,8 @@ for j=1:length(LI_class_label)
             d_in  = mLI_sub_hc - mLI_sub_left;
     end
     
-%     figure, imagesc(d_in)
-%     pause,
+    %     figure, imagesc(d_in)
+    %     pause,
     
     cfg = [];
     cfg.data = d_in(network_sel, :);
@@ -246,7 +246,7 @@ cfg.ID = sub_MF_pt;
 cfg.ternary = 0;
 cfg.thre = .2;
 cfg.savefig = 1;
-cfg.bf = 10;
+cfg.bf = 5;
 cfg.outdir = save_dir;
 cfg.net_sel_mutiple_label = net_sel_mutiple_label;
 cfg.LI_val = MEG_LI_Data;
@@ -267,10 +267,10 @@ MEG_thre = 0.2; % MEG threshold
 fMRI_thre = 0.1; % fMRI threshold
 
 %% Optimal intervals LIs.
-close, 
+% close,
 clc
 MEG_LI = squeeze(MEG_LI_Data(11,:,:));
-% 
+%
 clc
 timePoints = mean(wi,2);
 IntervalSize = 1;
@@ -301,15 +301,22 @@ else
     disp('No Discordant Subjects Found');
 end
 
+disp(nsub_IDs');
+nsub_IDs(discordantSubs_cnst)'
+subjectForPlot = input('enter sub number:');
+findIndividualOptimalTimePoints(MEG_LI, fMRI_LI, timePoints, subjectForPlot, lowerBound, upperBound);
+cfg = []; cfg.outdir = save_dir; filename = ['ConstantTimePoints_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+
+
 %% Optimal time points LIs.
 % Clear the command window and close all figures
 disp('========')
-% clc
-close all
+clc
+% close all
 
 % Define the time interval bounds
-lowerBound = 0.5; % 
-upperBound = 0.9; % 
+lowerBound = 0.5; %
+upperBound = 1; %
 
 % Compute group-level MEG-fMRI correlation and find optimal time points
 [groupCorrelation, optimalTimePoints] = computeGroupLevelMEGfMRICorrelation_timepoints(MEG_LI, fMRI_LI, timePoints, lowerBound, upperBound);
@@ -333,6 +340,48 @@ if ~isempty(discordantSubs)
     disp(nsub_IDs(discordantSubs));
 else
     disp('No Discordant Subjects Found');
+end
+
+
+
+%% Power values
+if LI_method == 1
+    
+    pow_hc = transformPowSubTo3DArrays(LI_hc.pow_sub);
+    pow_pt = transformPowSubTo3DArrays(LI_pt.pow_sub);
+    
+    mPow_sub_hc_left = squeeze(nanmean(pow_hc.left,2)); mPow_sub_hc_right = squeeze(nanmean(pow_hc.right,2));
+    mPow_sub_pt_left = squeeze(nanmean(pow_pt.left,2)); mPow_sub_pt_right = squeeze(nanmean(pow_pt.right,2));
+    
+    power_left = squeeze(pow_pt.left(11,IA,:));
+    power_right = squeeze(pow_pt.right(11,IA,:));
+    
+%     close all
+    plot_flag = 1;
+    % Define the time interval bounds
+    lowerBound = 0.2; %
+    upperBound = 1.0; %
+    %     optimalTimePoints_pow = plotSubjectPowerOverlay(power_left, power_right, sub_IDs, timePoints, plot_flag);
+    [optimalTimePoints_pow] = plotSubjectPowerOverlay(power_left, power_right, sub_IDs, timePoints, plot_flag, lowerBound, upperBound);
+    
+    if plot_flag == 1 
+        cfg = []; cfg.outdir = save_dir; filename = ['Power_values_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; 
+        do_export_fig(cfg)
+    end
+    
+    % Calculate concordance for the identified time points and identify discordant subjects
+    [concordance_pow, discordantSubs_pow] = calculateConcordanceForTimePoints(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalTimePoints_pow);
+    
+    % Display concordance rate
+    disp(['Concordance: ', num2str(discordantSubs_pow)]);
+    
+    % Display IDs of discordant subjects, if any
+    if ~isempty(discordantSubs_pow)
+        disp('Discordant Subjects:');
+        disp(nsub_IDs(discordantSubs_pow));
+    else
+        disp('No Discordant Subjects Found');
+    end
 end
 
 %%
@@ -364,8 +413,9 @@ disp(nsub_IDs');
 nsub_IDs(discordantSubs)'
 subjectForPlot = input('enter sub number:');
 findIndividualOptimalTimePoints(MEG_LI, fMRI_LI, timePoints, subjectForPlot, lowerBound, upperBound);
-
 cfg = []; cfg.outdir = save_dir; filename = ['optimalTimePoints_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+
+plotIndividualSourcePower(power_left, power_right, MEG_LI, sub_IDs, timePoints, subjectForPlot)
 
 %% Response time data
 % source code: /data/MEG/Research/aizadi/Scripts/Pipelines/ReactionTimeAnalysis/Pipe_process_task_RT_summary.m

@@ -98,6 +98,8 @@ h2 = fill(x2, inBetween, colr(j,:), 'EdgeColor', 'none', 'facealpha', 0.1);
 h2.Annotation.LegendInformation.IconDisplayStyle = 'off'; % make the legend for step plot off
 
 %% Legend outside
+lgd = legend([labels]);
+set(lgd, 'Box', 'off');
 legend('Location', 'eastoutside');
 
 %% Adding panel labels

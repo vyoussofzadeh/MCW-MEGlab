@@ -2,7 +2,7 @@ function [pow_parcel,rois, pow_parcel_count] = do_sourceparcell_surface(cfg_main
 
 ImageGridAmp = cfg_main.d_in;
 atlas = cfg_main.atlas;
-thre = cfg_main.thre;
+% thre = cfg_main.thre;
 
 % raw value
 rois = []; pow_parcel = [];

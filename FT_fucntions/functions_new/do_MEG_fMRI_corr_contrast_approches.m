@@ -22,7 +22,7 @@ for j=1:size(LI_method_label,2)
         if length(net_sel) > 1           
             mLI_sub1 = mean(LI_pt_new(net_sel,:,i));
         else
-            mLI_sub1 = (LI_pt_new(net_sel,:,i));
+            mLI_sub1 = LI_pt_new(net_sel,:,i);
         end
         megLI_sub_pt{j} = (mLI_sub1)';
         

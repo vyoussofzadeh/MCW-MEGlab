@@ -38,7 +38,7 @@ if exist(savefilename,'file') == 2
 else
     
     ft_progress('init', 'text',     'please wait ...');
-    clear m_LI_max_sub LI_sub
+    clear m_LI_max_sub LI_sub pow_sub
     for j=1:length(net_sel_mutiple_label)
         ft_progress(j/length(net_sel_mutiple_label), 'Processing networks %d from %d', j, length(net_sel_mutiple_label));
         
@@ -64,9 +64,10 @@ else
                 [LI, ~] = do_lat_analysis_contrast_Counting(cfg);
             elseif contains (method, 'Bootstrapping')
                 cfg.divs = 20;
-                cfg.n_resampling = 2;
+                cfg.n_resampling = 25;
                 cfg.RESAMPLE_RATIO = 0.75;
                 cfg.dvd = 5;
+                cfg.downsamplerate = 5; % 2 times down-sampling
                 [LI, ~] = do_LI_bootstrap(cfg);
             end
             LI_sub(j,i,:) = LI;
@@ -82,11 +83,10 @@ else
     setup.Threshtype = Threshtype;
     setup.S_data = S_data_sel;
     
-    switch method
-        case 'Magnitude'
-            save(savefilename,'LI_sub','m_LI_max_sub','pow_sub', 'setup'),
-        otherwise
-            save(savefilename,'LI_sub','m_LI_max_sub', 'setup'),
+    if contains(method,'Magnitude')
+        save(savefilename,'LI_sub','m_LI_max_sub','pow_sub', 'setup'),
+    else
+        save(savefilename,'LI_sub','m_LI_max_sub', 'setup'),
     end
 end
 end

@@ -40,6 +40,10 @@ data_save_dir = '/data/MEG/Research/ECP/Semantic_Decision/Results';
 cd(data_save_dir)
 
 %%
+% save_dir = fullfile(data_save_dir,LI_analysis_label{LI_analysis}, 'compare_LIs');
+% checkOrCreateDir(save_dir)
+% cd(save_dir)
+
 save_dir = fullfile(data_save_dir,LI_analysis_label{LI_analysis}, 'compare_LIs');
 checkOrCreateDir(save_dir)
 cd(save_dir)
@@ -147,6 +151,12 @@ end
 %%
 cfg = []; cfg.strt = 0; cfg.spt = 2; cfg.overlap = 0.01; cfg.linterval = 0.3;
 wi  = do_time_intervals(cfg);
+
+% switch LI_analysis
+%     case 6
+%         cfg = []; cfg.strt = -0.3; cfg.spt = 2; cfg.overlap = 0.01; cfg.linterval = 0.3;
+%         wi  = do_time_intervals(cfg);
+% end
 
 %% HCP atlas
 glass_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_symmetrical_final_updated.mat';

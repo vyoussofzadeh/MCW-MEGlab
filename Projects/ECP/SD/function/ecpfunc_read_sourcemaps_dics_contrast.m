@@ -79,7 +79,7 @@ for i=1:length(removing_sFiles)
     end
 end
 
-idx_anim_symb = contains(Comment, 'wDICS_contrast')==1;
+idx_anim_symb = contains(Comment, 'wDICS_')==1;
 sFiles_32 = sFiles_name(idx_anim_symb);
 
 

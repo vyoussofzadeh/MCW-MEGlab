@@ -75,6 +75,7 @@ else
                 cfg.n_resampling = 200;
                 cfg.RESAMPLE_RATIO = 0.75;
                 cfg.dvd = 5; % 5
+                cfg.n_resampling = 5; % 200
                 [LI, ~] = do_LI_bootstrap_contrast(cfg);
             end
             %             LI_count = LI;
@@ -94,12 +95,10 @@ else
     setup.Threshtype = Threshtype;
     setup.S_data = S_data_sel;
     
-    switch method
-        case 'Magnitude'
-            save(savefilename,'LI_sub','m_LI_max_sub','pow_sub', 'setup'),
-        otherwise
-            save(savefilename,'LI_sub','m_LI_max_sub', 'setup'),
+    if contains(method,'Magnitude')
+        save(savefilename,'LI_sub','m_LI_max_sub','pow_sub', 'setup'),
+    else
+        save(savefilename,'LI_sub','m_LI_max_sub', 'setup'),
     end
 end
-
 end

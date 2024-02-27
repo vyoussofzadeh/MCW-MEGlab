@@ -122,6 +122,10 @@ end
 
 %% ===== RUN =====
 function OutputFiles = Run(sProcess, sInputsA, sInputsB) %#ok<DEFNU>
+
+bst_progress('stop');
+pause(0.2)
+
 OutputFiles = {};
 % Initialize FieldTrip
 [isInstalled, errMsg] = bst_plugin('Install', 'fieldtrip');
@@ -228,26 +232,14 @@ for iInput = 1:length(sInputsB)
 end
 ftData_B = ftData;
 
-%%
-if Overlap ==1
-    Overlap = Overlap-0.1;
-    disp(['overlap was adjusted to,', num2str(Overlap)])
-end
+%% Time intervals (window)
+cfg.strt = PostStim(1);
+cfg.spt = PostStim(2);
+cfg.overlap = Overlap;
+cfg.linterval = tlength;
+wi  = do_time_intervals(cfg);
 
-Overlap1 = 1 - Overlap;
-w1 = PostStim(1); 
-l = tlength; 
-ov = l * Overlap1; 
-j = 1; 
-wi = [];
-
-while w1 + l - ov <= PostStim(2)
-    wi(j, :) = [w1, w1 + l]; 
-    j = j + 1; 
-    w1 = w1 + ov;
-end
-
-disp(wi)
+% disp(wi)
 
 %%
 clear dics
@@ -367,7 +359,7 @@ for j=1:size(wi,1)
             stats1.stat =  tmp2;
             stats1.mask = stat.inside;
             stats2 = stats1;
-                        
+            
             switch sProcess.options.erds.Value
                 case 'erd'
                     stats2.stat(stats2.stat>0)=0;
@@ -398,10 +390,6 @@ end
 D = output_matrix;
 
 %%
-% ===== SAVE RESULTS =====
-% === CREATE OUTPUT STRUCTURE ===
-bst_progress('text', 'Saving source file...');
-bst_progress('inc', 1);
 % Output study
 if (length(sInputsA) == 1)
     iStudyOut = sInputsA(1).iStudy;
@@ -422,18 +410,7 @@ switch sProcess.options.effect.Value
         source_diff_dics.pow = D;
 end
 ResultsMat.ImageGridAmp  = source_diff_dics.pow;
-% ResultsMat.cfg           = source_diff_dics.cfg;
 
-%     case 'permutation'
-%         switch sProcess.options.effect.Value
-%             case 'abs'
-%                 stats2.stat = abs((D));
-%             case 'raw'
-%                 stats2.stat = D;
-%         end
-%         ResultsMat.ImageGridAmp  = stats2.stat;
-%         ResultsMat.cfg           = stat.cfg;
-% % end
 ResultsMat.nComponents   = 1;
 ResultsMat.Function      = Method;
 ResultsMat.Time          = DataMat.Time;
@@ -449,7 +426,7 @@ ResultsMat.Leff          = DataMat.Leff;
 if isfield(sProcess.options, 'comment')
     ResultsMat.Comment = sProcess.options.comment.Value;
 else
-    ResultsMat.Comment       = ['wDICS: ' Method, ' ',num2str(FOI),'Hz ', sprintf('%1.3fs-%1.3fs', PostStim), ' WinL ', num2str(tlength), 's OverL ', num2str(100.*Overlap), '%'];
+    ResultsMat.Comment       = ['wDICS: ' Method, ' ',num2str(FOI),'Hz ', sprintf('%1.3fs-%1.3fs', PostStim), ' WinL ', num2str(tlength), 's OverL ', num2str(1000.*Overlap), 'ms'];
 end
 switch lower(ResultsMat.HeadModelType)
     case 'volume'
@@ -492,7 +469,7 @@ panel_protocols('SelectNode', [], newResult.FileName);
 % Save database
 db_save();
 % Hide progress bar
-bst_progress('stop');
+% bst_progress('stop');
 
 end
 
@@ -640,4 +617,20 @@ cfg.design   = design;
 cfg.ivar     = 1;
 cfg.uvar     = 2;
 stat         = ft_sourcestatistics(cfg,s_data.pst,s_data.bsl);
+end
+
+function [wi]  = do_time_intervals(cfg_main)
+
+strt = cfg_main.strt; % strt = 0 sec.
+spt = cfg_main.spt; % spt = 2 sec.
+overlap = cfg_main.overlap; % overlap = 0.01;
+linterval = cfg_main.linterval; % overlap = 0.01;
+
+wi = []; w1 = strt; l = linterval; ov = overlap; j=1; %ov = l.*0.3
+while w1+l < spt
+    wi(j,:) = [w1, w1+l]; j=j+1; w1 = w1 + ov;
+end
+% disp(wi)
+% length(wi)
+
 end

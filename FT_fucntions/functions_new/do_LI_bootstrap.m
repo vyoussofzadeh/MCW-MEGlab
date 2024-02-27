@@ -10,6 +10,7 @@ idx_R = cfg_main.index_R;
 divs = cfg_main.divs; % divs: number of divisions between 0 and max value in img
 n_resampling = cfg_main.n_resampling; % 200
 doavg = cfg_main.doavg;
+downsamplerate = cfg_main.downsamplerate;
 
 sinput = cfg_main.sinput;
 
@@ -39,6 +40,10 @@ for j = 1:size(wi, 1)
     end
     
     ImageGridAmp = abs(d_in);
+    
+    % downsample data
+    ImageGridAmp = downsample(ImageGridAmp',downsamplerate);
+    ImageGridAmp = ImageGridAmp';
     
     % Get left and right subregions from scout data
     LHscout = [];

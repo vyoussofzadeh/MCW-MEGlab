@@ -14,7 +14,7 @@ for j=1:length(subjs)
     [~, ~,ib] = intersect(subjs{j},sub_demog_save(:,1));
     if ~isempty(ib)
         ib_new(k) = ib;
-        disp(ib);
+%         disp(ib);
 %         pause,
         k=k+1;
     end
