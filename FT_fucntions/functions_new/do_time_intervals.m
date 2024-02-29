@@ -1,15 +1,38 @@
 function [wi]  = do_time_intervals(cfg_main)
 
+% strt = cfg_main.strt; % strt = 0 sec.
+% spt = cfg_main.spt; % spt = 2 sec.
+% overlap = cfg_main.overlap; % overlap = 0.01;
+% linterval = cfg_main.linterval; % overlap = 0.01;
+% 
+% wi = []; w1 = strt; l = linterval; ov = overlap; j=1; %ov = l.*0.3
+% while w1+l <= spt
+%     wi(j,:) = [w1, w1+l]; j=j+1; w1 = w1 + ov;
+% end
+% % disp(wi)
+% % length(wi)
+
+
 strt = cfg_main.strt; % strt = 0 sec.
 spt = cfg_main.spt; % spt = 2 sec.
-overlap = cfg_main.overlap; % overlap = 0.01;
-linterval = cfg_main.linterval; % overlap = 0.01;
+overlap = cfg_main.overlap; % overlap = 0.01 or 0 for no overlap
+linterval = cfg_main.linterval; % linterval = duration of each interval
 
-wi = []; w1 = strt; l = linterval; ov = overlap; j=1; %ov = l.*0.3
-while w1+l < spt
-    wi(j,:) = [w1, w1+l]; j=j+1; w1 = w1 + ov;
+wi = []; 
+w1 = strt; 
+l = linterval; 
+ov = overlap; 
+j = 1;
+
+% Adjust the loop to work with or without overlap
+while w1 + l <= spt
+    wi(j,:) = [w1, w1 + l]; 
+    j = j + 1;
+    if ov > 0
+        w1 = w1 + ov; % If overlap is specified, increment by overlap
+    else
+        w1 = w1 + l; % If no overlap, increment by the interval length
+    end
 end
-% disp(wi)
-% length(wi)
 
 end

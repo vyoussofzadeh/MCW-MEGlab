@@ -45,6 +45,18 @@ subj_del = [];
 
 cd(BS_data_dir)
 dd = rdir(['./Group_analysis/', cfg_main.datatag, '/results*.mat']);
+d_sub = rdir(['./Group_analysis/', cfg_main.datatag, '/results*_mean.mat']);
+
+
+% Extract names
+dd_names = {dd.name};
+d_sub_names = {d_sub.name};
+
+% Find and remove matching entries
+[~, idx_to_remove] = ismember(dd_names, d_sub_names);
+dd(idx_to_remove > 0) = [];
+
+
 for jj=1:length(dd), disp([num2str(jj),':',dd(jj).name]); end
 
 sFiles_name = [];
@@ -58,7 +70,7 @@ for jj=1:length(sFiles_name)
     cd(BS_data_dir)
     tmp  = load(sFiles_name{jj});
     Comment{jj} = tmp.Comment;
-    if length(tmp.Time) < 4000 && ~contains(Comment{jj}, 'Avg')
+    if length(tmp.Time) < 4000 && ~contains(Comment{jj}, 'Avg') 
         disp(length(tmp.Time))
         need_correction(k) = jj;
         k=k+1;

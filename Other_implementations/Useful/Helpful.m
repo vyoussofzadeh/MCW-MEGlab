@@ -117,3 +117,21 @@ hold off
 
 %% Checking if a field exist as input to a function
 isfield(cfg, 'var')
+
+%% Diff between two cell array
+sFiles_1 = [];
+for i=1:length(sFilesA)
+    sFiles_1{i} = sFilesA{1,i}(end-5:end);
+end
+sFiles_1'
+
+sFiles_2 = [];
+for i=1:length(sFilesB)
+    sFiles_2{i} = sFilesB{1,i}(end-5:end);
+end
+sFiles_2'
+
+
+A = setdiff(sFiles_1, sFiles_2)
+uniqueFiles = setdiff(sFiles_1, sFiles_2, 'stable');
+
