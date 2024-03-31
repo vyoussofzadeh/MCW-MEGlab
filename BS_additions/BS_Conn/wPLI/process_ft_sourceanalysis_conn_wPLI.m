@@ -58,7 +58,7 @@ sProcess.options.label2.Type    = 'label';
 % Enter the FOI in the data in Hz, eg, 22:
 sProcess.options.conn.Comment = 'Conn res:';
 sProcess.options.conn.Type    = 'value';
-sProcess.options.conn.Value   = {1500, 'voxels (sruf points)', 0};
+sProcess.options.conn.Value   = {1500, 'voxels (surf points)', 0};
 
 % Effects
 sProcess.options.fconn.Comment = 'full resolution';
@@ -422,11 +422,8 @@ if cfg_mian.plotflag ==1
     figure,plot(ff,psd)
     xlabel('Hz'); ylabel('psd')
 end
-
 tapsmofrq = cfg.tapsmofrq;
-
 end
-
 
 function [ftHeadmodel, ftLeadfield, iChannels] = out_fieldtrip_headmodel_edt(HeadModelFile, ChannelFile, iChannels, isIncludeRef)
 % OUT_FIELDTRIP_HEADMODEL: Converts a head model file into a FieldTrip structure (see ft_datatype_headmodel).
