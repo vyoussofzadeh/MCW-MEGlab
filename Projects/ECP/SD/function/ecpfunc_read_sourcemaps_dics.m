@@ -40,7 +40,9 @@ no_anat = {'EC1036'
 sub_all1 = setdiff(unq_bs_subj,no_anat);
 
 %%
-cd(data_info_dir)
+% cd(data_info_dir)
+cd(BS_data_dir)
+
 subj_del = [];
 
 cd(BS_data_dir)
@@ -53,7 +55,8 @@ for jj=1:length(dd)
     sFiles_name{jj} = fullfile(dd(jj).name(3:end));
 end
 Comment = []; k=1; kk=1;
-need_correction = [];
+need_correction = []; Comment_sel = [];
+
 for jj=1:length(sFiles_name)
     disp([num2str(jj), '/' , num2str(length(sFiles_name))])
     cd(BS_data_dir)
@@ -64,7 +67,7 @@ for jj=1:length(sFiles_name)
         need_correction(k) = jj;
         k=k+1;
     end
-    if contains(Comment{jj}, 'Avg:')
+    if contains(Comment{jj}, 'Avg:') && ~contains(Comment{jj}, ' - ') && contains(Comment{jj}, 'wdics') 
         Comment_sel{kk} = sFiles_name{jj};
         kk=kk+1;
         disp(Comment{jj})
@@ -80,8 +83,12 @@ for i=1:length(removing_sFiles)
     end
 end
 
-idx_anim = contains(Comment, 'wdics_3')==1;
-idx_symb = contains(Comment, 'wdics_2')==1;
+% idx_anim = contains(Comment, 'wdics_3') ==1;
+% idx_symb = contains(Comment, 'wdics_2') ==1;
+
+idx_anim = contains(Comment, 'wdics_3') & ~contains(Comment, ' - ');
+idx_symb = contains(Comment, 'wdics_2') & ~contains(Comment, ' - ');
+
 
 sFiles_3 = sFiles_name(idx_anim);
 sFiles_2 = sFiles_name(idx_symb);

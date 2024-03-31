@@ -16,13 +16,24 @@ Run_setpath
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/other/')
 
 %%
-LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_basline','LCMV_contrast','DICS_anim'};
+% LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_basline','LCMV_contrast','DICS_anim'};
+% 
+% disp('1) DICS_baseline (Anim-vs-bsl vs. Symb-vs-bsl)')
+% disp('2) DICS_contrast (Anim-vs-Symb)')
+% disp('3) LCMV_basline (Anim-vs-bsl vs. Symb-vs-bsl)')
+% disp('4) LCMV_contrast (Anim-vs-Symb)')
+% disp('5) DICS_anim (Anim)')
+% 
+% LI_analysis = input('');
 
-disp('1) DICS_baseline (Anim-vs-bsl vs. Symb-vs-bsl)')
-disp('2) DICS_contrast (Anim-vs-Symb)')
-disp('3) LCMV_basline (Anim-vs-bsl vs. Symb-vs-bsl)')
-disp('4) LCMV_contrast (Anim-vs-Symb)')
-disp('5) DICS_anim (Anim)')
+%%
+% LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_baseline','LCMV_contrast','DICS_anim', 'DICS_contrast_prestim', 'dSPM_contrast'};
+LI_analysis_label = {'DICS_indirect','DICS_directcontrast','LCMV_anim_vs_Symb','-','DICS_anim', 'DICS_contrast_prestim', 'dSPM_contrast'};
+
+
+for i = 1:length(LI_analysis_label)
+    disp([num2str(i) ') ' LI_analysis_label{i}]);
+end
 
 LI_analysis = input('');
 
@@ -191,38 +202,38 @@ mLI_sub_left = squeeze(mean(LI_pt_val_left,2));
 
 %%
 % clc
-LI_class_label = {'HC', 'PT','HC-PT','PT-Left','HC - PT-Left'};
-
-for j=1:length(LI_class_label)
-    
-    switch LI_class_label{j}
-        case 'HC'
-            d_in  = mLI_sub_hc;
-        case 'PT'
-            d_in  = mLI_sub_pt;
-        case 'HC-PT'
-            d_in  = mLI_sub_hc - mLI_sub_pt;
-        case 'PT-Left'
-            d_in  = mLI_sub_left;
-        case 'HC - PT-Left'
-            d_in  = mLI_sub_hc - mLI_sub_left;
-    end
-    
-    %     figure, imagesc(d_in)
-    %     pause,
-    
-    cfg = [];
-    cfg.data = d_in(network_sel, :);
-    cfg.labels = net_sel_mutiple_label(network_sel);
-    cfg.colors = colr;
-    cfg.titleText = [LI_method_label{LI_method},', ', LI_class_label{j}];
-    cfg.wi = wi;
-    plotData(cfg);
-    
-    % - export figs
-    cfg = []; cfg.outdir = save_dir; filename = LI_class_label{j}; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
-    
-end
+% LI_class_label = {'HC', 'PT','HC-PT','PT-Left','HC - PT-Left'};
+% 
+% for j=1:length(LI_class_label)
+%     
+%     switch LI_class_label{j}
+%         case 'HC'
+%             d_in  = mLI_sub_hc;
+%         case 'PT'
+%             d_in  = mLI_sub_pt;
+%         case 'HC-PT'
+%             d_in  = mLI_sub_hc - mLI_sub_pt;
+%         case 'PT-Left'
+%             d_in  = mLI_sub_left;
+%         case 'HC - PT-Left'
+%             d_in  = mLI_sub_hc - mLI_sub_left;
+%     end
+%     
+%     %     figure, imagesc(d_in)
+%     %     pause,
+%     
+%     cfg = [];
+%     cfg.data = d_in(network_sel, :);
+%     cfg.labels = net_sel_mutiple_label(network_sel);
+%     cfg.colors = colr;
+%     cfg.titleText = [LI_method_label{LI_method},', ', LI_class_label{j}];
+%     cfg.wi = wi;
+%     plotData(cfg);
+%     
+%     % - export figs
+%     cfg = []; cfg.outdir = save_dir; filename = LI_class_label{j}; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+%     
+% end
 
 %% MEG vs. fMRI lat analysis (PT)
 % pause, close all,
@@ -342,21 +353,22 @@ else
     disp('No Discordant Subjects Found');
 end
 
-
-
 %% Power values
 if LI_method == 1
     
     pow_hc = transformPowSubTo3DArrays(LI_hc.pow_sub);
     pow_pt = transformPowSubTo3DArrays(LI_pt.pow_sub);
     
-    mPow_sub_hc_left = squeeze(nanmean(pow_hc.left,2)); mPow_sub_hc_right = squeeze(nanmean(pow_hc.right,2));
-    mPow_sub_pt_left = squeeze(nanmean(pow_pt.left,2)); mPow_sub_pt_right = squeeze(nanmean(pow_pt.right,2));
+    mPow_sub_hc_left = 20.*squeeze(nanmean(pow_hc.left,2)); mPow_sub_hc_right = 20.*squeeze(nanmean(pow_hc.right,2));
+    mPow_sub_pt_left = 20.*squeeze(nanmean(pow_pt.left,2)); mPow_sub_pt_right = 20.*squeeze(nanmean(pow_pt.right,2));
     
-    power_left = squeeze(pow_pt.left(11,IA,:));
-    power_right = squeeze(pow_pt.right(11,IA,:));
+%     mPow_sub_hc_left = squeeze(nansum(pow_hc.left,2)); mPow_sub_hc_right = squeeze(nansum(pow_hc.right,2));
+%     mPow_sub_pt_left = squeeze(nansum(pow_pt.left,2)); mPow_sub_pt_right = squeeze(nansum(pow_pt.right,2));
     
-%     close all
+    power_left = 20.*squeeze(pow_pt.left(11,IA,:));
+    power_right = 20.*squeeze(pow_pt.right(11,IA,:));
+    
+    %     close all
     plot_flag = 1;
     % Define the time interval bounds
     lowerBound = 0.2; %
@@ -364,8 +376,8 @@ if LI_method == 1
     %     optimalTimePoints_pow = plotSubjectPowerOverlay(power_left, power_right, sub_IDs, timePoints, plot_flag);
     [optimalTimePoints_pow] = plotSubjectPowerOverlay(power_left, power_right, sub_IDs, timePoints, plot_flag, lowerBound, upperBound);
     
-    if plot_flag == 1 
-        cfg = []; cfg.outdir = save_dir; filename = ['Power_values_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; 
+    if plot_flag == 1
+        cfg = []; cfg.outdir = save_dir; filename = ['Power_values_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig';
         do_export_fig(cfg)
     end
     
@@ -416,6 +428,8 @@ findIndividualOptimalTimePoints(MEG_LI, fMRI_LI, timePoints, subjectForPlot, low
 cfg = []; cfg.outdir = save_dir; filename = ['optimalTimePoints_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
 
 plotIndividualSourcePower(power_left, power_right, MEG_LI, sub_IDs, timePoints, subjectForPlot)
+cfg = []; cfg.outdir = save_dir; filename = ['optimalTimePoints_Dicordant_LIs_pow_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+
 
 %% Response time data
 % source code: /data/MEG/Research/aizadi/Scripts/Pipelines/ReactionTimeAnalysis/Pipe_process_task_RT_summary.m
@@ -449,3 +463,4 @@ hold off; % Release the plot
 
 cfg = []; cfg.outdir = save_dir; filename = ['ReactionTime_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
 
+cd(save_dir)

@@ -166,6 +166,32 @@ cfg.linterval = 0.3;
 % cfg.linterval = 0.1;
 wi  = do_time_intervals(cfg);
 
+%% Consistent wi
+% Overlap = 0.5;
+% PostStim = [7.21644966e-16, 2];
+% 
+% tlength = 0.3;
+% 
+% if Overlap ==1
+%     Overlap = Overlap-0.1;
+%     disp(['overlap was adjusted to,', num2str(Overlap)])
+% end
+% 
+% Overlap1 = 1 - Overlap;
+% w1 = PostStim(1);
+% l = tlength;
+% ov = l * Overlap1;
+% j = 1;
+% wi = [];
+% 
+% while w1 + l - ov <= PostStim(2)
+%     wi(j, :) = [w1, w1 + l];
+%     j = j + 1;
+%     w1 = w1 + ov;
+% end
+% 
+% disp(wi)
+
 %%
 thre = 0.5;
 

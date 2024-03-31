@@ -56,7 +56,7 @@ BS_data_dir = fullfile(BS_dir,'data');
 protocol = fullfile(BS_dir, 'data/protocol.mat');
 
 %%
-db_reload_database('current',1)
+% db_reload_database('current',1)
 load(protocol);
 Subj_bs = ProtocolSubjects.Subject;
 

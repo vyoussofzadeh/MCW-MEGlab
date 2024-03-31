@@ -120,7 +120,6 @@ for i = 1:length(datafile_fif)
     end
 end
 
-%%
 %% Copy and rename the ICA_clean data
 clc
 %- listing raw data
