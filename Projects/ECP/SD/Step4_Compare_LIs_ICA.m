@@ -81,9 +81,9 @@ switch LI_analysis
     case 3
         cfg.datamask = fullfile('./Group_analysis/LCMV/results_average*.mat');
         S_data = ecpfunc_read_sourcemaps(cfg);
-%     case 4
-%         cfg.datamask = fullfile('./Group_analysis/LCMV/results_abs*.mat');
-%         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
+        %     case 4
+        %         cfg.datamask = fullfile('./Group_analysis/LCMV/results_abs*.mat');
+        %         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
     case 6
         cfg.datatag = 'PSTwDICS_contrast_18_4';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
@@ -279,8 +279,8 @@ cfg.net_sel = [9];
 [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
 
 %% mean MEG li vs. fMRI
-% pause, 
-% 
+% pause,
+%
 close all,
 clc
 
@@ -328,8 +328,439 @@ for i=1:length(LI_method_label)
     do_MEG_fMRI_concordance_contrast_rois(cfg);
     
     % - export figs
-    cfg = []; cfg.outdir = save_dir; filename = ['concor ROIs_', LI_method_label{i}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg) 
+    cfg = []; cfg.outdir = save_dir; filename = ['concor ROIs_', LI_method_label{i}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+    
+end
+cd(save_dir)
+
+%%
+% Initialize a table to store results
+resultsTable = table([], [], 'VariableNames', {'Method', 'Metrics'});
+
+for i=1:length(LI_method_label)
+    disp(['Processing: ', LI_method_label{i}]);
+    
+    % Configuration for both analyses
+    cfg = [];
+    cfg.wi = wi;
+    cfg.ID = sub_MF_pt;
+    cfg.savefig = 0; % Assuming this controls figure saving inside the functions
+    cfg.outdir = save_dir;
+    cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+    cfg.net_sel_id = [1,2,5,6,11];
+    cfg.lang_id = {'language_Angular'; 'language_Frontal';'language_PCingPrecun'; 'language_Temporal'; 'language_Lateral'};
+    cfg.LI_val = LI_pt_val_new.(LI_method_label{i});
+    cfg.fmri_LIs_val = fmri_LIs;
+    cfg.idx = IB;
+    cfg.title = LI_method_label{i};
+    
+    % Correlation Analysis
+    cfg.thre = 0.10;
+    cfg.ternary = 0;
+    [~, ~, correlationMetrics] = do_MEG_fMRI_corr_contrast_rois(cfg);
+    
+    % Concordance Analysis
+    cfg.thre = 0.10;
+    cfg.ternary = 1;
+    cfg.buffervalue = 5;
+    cfg.fmri_LIs_val = fmri_LIs_trn;
+    [~, ~, concordanceMetrics] = do_MEG_fMRI_concordance_contrast_rois(cfg);
+    
+    % Compile results
+    metrics = struct('Correlation', correlationMetrics, 'Concordance', concordanceMetrics);
+    resultsTable = [resultsTable; {LI_method_label{i}, metrics}];
+end
+
+%%
+% Example metric name - adjust according to your actual data structure
+metricName = {'Correlation','Concordance'}; % Assuming this is the name of the correlation/concordance field
+roi_label = {'language_Angular'; 'language_Frontal';'language_PCingPrecun'; 'language_Temporal'; 'language_Lateral'};
+
+% Colors for each method, adjust or extend as needed
+colors = lines(length(LI_method_label));
+
+% Loop through each method and plot
+for k = 1:length(metricName)
+    for j = 1:length(roi_label)
+        % Initialize a figure
+        figure;
+        hold on; % Hold on to plot multiple lines
+        for i = 1:height(resultsTable)
+            % Extract the relevant metric for the current method
+            currentMetrics = resultsTable.Metrics(i).(metricName{k});
+            
+            % Example plotting command - adjust as needed
+            plot(mean(wi'), currentMetrics(j,:), 'LineWidth', 3, 'Color', colors(i,:));
+            title([resultsTable.Method{i}, '-', roi_label{j}]);
+        end
+        
+        
+        % Beautify the plot
+        set(gca, 'color', 'none');
+        ylabel('LIs corr (MEG vs. fMRI)');
+        xlabel('Time (sec)');
+        legend(resultsTable.Method, 'Location', 'southoutside', 'NumColumns', 5);
+        box off;
+        hold off; % Release the hold to stop plotting on the same figure
+        
+    end
+end
+% Optionally, set the title based on `net_sel_mutiple_label` and `net_sel_id`
+% title([net_sel_mutiple_label{net_sel}]);
+
+
+%%
+close all;
+
+% Assuming metricName contains the names of the fields we want to plot
+metricNames = {'Correlation', 'Concordance'};
+roi_labels = {'Angular', 'Frontal', 'PCingPrecun', 'Temporal', 'Lateral'};
+
+% Colors for each method, adjust or extend as needed
+colors = lines(height(resultsTable));
+
+% Loop through each metric type (Correlation and Concordance)
+for metricIdx = 1:length(metricNames)
+    % Initialize a figure for the current metric type
+    figure;
+    
+    % Create a subplot for each ROI
+    for roiIdx = 1:length(roi_labels)
+        subplot(length(roi_labels), 1, roiIdx);
+        hold on; % Hold on to plot multiple lines in the subplot
+        
+        % Plotting loop for each method
+        for i = 1:height(resultsTable)
+            % Check if the current metric and ROI exist in the current method's metrics
+            if isfield(resultsTable.Metrics(i), metricNames{metricIdx})
+                currentMetrics = resultsTable.Metrics(i).(metricNames{metricIdx});
+                % Check if we have enough data for the current ROI
+                if size(currentMetrics, 1) >= roiIdx
+                    plot(mean(wi'), currentMetrics(roiIdx, :), 'LineWidth', 3, 'Color', colors(i,:));
+                end
+            end
+        end
+        
+        % Plot adjustments for the current subplot
+        set(gca, 'color', 'none');
+        % Conditional ylim adjustments based on analysis type
+        if strcmp(metricNames{metricIdx}, 'Correlation')
+            ylim([0 1]); % Set ylim for Correlation analysis
+        elseif strcmp(metricNames{metricIdx}, 'Concordance')
+            ylim([0 100]); % Set ylim for Concordance analysis
+        end
+        
+        if roiIdx == length(roi_labels) % Only for the last plot
+            ylabel(['LIs ', metricNames{metricIdx}, ' (MEG vs. fMRI)']);
+            xlabel('Time (sec)');
+            lgd = legend(resultsTable.Method, 'Location', 'southoutside', 'NumColumns', 2, 'Orientation', 'horizontal');
+            lgdPos = lgd.Position; % Get current position
+            lgdPos(2) = lgdPos(2) - 0.11; % Move legend down
+            lgd.Position = lgdPos; % Set new position
+        end
+        
+        title(roi_labels{roiIdx});
+        box off;
+        
+        hold off; % Release the hold for the next subplot
+    end
+    
+    % Super title for the entire figure
+    sgtitle([metricNames{metricIdx}, ' Analysis']);
+    set(gcf, 'Position', [100   400   350   800]);
+end
+
+
+%%
+close all;
+
+% Assuming metricName contains the names of the fields we want to plot
+metricNames = {'Correlation', 'Concordance'};
+roi_labels = {'Angular', 'Frontal', 'PCingPrecun', 'Temporal', 'Lateral'};
+
+% Colors for each method, adjust or extend as needed
+colors = lines(height(resultsTable));
+
+% Loop through each ROI to create a figure
+for roiIdx = 1:length(roi_labels)
+    figure; % Initialize a figure for the current ROI
+    sgtitle([roi_labels{roiIdx}, ' Analysis']); % Super title for the entire figure
+    set(gcf, 'Position', [100, 100, 800, 600]); % Adjust figure size
+    
+    % Create a subplot for each metric type within the current ROI figure
+    for metricIdx = 1:length(metricNames)
+        subplot(1, length(metricNames), metricIdx);
+        hold on; % Hold on to plot multiple lines in the subplot
+        
+        % Plotting loop for each method
+        for i = 1:height(resultsTable)
+            % Check if the current metric exists in the current method's metrics
+            if isfield(resultsTable.Metrics(i), metricNames{metricIdx})
+                currentMetrics = resultsTable.Metrics(i).(metricNames{metricIdx});
+                
+                % Check if we have enough data for the current ROI
+                if size(currentMetrics, 1) >= roiIdx
+                    plot(mean(wi'), currentMetrics(roiIdx, :), 'LineWidth', 3, 'Color', colors(i,:));
+                end
+            end
+        end
+        
+        % Plot adjustments for the current subplot
+        set(gca, 'color', 'none');
+        if strcmp(metricNames{metricIdx}, 'Correlation')
+            ylim([0, 1]); % Set ylim for Correlation analysis
+        elseif strcmp(metricNames{metricIdx}, 'Concordance')
+            ylim([0, 100]); % Set ylim for Concordance analysis
+        end
+        
+        % Apply labels only on relevant subplots
+        if metricIdx == 1
+            ylabel(['LIs ', '(MEG vs. fMRI)']);
+        end
+        xlabel('Time (sec)');
+        
+        % Add legend below the last subplot
+        if roiIdx == length(roi_labels) && metricIdx == length(metricNames)
+            lgd = legend(resultsTable.Method, 'Location', 'southoutside', 'Orientation', 'horizontal', 'NumColumns', 2);
+            lgdPos = lgd.Position; % Get current position
+            lgdPos(2) = lgdPos(2) - 0.11; % Move legend down
+            lgd.Position = lgdPos; % Set new position
+        end
+        
+        title(metricNames{metricIdx});
+        box off;
+        hold off; % Release the hold for the next metric
+    end
+end
+
+%%
+close all;
+
+% Assuming metricName contains the names of the fields we want to plot
+metricNames = {'Correlation', 'Concordance'};
+roi_labels = {'Angular', 'Frontal', 'PCingPrecun', 'Temporal', 'Lateral'};
+LI_method_labels = {'Magnitude', 'Counting', 'Bootstrapping'}; % LI Methods
+
+% Colors for each ROI, adjust or extend as needed
+colors = lines(length(roi_labels));
+
+% Loop through each LI method
+for methodIdx = 1:length(LI_method_labels)
+    figure; % Initialize a figure for the current LI method
+    sgtitle([LI_method_labels{methodIdx}, ' Analysis across ROIs']); % Super title for the figure
+    set(gcf, 'Position', [100, 100, 600, 600]); % Adjust figure size
+    
+    % Create subplots for Correlation and Concordance
+    for metricIdx = 1:length(metricNames)
+        subplot(1, 2, metricIdx);
+        hold on; % Hold on to overlay multiple lines in the subplot
+        
+        % Loop through each ROI to overlay in the current subplot
+        for roiIdx = 1:length(roi_labels)
+            % Assuming there's a way to access the correct set of metrics for the current LI method
+            currentMetrics = []; % Initialize empty; this needs to be filled with actual data retrieval logic
+            if isfield(resultsTable.Metrics(methodIdx), metricNames{metricIdx})
+                currentMetrics = resultsTable.Metrics(methodIdx).(metricNames{metricIdx});
+                
+                % Check if we have enough data for the current ROI
+                if size(currentMetrics, 1) >= roiIdx
+                    plot(mean(wi'), currentMetrics(roiIdx, :), 'LineWidth', 3, 'Color', colors(roiIdx,:));
+                end
+            end
+        end
+        
+        % Plot adjustments for the current subplot
+        set(gca, 'color', 'none');
+        xlabel('Time (sec)');
+        
+        % Apply specific y-axis limits based on the metric
+        if strcmp(metricNames{metricIdx}, 'Correlation')
+            ylim([0, 1]); % Set ylim for Correlation analysis
+        elseif strcmp(metricNames{metricIdx}, 'Concordance')
+            ylim([0, 100]); % Set ylim for Concordance analysis
+        end
+        
+        title(metricNames{metricIdx});
+        box off;
+        
+        if metricIdx == length(metricNames) % Add legend only to the last subplot
+            lgd = legend(roi_labels, 'Location', 'southoutside', 'Orientation', 'horizontal', 'NumColumns', length(roi_labels));
+            lgdPos = lgd.Position; % Get current position
+            lgdPos(2) = lgdPos(2) - 0.10; % Move legend down
+            lgd.Position = lgdPos; % Set new position
+        end
+        
+        hold off; % Release hold for next metric type subplot
+    end
+    cfg = []; cfg.outdir = save_dir; filename = [LI_method_labels{methodIdx}, ' Analysis across ROIs']; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+end
+
+%%
+% Initialize a table to store the summary
+summaryTable = table();
+
+% Loop through LI methods, metric types, and ROIs
+for methodIdx = 1:length(LI_method_labels)
+    for metricIdx = 1:length(metricNames)
+        for roiIdx = 1:length(roi_labels)
+            currentMetrics = resultsTable.Metrics(methodIdx).(metricNames{metricIdx})(roiIdx, :);
+            [maxValue, maxIndex] = max(currentMetrics); % Find max value and its index
+            
+            % Calculate corresponding time from 'wi' using 'maxIndex'
+            maxTime = mean(wi(maxIndex, :), 2); % Assuming 'wi' contains start and end times of intervals
+            
+            % Add to the summary table
+            newRow = {LI_method_labels{methodIdx}, metricNames{metricIdx}, roi_labels{roiIdx}, maxValue, maxTime};
+            summaryTable = [summaryTable; newRow];
+        end
+    end
+end
+
+% Set column names
+summaryTable.Properties.VariableNames = {'LI_Method', 'Metric_Type', 'ROI', 'Max_Value', 'Time_Interval'};
+
+writetable(summaryTable, 'LI_Metrics_Summary.csv');
+
+%%
+fid = fopen('LI_Metrics_Summary.txt', 'wt'); % Open file for writing
+% Print a header
+fprintf(fid, '%s\t%s\t%s\t%s\t%s\n', summaryTable.Properties.VariableNames{:});
+
+% Loop through each row of the table and print
+for i = 1:height(summaryTable)
+    fprintf(fid, '%s\t%s\t%s\t%f\t%f\n', summaryTable.LI_Method{i}, summaryTable.Metric_Type{i}, ...
+        summaryTable.ROI{i}, summaryTable.Max_Value(i), summaryTable.Time_Interval(i));
+end
+
+fclose(fid); % Close the file
+
+
+%%
+close all
+% Unique ROIs for iteration
+uniqueROIs = unique(summaryTable.ROI);
+
+% Loop through each ROI for plotting
+figure;
+sgtitle('Corr Max'); % Super title for the figure
+for i = 1:length(uniqueROIs)
+    
+    subplot (3,2,i)
+    roi = uniqueROIs{i};
+    
+    % Extract data for the current ROI
+    roiData = summaryTable(strcmp(summaryTable.ROI, roi), :);
+    
+    % Create figure for current ROI
+    
+    
+    % Plot Max Values for Correlation
+    hold on;
+    for method = unique(roiData.LI_Method)'
+        methodData = roiData(strcmp(roiData.LI_Method, method) & strcmp(roiData.Metric_Type, 'Correlation'), :);
+        bar(categorical(methodData.LI_Method), methodData.Max_Value, 'BarWidth', 0.2);
+    end
+    title([roi]);
+    ylabel('Max Value');
+    hold off;
+    set(gca,'color','none');
+    axis tight
+    ylim([0, 1])
+    set(gcf, 'Position', [100, 100, 400, 900]); % Adjust figure size
+end
+
+figure;
+sgtitle('Conc Max'); % Super title for the figure
+for i = 1:length(uniqueROIs)
+    
+    subplot (3,2,i)
+    % Plot Max Values for Concordance
+    
+    roi = uniqueROIs{i};
+    
+    % Extract data for the current ROI
+    roiData = summaryTable(strcmp(summaryTable.ROI, roi), :);
+    
+    % Create figure for current ROI
+    
+    hold on;
+    for method = unique(roiData.LI_Method)'
+        methodData = roiData(strcmp(roiData.LI_Method, method) & strcmp(roiData.Metric_Type, 'Concordance'), :);
+        bar(categorical(methodData.LI_Method), methodData.Max_Value, 'BarWidth', 0.2);
+    end
+    title([roi]);
+    ylabel('Max Value');
+    hold off;
+    set(gca,'color','none');
+    ylim([0, 100])
+    set(gcf, 'Position', [100, 100, 400, 900]); % Adjust figure size
     
 end
 
-cd(save_dir)
+%%
+close all
+% Loop through each ROI for plotting
+figure;
+sgtitle('Correlation Max Values'); % Super title for the figure
+for i = 1:length(uniqueROIs)
+    subplot(3, 2, i);
+    roi = uniqueROIs{i};
+
+    % Extract data for the current ROI for Correlation
+    roiData = summaryTable(strcmp(summaryTable.ROI, roi) & strcmp(summaryTable.Metric_Type, 'Correlation'), :);
+    
+    % Assuming roiData.LI_Method is categorical with unique categories for each method
+    % If not, consider converting or ensuring uniqueness
+    methods = categories(categorical(roiData.LI_Method));
+    maxValues = roiData.Max_Value;
+    
+    b = bar(1:length(methods), maxValues, 'BarWidth', 0.4); % Plot bars
+    
+    % Annotations
+    for j = 1:length(maxValues)
+        % Manually calculate X position (center of each bar) and Y position (height of each bar)
+        x = b.XData(j);
+        y = maxValues(j);
+        text(x, y, sprintf('%.3f', y), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
+    end
+    
+    set(gca, 'xtick', 1:length(methods), 'xticklabel', methods);
+    title(roi);
+    ylabel('Max Value');
+    set(gca, 'color', 'none');
+    ylim([0, 1]); % Adjust based on your data range
+end
+set(gcf, 'Position', [100, 100, 1024, 768]); % Adjust figure size
+
+
+figure;
+sgtitle('Concordance Max Values'); % Super title for the figure
+for i = 1:length(uniqueROIs)
+    subplot(3, 2, i);
+    roi = uniqueROIs{i};
+
+    % Extract data for the current ROI for Concordance
+    roiData = summaryTable(strcmp(summaryTable.ROI, roi) & strcmp(summaryTable.Metric_Type, 'Concordance'), :);
+    
+    % Ensure LI_Method is categorical and methods are unique for plotting
+    methods = categories(categorical(roiData.LI_Method));
+    maxValues = roiData.Max_Value; % Extract max values for Concordance
+    
+    b = bar(1:length(methods), maxValues, 'BarWidth', 0.4); % Plot bars for Concordance
+    
+    % Annotations
+    for j = 1:length(maxValues)
+        x = b.XData(j); % Use XData for horizontal position
+        y = maxValues(j); % Max value for vertical position
+        text(x, y + 2, sprintf('%.2f', y), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom'); % Offset y by a small value for clarity
+    end
+    
+    set(gca, 'xtick', 1:length(methods), 'xticklabel', methods);
+    title([roi, ' - Concordance']);
+    ylabel('Max Value');
+    set(gca, 'color', 'none');
+    ylim([0, 100]); % Adjust based on your range of Concordance values
+end
+set(gcf, 'Position', [500, 100, 1024, 768]); % Adjust figure position and size
+
+
