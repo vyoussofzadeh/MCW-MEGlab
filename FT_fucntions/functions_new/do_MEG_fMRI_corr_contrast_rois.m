@@ -1,4 +1,4 @@
-function [megLI_sub_pt, fmri_LIs_val, crr] = do_MEG_fMRI_corr_contrast_rois(cfg_main)
+function [megLI_sub_pt, fmri_LIs_val, crr_all] = do_MEG_fMRI_corr_contrast_rois(cfg_main)
 
 
 % lang_id = {'language_Angular'; 'language_Frontal'; 'language_Occipital'; 'language_Other'; 'language_PCingPrecun'; 'language_Temporal'; 'language_Lateral'};

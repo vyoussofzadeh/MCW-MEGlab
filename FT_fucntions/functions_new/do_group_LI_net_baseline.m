@@ -63,19 +63,17 @@ else
             s_in = [sFiles_in{1}.sFiles_in(i); sFiles_in{2}.sFiles_in(i)];
             cfg.sinput = s_in;
             cfg.wi = wi;
-            %             [LI, wi_max, pow] = do_lat_analysis_asymetric(cfg);
             if contains(method, 'Magnitude')
-                %             switch method
-                [LI, ~, pow] = do_lat_analysis_asymetric_contrast(cfg);
+                [LI, ~, pow] = do_lat_analysis_asymetric_magnitude2(cfg);
                 pow_sub(j,i,:) = pow;
             elseif contains(method, 'Counting')
                 [LI, ~] = do_lat_analysis_DICS_baseline_Counting(cfg);
             elseif contains (method, 'Bootstrapping')
-                cfg.divs = 150;
-                cfg.n_resampling = 200;
+                cfg.divs = 25;
+                cfg.n_resampling = 50;
                 cfg.RESAMPLE_RATIO = 0.75;
                 cfg.dvd = 5; % 5
-                cfg.n_resampling = 5; % 200
+                cfg.downsamplerate = 5; % 2 times down-sampling - has to be fixed!
                 [LI, ~] = do_LI_bootstrap_contrast(cfg);
             end
             %             LI_count = LI;

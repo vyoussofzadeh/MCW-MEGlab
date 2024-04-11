@@ -23,6 +23,12 @@ axis tight
 %% Legend
 legend('hide')
 
+%% Change legend position
+lgd = legend(resultsTable.Method, 'Location', 'southoutside', 'NumColumns', 2, 'Orientation', 'horizontal');
+lgdPos = lgd.Position; % Get current position
+lgdPos(2) = lgdPos(2) - 0.11; % Move legend down
+lgd.Position = lgdPos; % Set new position
+
 %% Axis labelling
 xlabel(rois(idx(1)))
 ylabel([tag,'-',ttag])
@@ -90,6 +96,34 @@ inBetween = [curve1, fliplr(curve2)];
 fill(x2, inBetween, 'g');
 hold on;
 plot(x, y, 'r', 'LineWidth', 2);
+
+%% Customized Scatter Plot with Connected Data Points Across Groups
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/other')
+
+close all
+DataArray = nan(5,2);
+DataArray(1:5,1) = [6,7,8,1,3];
+DataArray(1:5,2) = [2,3,4,1,6];
+
+Colors = [0.4922 0.0039 0.9063; 0.9922 0.8672 0.0039];
+
+figure;
+% Assuming 'MarkerSize' is a supported property, adjust its value to increase marker size
+[xPositions, yPositions, ~, ~] = UnivarScatter(DataArray,'Label',{'meg','fmri'},'MarkerFaceColor',Colors, 'PointSize',100);
+ylabel('Laterality','FontSize', 16);
+xlabel('Modality','FontSize', 16);
+set(gca,'color','none');
+title('Word-recognition','fontsize',16)
+set(gca,'FontName','HelveticaNeueLT Std Lt');
+hold on
+
+f = [xPositions, yPositions];
+for j=1:length(f)
+   line([f(j,1),f(j,2)],[f(j,3),f(j,4)], 'LineWidth', 1); % Adjust line width if necessary
+end
+
+% Adjust x-axis limits
+xlim([0.5 2.5]);
 
 %% Legned stop
 legend('AutoUpdate', 'off')

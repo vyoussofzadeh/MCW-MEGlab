@@ -42,7 +42,7 @@ for j=1:size(LI_method_label,2)
     end
 %     mLI_sub1 = [];
     [mx, idx] = max(conc(j,:)); 
-    interval = idx-bf:idx+bf;
+    interval = idx; %idx-bf:idx+bf;
     if length(net_sel) > 1
         mLI_sub1 = squeeze(nanmean(LI_pt_val_new(net_sel,:,interval)));
         megLI_sub_pt = nanmean((mLI_sub1),2);

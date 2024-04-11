@@ -135,3 +135,15 @@ sFiles_2'
 A = setdiff(sFiles_1, sFiles_2)
 uniqueFiles = setdiff(sFiles_1, sFiles_2, 'stable');
 
+%% Dynamic Assignment of a variable
+
+dynamicVars = struct(); % Initialize an empty structure
+
+for i = 1:5
+    fieldName = sprintf('dynamicVar%d', i); % Dynamic field name for the structure
+    dynamicVars.(fieldName) = i * 10; % Assign the value to the field
+end
+
+% Accessing a value from the structure:
+disp(dynamicVars.dynamicVar1); % Displays 10
+

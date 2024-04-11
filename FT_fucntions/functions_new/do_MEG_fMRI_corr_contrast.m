@@ -16,9 +16,10 @@ crr = [];
 midx = [];
 for i=1:length(wi)
     if length(net_sel) > 1       
-        mLI_sub1 = mean(LI_pt_new(net_sel,:,i));
+        mLI_sub1 = nanmean(LI_pt_new(net_sel,:,i));
     else
         mLI_sub1 = (LI_pt_new(net_sel,:,i));
+        mLI_sub1(isnan(mLI_sub1)) = 0;
     end
     megLI_sub_pt = (mLI_sub1)';
     
@@ -48,7 +49,7 @@ end
 % m3 = m1 - m2;
 % figure, plot(mean(wi'), m3(2,:)), title(ID(2))
 
-figure, plot(mean(wi'),crr, 'LineWidth', 3), title([net_sel_mutiple_label{net_sel}]);
+figure, plot(nanmean(wi'),crr, 'LineWidth', 3), title([net_sel_mutiple_label{net_sel}]);
 set(gca,'color','none');
 ylabel('LIs corr (MEG vs. fMRI)')
 xlabel('Time (sec)')

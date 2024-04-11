@@ -34,12 +34,36 @@ switch cfg_main.Threshtype
         threshold = cfg_main.thre * max(ImageGridAmp(:)); % Time max threshold
     case 3
         threshold = cfg_main.thre * ROIMax; % ROI max threshold
+%         minPowerThreshold =  0.01 * cfg_main.globalmax; % ROI max threshold
 end
 
+%%
 % Mag significant voxels in each hemisphere
-pow_left = sum(ImageGridAmp(LHvals(:) > threshold));
-pow_right = sum(ImageGridAmp(RHvals(:) > threshold));
+% pow_left = sum(ImageGridAmp(LHvals(:) > threshold));
+% pow_right = sum(ImageGridAmp(RHvals(:) > threshold));
 
+
+%%
+% minPowerThreshold = 1;
+minPowerThreshold = 0.1 * max(ImageGridAmp(:));  % Example threshold definition
+
+% Apply minimum power threshold along with the existing maximum threshold
+LHvals_filtered = LHvals(LHvals > threshold & LHvals > minPowerThreshold);
+RHvals_filtered = RHvals(RHvals > threshold & RHvals > minPowerThreshold);
+
+% % Now, calculate power using the filtered values
+pow_left = sum(LHvals_filtered);
+pow_right = sum(RHvals_filtered);
+
+% normalize to the size of parcel
+pow_left = pow_left/length(LHvals);
+pow_right = pow_right/length(RHvals);
+
+%%
+% pow_left = mean(LHvals_filtered);
+% pow_right = mean(RHvals_filtered);
+
+%%
 % Calculate laterality index and total significant voxels
 LI_ROIval = 100 * ((pow_left - pow_right) / (pow_left + pow_right));
 

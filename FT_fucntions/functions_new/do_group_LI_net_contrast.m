@@ -61,13 +61,14 @@ else
                 [LI, ~, pow] = do_lat_analysis_asymetric_magnitude(cfg);
                 pow_sub(j,i,:) = pow;
             elseif contains(method, 'Counting')
-                [LI, ~] = do_lat_analysis_contrast_Counting(cfg);
+                [LI, ~, roi_count] = do_lat_analysis_contrast_Counting(cfg);
+                roi_count_sub(j,i,:) = roi_count;
             elseif contains (method, 'Bootstrapping')
-                cfg.divs = 20;
+                cfg.divs = 25;
                 cfg.n_resampling = 25;
                 cfg.RESAMPLE_RATIO = 0.75;
                 cfg.dvd = 5;
-                cfg.downsamplerate = 5; % 2 times down-sampling
+                cfg.downsamplerate = 5; % 2 times down-sampling - has to be fixed!
                 [LI, ~] = do_LI_bootstrap(cfg);
             end
             LI_sub(j,i,:) = LI;
@@ -85,6 +86,8 @@ else
     
     if contains(method,'Magnitude')
         save(savefilename,'LI_sub','m_LI_max_sub','pow_sub', 'setup'),
+    elseif contains(method,'Counting')
+        save(savefilename,'LI_sub','m_LI_max_sub', 'roi_count_sub', 'setup'),
     else
         save(savefilename,'LI_sub','m_LI_max_sub', 'setup'),
     end

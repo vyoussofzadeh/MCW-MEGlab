@@ -1,4 +1,4 @@
-function LI_ROIcount = do_LI_clincial(cfg_main)
+function [LI_ROIcount, ROIcount] = do_LI_clincial(cfg_main)
 % Script for computing laterality indices from MEG language activation dSPM maps
 
 % Load dSPM image grid and scout information

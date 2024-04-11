@@ -184,7 +184,7 @@ axis square
 
 %%
 % Define the file path where you want to save the findings
-fileName = 'SD_taskperformace.mat'; % Name of the .mat file
+fileName = 'TaskPerformanceSD.mat'; % Name of the .mat file
 
 % Full path to the .mat file
 fullFilePath = fullfile(savePath, fileName);

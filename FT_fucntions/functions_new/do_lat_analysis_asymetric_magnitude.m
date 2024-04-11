@@ -36,6 +36,7 @@ for j=1:size(wi,1)
     cfg.idx_R = idx_R;
     cfg.Threshtype = cfg_main.Threshtype;
     cfg.thre = thre;
+    cfg.globalmax = max(max(tmp.ImageGridAmp));
     [LI_clin, pow] = do_LI_magnitude(cfg);
     LI(j) = LI_clin;
     

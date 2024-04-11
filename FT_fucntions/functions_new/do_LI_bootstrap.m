@@ -42,8 +42,10 @@ for j = 1:size(wi, 1)
     ImageGridAmp = abs(d_in);
     
     % downsample data
-    ImageGridAmp = downsample(ImageGridAmp',downsamplerate);
-    ImageGridAmp = ImageGridAmp';
+    if size(ImageGridAmp, 2) > 1 % to check if data is averaged or all sample intervals are used
+        ImageGridAmp = downsample(ImageGridAmp',downsamplerate);
+        ImageGridAmp = ImageGridAmp';
+    end
     
     % Get left and right subregions from scout data
     LHscout = [];

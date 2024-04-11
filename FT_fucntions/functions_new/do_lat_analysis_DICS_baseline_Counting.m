@@ -40,7 +40,7 @@ for j=1:size(wi,1)
     cfg.idx_R = idx_R;
     cfg.Threshtype = cfg_main.Threshtype;
     cfg.thre = thre;
-    [LI_clin] = do_LI_clincial(cfg);
+    [LI_clin] = do_LI_clincial_parcel(cfg);
     LI(j) = LI_clin;
 end
 
@@ -50,7 +50,7 @@ if cfg_main.fplot ==1
     set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
     set(gca,'FontSize',8,'XTickLabelRotation',90);
     set(gcf, 'Position', [1000   400   1000   300]);
-    title([cfg_main.tit, ' - ', tmp.Comment]),
+%     title([cfg_main.tit, ' - ', tmp.Comment]),
     xlabel('temporal windows (sec)')
     ylabel('LI')
     set(gca,'color','none');

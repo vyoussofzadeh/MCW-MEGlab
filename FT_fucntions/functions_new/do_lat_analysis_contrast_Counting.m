@@ -1,4 +1,4 @@
-function [LI, LI_max] = do_lat_analysis_contrast_Counting(cfg_main)
+function [LI, LI_max, roi_count] = do_lat_analysis_contrast_Counting(cfg_main)
 
 wi = cfg_main.wi;
 atlas = cfg_main.atlas;
@@ -17,7 +17,9 @@ tmp = load(fullfile(cfg_main.BS_data_dir, sinput));
 %%
 % figure, plot(tmp.ImageGridAmp(:,1))
 
-LI = []; 
+LI = [];
+roi_count = [];
+
 for j=1:size(wi,1)
     
     timind1 = nearest(tmp.Time, wi(j,1)); timind2 = nearest(tmp.Time, wi(j,2));
@@ -35,8 +37,9 @@ for j=1:size(wi,1)
     cfg.idx_L = idx_L;
     cfg.idx_R = idx_R;
     cfg.Threshtype = cfg_main.Threshtype;
-    [LI_clin] = do_LI_clincial(cfg);
+    [LI_clin, roi_cnt] = do_LI_clincial(cfg);
     LI(j) = LI_clin;
+    roi_count(j) = roi_cnt;
 end
 
 if cfg_main.fplot ==1
