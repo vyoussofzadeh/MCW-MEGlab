@@ -217,6 +217,15 @@ for i=1:length(d)
     end
 end
 
+%% DC correction
+
+% Process: DC offset correction: [-300ms,-1ms]
+sFiles = bst_process('CallProcess', 'process_baseline_norm', sFiles, [], ...
+    'baseline',    [-0.3, -0.001], ...
+    'sensortypes', 'MEG, EEG', ...
+    'method',      'bl', ...  % DC offset correction:    x_std = x - &mu;
+    'overwrite',   0);
+
 %% Est. head model
 d1 = rdir(fullfile(BS_data_dir,'/*/ec*_ica_clean_low_clean/channel_vectorview306_acc1.mat'));
 d2 = rdir(fullfile(BS_data_dir,'/*/ec*_raw_ica_clean_low_clean/channel_vectorview306_acc1.mat'));

@@ -18,11 +18,11 @@ function [optimalInterval, correlations] = findOptimalMEGInterval(MEG_LI, fMRI_L
     optimalInterval = timePoints(maxIdx:maxIdx + intervalSize - 1);
     
     % Optional: Plot the correlation values across intervals
-    figure;
-    plot(timePoints, correlations);
-    xlabel('Interval Start Time (sec)');
-    ylabel('Correlation with fMRI LI');
-    title('Correlation of MEG LI with fMRI LI across Intervals');
+%     figure;
+%     plot(timePoints, correlations);
+%     xlabel('Interval Start Time (sec)');
+%     ylabel('Correlation with fMRI LI');
+%     title('Correlation of MEG LI with fMRI LI across Intervals');
 end
 
 % Usage
