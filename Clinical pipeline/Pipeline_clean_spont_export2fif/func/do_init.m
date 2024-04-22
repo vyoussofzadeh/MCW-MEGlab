@@ -4,7 +4,7 @@ cd_org = cd;
 addpath(genpath(cd_org));
 
 %- FieldTrip
-ft_path18 = fullfile(cfg.path_tools,'/FieldTrip/fieldtrip_2018');
+ft_path18 = '/MEG_data/Software/FieldTrip/fieldtrip_2018';
 ft_path = fullfile(cfg.path_tools,'/fieldtrip_2022');
 
 addpath(ft_path);

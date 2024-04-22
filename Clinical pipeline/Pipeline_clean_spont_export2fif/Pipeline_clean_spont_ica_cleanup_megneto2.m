@@ -88,7 +88,7 @@ f_data  = ft_preprocessing(cfg);
 
 %% apply ICA with n components
 cfg = []; cfg.savepath = []; cfg.savefile = []; cfg.saveflag = 2; cfg.overwrite = 2;
-cfg.lay = lay; cfg.n   = 5; cfg.subj = subj; cfg.allpath = allpath; cfg.select = 1;
+cfg.lay = lay; cfg.n   = 3; cfg.subj = subj; cfg.allpath = allpath; cfg.select = 1;
 [cln_data, bic] = do_ica(cfg, f_data);
 
 if ~isempty(bic)
@@ -129,7 +129,6 @@ if ~isempty(bic)
     % dataheader = ft_read_header(datafile);
     
 end
-
 % Indicate the end of script execution
 disp('Script execution completed!');
 close all
