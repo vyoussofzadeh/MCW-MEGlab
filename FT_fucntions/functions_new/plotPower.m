@@ -18,7 +18,7 @@ for j=1:length(labels)
     plot(mean(wi'), power_left(j, :), 'LineWidth', 3, 'Color', colors(j, :));
 end
 set(gca, 'color', 'none', 'YLim', [globalMin globalMax]);
-title(cfg.title(1)), ylabel('Power');
+title(cfg.title(1)), ylabel('SNR (dB)');  % Power
 
 subplot 132
 hold on;
@@ -26,7 +26,7 @@ for j=1:length(labels)
     plot(mean(wi'), power_right(j, :), 'LineWidth', 3, 'Color', colors(j, :));
 end
 set(gca, 'color', 'none', 'YLim', [globalMin globalMax]);
-title(cfg.title(2)), ylabel('Power');
+title(cfg.title(2)), ylabel('SNR (dB)'); % Power
 
 subplot 133
 hold on;
@@ -36,7 +36,7 @@ end
 lgd = legend(labels);
 set(lgd, 'Box', 'off');
 set(gca, 'color', 'none');
-title('left - right h'), ylabel('Power diff.');
+title('left - right h'), ylabel('SNR diff.');  % Power diff.
 legend('Location', 'northeast');
 xlabel('Time (s)');
 set(gcf, 'Position', [700, 900, 800, 700]);
