@@ -16,7 +16,7 @@ cfg.tapsmofrq  = 0.8 *cfg.foi;
 cfg.toi        = cfg_main.toi(1):0.05:cfg_main.toi(2);
 cfg.pad = 'nextpow2';
 tfr        = ft_freqanalysis(cfg, data);
-set(gcf,'name',cfg_main.subj,'numbertitle','off')
+% set(gcf,'name',cfg_main.subj,'numbertitle','off')
 if isempty(cfg_main.savefile) == 0
     save(cfg_main.savefile, 'tfr', '-v7.3');
 end

@@ -6,7 +6,7 @@ function [megLI_sub_pt, fmri_LIs_val, conc] = do_MEG_fMRI_concordance_contrast_r
 lang_id = cfg_main.lang_id;
 bf = cfg_main.buffervalue;
 net_sel_id = cfg_main.net_sel_id;
-LI_pt_val_new1 = cfg_main.LI_val;
+% LI_pt_val_new1 = cfg_main.LI_val;
 % net_sel_id = [1,2,3,4,5,6,11];
 
 wi = cfg_main.wi;
@@ -15,8 +15,7 @@ m_wi = mean(wi');
 
 conc = [];
 for j=1:length(lang_id)
-    
-    
+        
     LI_pt_new = cfg_main.LI_val;
     net_sel = net_sel_id(j);
     fmri_LIs_val = cfg_main.fmri_LIs_val;
@@ -26,7 +25,7 @@ for j=1:length(lang_id)
     savefig = cfg_main.savefig;
     outdir = cfg_main.outdir;
     
-    crr = [];
+%     crr = [];
     midx = [];
     for i=1:length(wi)
         if length(net_sel) > 1

@@ -19,7 +19,7 @@ legend([h1(1,1),h2],{'MEG','Gmean'});
 grid on;
 ylabel('MEG (fT)','Interpreter','Tex');
 xlabel('Time (s)')
-set(gca,'fontsize',18,'fontname','Century Gothic');
+set(gca,'fontsize',10,'fontname','Century Gothic');
 
 mx = max(max(signal));
 mn = min(min(signal));
