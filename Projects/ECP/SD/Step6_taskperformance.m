@@ -71,13 +71,23 @@ for iFile = 1:length(fileList)
         
         % Check if the animal is in the list of animals found in the US
         isInUS = ismember(animalName, sd_correct.found_in_US);
+        isUsedByPeople = ismember(animalName, sd_correct.used_by_people);
+
         
         % Assuming "1" means the participant identified the animal correctly
-        if isInUS && strcmp(response, '1')
+        if isInUS && isUsedByPeople && strcmp(response, '1')
             correctAnimalCount = correctAnimalCount + 1;
-        elseif ~isInUS && ~strcmp(response, '1') % If specific response for not found in the US is considered
+        elseif ~(isInUS && isUsedByPeople) && ~strcmp(response, '1') % If specific response for not found in the US and used by people is considered
             correctAnimalCount = correctAnimalCount + 1;
         end
+        
+        
+%         % Assuming "1" means the participant identified the animal correctly
+%         if isInUS && strcmp(response, '1')
+%             correctAnimalCount = correctAnimalCount + 1;
+%         elseif ~isInUS && ~strcmp(response, '1') % If specific response for not found in the US is considered
+%             correctAnimalCount = correctAnimalCount + 1;
+%         end
     end
     
     % Calculate accuracy for the animal condition
