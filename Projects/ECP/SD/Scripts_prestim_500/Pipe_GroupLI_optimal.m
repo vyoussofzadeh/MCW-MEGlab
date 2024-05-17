@@ -406,6 +406,7 @@ df = validPairs - 2;
 disp(['Correlation coefficient: ', num2str(correlationCoefficient)]);
 disp(['Degrees of freedom: ', num2str(df)]);
 
+
 %% Response vs. Discordant LIs
 discordant_subs = sub_MF_pt(discordantSubs);
 discordant_indices = ismember(T_patn_MEGfMRI.Sub_ID, discordant_subs);
@@ -417,7 +418,7 @@ xlabel('Subjects');
 set(gca,'color','none');
 ylabel('Response Time (sec)');
 title({'Response Time', 'of Discordant Subjects'});
-set(gca, 'XTick', 1:length(discordant_subs), 'XTickLabel', discordant_subs, 'XTickLabelRotation', 45);
+set(gca, 'XTick', 1:length(discordant_subs), 'XTickLabel', xllabel, 'XTickLabelRotation', 45);
 set(gcf, 'Position', [1000   100   300   300]);
 hold on;
 line(get(gca,'xlim'), [meanRT meanRT], 'Color', 'red', 'LineStyle', '--');
@@ -452,13 +453,13 @@ load(taskPerformanceDataPath);
 accuracyResults_updt = accuracyResults(IB_taskperformance,:);
 meanAccBySubject_Animal = groupsummary(accuracyResults_updt, 'Subject', 'mean', 'Animal_ACC');
 meanAccBySubject_Falsefont = groupsummary(accuracyResults_updt, 'Subject', 'mean', 'Falsefont_ACC');
-totalmean = 100.*mean(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
+totalmean = mean(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
 disp(['The total mean of mean_Falsefont_ACC is: ', num2str(totalmean)]);
-totalstd = 100.*std(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
+totalstd = std(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
 disp(['The total std of mean_Falsefont_ACC is: ', num2str(totalstd)]);
-totalmean = 100.*mean(meanAccBySubject_Animal.mean_Animal_ACC);
+totalmean = mean(meanAccBySubject_Animal.mean_Animal_ACC);
 disp(['The total mean of mean_Falsefont_ACC is: ', num2str(totalmean)]);
-totalstd = 100.*std(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
+totalstd = std(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
 disp(['The total std of mean_Falsefont_ACC is: ', num2str(totalstd)]);
 
 %% Task Performance of Discordant Subjects
@@ -468,6 +469,12 @@ discordant_indices_symb = find(ismember(meanAccBySubject_Falsefont.Subject, disc
 meanTP_anim = nanmean(meanAccBySubject_Animal.mean_Animal_ACC);
 meanTP_symb = nanmean(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
 
+%
+xllabel = [];
+for i=1:length(discordant_indices_anim)
+    xllabel{i} = ['Subj ', num2str(discordant_indices_anim(i))];
+end
+
 % Plotting Animal Task Performance
 figure;
 bar(meanAccBySubject_Animal.mean_Animal_ACC(discordant_indices_anim));
@@ -475,7 +482,8 @@ xlabel('Subjects');
 set(gca,'color','none');
 ylabel('Accuracy (%)');
 title({'Task performance (anim)', 'of Discordant Subjects'});
-set(gca, 'XTick', 1:length(discordant_indices_anim), 'XTickLabel', meanAccBySubject_Animal.Subject(discordant_indices_anim), 'XTickLabelRotation', 45);
+% set(gca, 'XTick', 1:length(discordant_indices_anim), 'XTickLabel', meanAccBySubject_Animal.Subject(discordant_indices_anim), 'XTickLabelRotation', 45);
+set(gca, 'XTick', 1:length(discordant_indices_anim), 'XTickLabel', xllabel, 'XTickLabelRotation', 45);
 set(gcf, 'Position', [1000   100   300   300]);
 hold on;
 line(get(gca,'xlim'), [meanTP_anim meanTP_anim], 'Color', 'red', 'LineStyle', '--');
@@ -489,7 +497,7 @@ xlabel('Subjects');
 set(gca,'color','none');
 ylabel('Accuracy (%)');
 title({'Task performance (fonts)', 'of Discordant Subjects'});
-set(gca, 'XTick', 1:length(discordant_indices_symb), 'XTickLabel', meanAccBySubject_Falsefont.Subject(discordant_indices_symb), 'XTickLabelRotation', 45);
+set(gca, 'XTick', 1:length(discordant_indices_symb), 'XTickLabel', xllabel, 'XTickLabelRotation', 45);
 set(gcf, 'Position', [1000   100   300   300]);
 hold on;
 line(get(gca,'xlim'), [meanTP_symb meanTP_symb], 'Color', 'red', 'LineStyle', '--');
@@ -514,6 +522,7 @@ l.Position = legendPos;
 set(gca, 'XTick', []);
 box off;
 set(gcf, 'Position', [1000   100   300   300]);
+set(gca,'color','none');
 cfg = []; cfg.outdir = save_dir; filename = ['2_TaskPerformace_anim_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
 
 figure;
@@ -533,10 +542,63 @@ l.Position = legendPos;
 set(gca, 'XTick', []);
 box off;
 set(gcf, 'Position', [1000   100   300   300]);
+set(gca,'color','none');
+
 cfg = []; cfg.outdir = save_dir; filename = ['2_TaskPerformace_symb_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
 
 %% Neuropsych Details of Discordant Patients
 disp(patn_MEGfMRI_neuropsych(discordant_indices_anim,:))
 
 %% Corr (Response ACC, Reaction Time)
-% Code for calculating the correlation and statistical analysis here...
+% Convert numerical subject IDs in accuracyResults_updt to string format with 'EC' prefix
+accuracyResults_updt.SubjectStr = strcat('EC', arrayfun(@num2str, accuracyResults_updt.Subject, 'UniformOutput', false));
+
+% Find the intersection between subject IDs
+[commonSubIDs, idxAccuracy, idxRT] = intersect(accuracyResults_updt.SubjectStr, T_patn_MEGfMRI.Sub_ID);
+
+% Extract relevant data
+animalAcc = accuracyResults_updt.Animal_ACC(idxAccuracy);
+falsefontAcc = accuracyResults_updt.Falsefont_ACC(idxAccuracy);
+animalRT = T_patn_MEGfMRI.Animal(idxRT);
+falsefontRT = T_patn_MEGfMRI.Symbol(idxRT);
+
+% Calculate correlation for animal condition
+[correlationAnimal, pValueAnimal] = corr(animalAcc, animalRT, 'Rows', 'complete');
+
+% Calculate correlation for falsefont condition
+[correlationFalsefont, pValueFalsefont] = corr(falsefontAcc, falsefontRT, 'Rows', 'complete');
+
+% Display results
+disp(['Correlation between Animal Accuracy and Reaction Time: ', num2str(correlationAnimal)]);
+disp(['P-value for Animal Accuracy and Reaction Time: ', num2str(pValueAnimal)]);
+
+disp(['Correlation between Falsefont Accuracy and Reaction Time: ', num2str(correlationFalsefont)]);
+disp(['P-value for Falsefont Accuracy and Reaction Time: ', num2str(pValueFalsefont)]);
+
+% Plot Correlations
+
+% Plot for Animal condition
+figure;
+subplot 211
+scatter(animalAcc, animalRT, 'filled');
+title('Corr (Animal Acc, ReactionT');
+xlabel('Animal Acc');
+ylabel('ReactionT (s)');
+grid on;
+set(gca,'color','none');
+
+% Plot for Falsefont condition
+subplot 212
+scatter(falsefontAcc, falsefontRT, 'filled');
+title('Corr (Falsefont Acc, ReactionT)');
+xlabel('Falsefont Acc');
+ylabel('ReactionT (s)');
+grid on;
+box off;
+set(gcf, 'Position', [1000   100   300   300]);
+set(gca,'color','none');
+
+cfg = []; cfg.outdir = save_dir; filename = ['Corr_ReactionTvsAcc_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+
+cd(save_dir)
+
