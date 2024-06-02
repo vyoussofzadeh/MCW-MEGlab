@@ -15,8 +15,11 @@ addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/tools/helpful_tools/daviolinplot/daboxplot');
 
 %% Define thresholds for MEG and fMRI
-MEG_thre = 0.2; % MEG threshold
-fMRI_thre = 0.1; % fMRI threshold
+% MEG_thre = 0.2; % MEG threshold
+% fMRI_thre = 0.1; % fMRI threshold
+
+MEG_thre = 10; % MEG threshold
+fMRI_thre = 10; % fMRI threshold
 
 % Define the time interval bounds
 lowerBound = 0.5;
@@ -283,7 +286,7 @@ cfg = [];
 cfg.wi = wi;
 cfg.ID = sub_MF_pt;
 cfg.ternary = 1;
-cfg.thre = .2;
+cfg.thre = 10;
 cfg.savefig = 0;
 cfg.bf = 1;
 cfg.outdir = save_dir;
@@ -291,15 +294,15 @@ cfg.net_sel_mutiple_label = net_sel_mutiple_label;
 cfg.LI_val = MEG_LI_Data;
 cfg.fmri_LIs_val = fMRI_LI;
 cfg.net_sel = [11];
-[megLI_sub_pt, fmri_LIs_val, ~, interval_idx] = do_MEG_fMRI_corr_contrast(cfg);
+[megLI_sub_pt, fmri_LIs_val, ~, interval_idx] = do_MEG_fMRI_corr_contrast2(cfg);
 
 cfg = [];
-cfg.thre = .2;
+cfg.thre = 10;
 cfg.LI = fmri_LIs_val;
-fmri_LIs_trn = do_ternary_classification(cfg);
+fmri_LIs_trn = do_ternary_classification2(cfg);
 size(fmri_LIs_trn);
 
-%% Fixed Intervals LIs
+%% Constant Intervals LIs
 MEG_LI = squeeze(MEG_LI_Data(11,:,:));
 timePoints = mean(wi,2);
 IntervalSize = 1;
@@ -311,27 +314,38 @@ bf = 0.1;
 lowerBound_constant = optimalInterval - bf;
 upperBound_constant =  optimalInterval + bf;
 [groupCorrelation_cnst, optimalTimePoints_cnst] = computeGroupLevelMEGfMRICorrelation_timepoints(MEG_LI, fMRI_LI, timePoints, lowerBound_constant, upperBound_constant);
-[concordance_cnst, discordantSubs_cnst] = calculateConcordanceForTimePoints(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalInterval_constant);
+[concordance_cnst, discordantSubs_cnst] = ...
+    calculateConcordanceForTimePoints(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalInterval_constant);
 disp(nsub_IDs(discordantSubs_cnst)')
 subjectForPlot = discordantSubs_cnst;
 findIndividualOptimalTimePoints(MEG_LI, fMRI_LI, timePoints, subjectForPlot, lowerBound_constant, upperBound_constant);
 cfg = []; cfg.outdir = save_dir; filename = ['ConstantTimePoints_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
 
 %% Optimal Time Points LIs
+lowerBound = 0.4;
+upperBound = 0.9;
+
+close all
+clc
 [groupCorrelation, optimalTimePoints] = computeGroupLevelMEGfMRICorrelation_timepoints(MEG_LI, fMRI_LI, timePoints, lowerBound, upperBound);
-plotOptimalTimePointsOnMEG(MEG_LI, fMRI_LI, sub_IDs, timePoints, optimalTimePoints);
-cfg = []; cfg.outdir = save_dir; filename = ['Optimal_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+% plotOptimalTimePointsOnMEG(MEG_LI, fMRI_LI, timePoints, optimalTimePoints, []);
 meanOptimalTime = mean(optimalTimePoints);
 disp(['Mean of optimal time points: ', num2str(meanOptimalTime)]);
 [concordance, discordantSubs] = calculateConcordanceForTimePoints(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalTimePoints);
 disp(['Concordance: ', num2str(concordance)]);
 disp(['Correlation: ', num2str(groupCorrelation)]);
+
 if ~isempty(discordantSubs)
     disp('Discordant Subjects:');
     disp(nsub_IDs(discordantSubs));
 else
     disp('No Discordant Subjects Found');
 end
+
+%%
+% plotOptimalTimePointsOnMEG(MEG_LI, fMRI_LI, [], timePoints, optimalTimePoints);
+plotOptimalTimePointsOnMEG2(MEG_LI, fMRI_LI, timePoints, optimalTimePoints, discordantSubs, MEG_thre, lowerBound, upperBound);
+cfg = []; cfg.outdir = save_dir; filename = ['Optimal_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
 
 %% Mean Based Analysis
 [groupCorrelation_mean] = computeGroupLevelMEGfMRICorrelation_avgLI(MEG_LI, fMRI_LI, timePoints, lowerBound, upperBound);
@@ -342,14 +356,18 @@ findIndividualOptimalTimePoints(MEG_LI, fMRI_LI, timePoints, discordantSubs_mean
 cfg = []; cfg.outdir = save_dir; filename = ['mean_optimalTimePoints_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
 
 %% Power Values
+close all
 if LI_method == 1
+    
+    % first method
     pow_hc = transformPowSubTo3DArrays(LI_hc.pow_sub);
     pow_pt = transformPowSubTo3DArrays(LI_pt.pow_sub);
     mPow_sub_hc_left = squeeze(nanmean(pow_hc.left,2)); mPow_sub_hc_right = squeeze(nanmean(pow_hc.right,2));
     mPow_sub_pt_left = squeeze(nanmean(pow_pt.left,2)); mPow_sub_pt_right = squeeze(nanmean(pow_pt.right,2));
     power_left = 20.*squeeze(pow_pt.left(11,IA,:));
     power_right = 20.*squeeze(pow_pt.right(11,IA,:));
-    plot_flag = 1;
+    plot_flag = 0;
+    
     [optimalTimePoints_pow] = plotSubjectPowerOverlay(power_left, power_right, sub_IDs, timePoints, plot_flag, lowerBound, upperBound);
     if plot_flag == 1
         cfg = []; cfg.outdir = save_dir; filename = ['Power_values_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
@@ -362,7 +380,53 @@ if LI_method == 1
     else
         disp('No Discordant Subjects Found');
     end
+    
+    % Second method
+    % - diff (L - R)
+    [optimalTimePoints, interval] = plotSubjectPowerOverlay(power_left, power_right, sub_IDs, timePoints, 1, 0.2, 1.0);
+    [optimalTimePoints, ~] = plotSubjectPowerOverlay(power_left, power_right, sub_IDs, timePoints, 0, interval(1), interval(2));
+    
+    % - Left vs. right
+    [optimalTimePoints, interval] = plotSubjectPowerOverlay2(power_left, power_right, sub_IDs, timePoints, 0, 0.3, 1.0);
+    [optimalTimePoints, ~] = plotSubjectPowerOverlay2(power_left, power_right, sub_IDs, timePoints, 0, interval(1), interval(2));
+    
+    % sum of left and right
+    [optimalTimePoints, interval] = plotSubjectPowerOverlay3(power_left, power_right, sub_IDs, timePoints, 0, 0.4, 0.9);
+    [optimalTimePoints, ~] = plotSubjectPowerOverlay2(power_left, power_right, sub_IDs, timePoints, 0, interval(1), interval(2));
+    [groupCorrelation_cnst, optimalTimePoints] = computeGroupLevelMEGfMRICorrelation_timepoints(MEG_LI, fMRI_LI, timePoints, interval(1), interval(2));
+    
+    % - Area under the curve
+    aucDiff = plotSubjectPowerOverlay4(power_left, power_right, sub_IDs, timePoints, 0,  0.1, 0.8)
+    groupCorrelation = corr(aucDiff, fMRI_LI, 'Rows', 'complete')   
+    
+    if plot_flag == 1
+        cfg = []; cfg.outdir = save_dir; filename = ['Power_values_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+    end
+    
+    [concordance_pow, discordantSubs, MEG_LI_Sel] = ...
+        calculateConcordanceForTimePoints(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalTimePoints);
+    groupCorrelation = corr(MEG_LI_Sel', fMRI_LI, 'Rows', 'complete')
+    
+    %     [concordance_pow, discordantSubs_pow] = calculateConcordanceForTimePoints(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalTimePoints_pow);
+    disp(['Concordance: ', num2str(concordance_pow)]);
+    if ~isempty(discordantSubs)
+        disp('Discordant Subjects:');
+        disp(nsub_IDs(discordantSubs));
+    else
+        disp('No Discordant Subjects Found');
+    end
+    
+    disp(nsub_IDs(discordantSubs)')
+    subjectForPlot = discordantSubs;
+%     [optimalTimePoints, LI_opt] = findIndividualOptimalTimePoints(MEG_LI, fMRI_LI, timePoints, subjectForPlot, interval(1), interval(2));
+    cfg = []; cfg.outdir = save_dir; filename = ['optimalTimePoints_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+    if LI_method == 1
+        plotIndividualSourcePower(power_left, power_right, MEG_LI, fMRI_LI, sub_IDs, timePoints, MEG_LI_Sel, subjectForPlot)
+        cfg = []; cfg.outdir = save_dir; filename = ['optimalTimePoints_Dicordant_Pow_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+    end    
 end
+
+cd(save_dir)
 
 %% Optimal Time, Scatter Plot
 numSubjects = length(optimalTimePoints);
@@ -406,12 +470,17 @@ df = validPairs - 2;
 disp(['Correlation coefficient: ', num2str(correlationCoefficient)]);
 disp(['Degrees of freedom: ', num2str(df)]);
 
-
 %% Response vs. Discordant LIs
 discordant_subs = sub_MF_pt(discordantSubs);
 discordant_indices = ismember(T_patn_MEGfMRI.Sub_ID, discordant_subs);
 discordant_RT = T_patn_MEGfMRI.Avg(discordant_indices);
 meanRT = nanmean(discordant_RT);
+
+xllabel = [];
+for i=1:length(discordantSubs)
+    xllabel{i} = ['Subj ', num2str(discordantSubs(i))];
+end
+
 figure;
 bar(discordant_RT);
 xlabel('Subjects');
@@ -468,12 +537,6 @@ discordant_indices_anim = find(ismember(meanAccBySubject_Animal.Subject, discord
 discordant_indices_symb = find(ismember(meanAccBySubject_Falsefont.Subject, discordant_subs_numeric));
 meanTP_anim = nanmean(meanAccBySubject_Animal.mean_Animal_ACC);
 meanTP_symb = nanmean(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
-
-%
-xllabel = [];
-for i=1:length(discordant_indices_anim)
-    xllabel{i} = ['Subj ', num2str(discordant_indices_anim(i))];
-end
 
 % Plotting Animal Task Performance
 figure;

@@ -50,7 +50,6 @@ colr = distinguishable_colors(nScouts);
 
 %% Shaded area error bar plot
 % link: 'https://brendanhasz.github.io/2019/07/03/matlab-uncertainty-viz.html'
-
 N = 60;figure,
 y = rand(1,10); % your mean vector;
 x = 1:numel(y);
@@ -135,6 +134,13 @@ h2.Annotation.LegendInformation.IconDisplayStyle = 'off'; % make the legend for 
 lgd = legend([labels]);
 set(lgd, 'Box', 'off');
 legend('Location', 'eastoutside');
+
+%% Legend fit into subplots
+lgd = legend(intervalTypes, 'Location', 'southoutside', 'Orientation', 'horizontal', 'NumColumns', length(intervalTypes));
+lgdPos = lgd.Position; % Get current position
+lgdPos(2) = lgdPos(2) - 0.10; % Move legend down
+lgd.Position = lgdPos; % Set new position
+
 
 %% Adding panel labels
 text(-0.2, 1.3, '(b)', 'Units', 'normalized', 'FontSize', 14);

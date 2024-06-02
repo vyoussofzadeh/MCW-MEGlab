@@ -1,6 +1,11 @@
+% MEG Time-Frequency Analysis Pipeline
+% Written by MCW Group, Vahab Youssofzadeh <vyoussofzadeh@mcw.edu>
+% Latest Update: 05/11/2024
+
+%% Clear workspace and figures
 clc; close all
 
-%%
+%% Setup path
 ft_path = '/opt/matlab_toolboxes/ft_packages/fieldtrip_latest';
 addpath(ft_path);
 ft_defaults
@@ -40,7 +45,7 @@ cfg.subj = '005';
 nD_4_interval = do_notch(cfg, D_4_interval);
 nD_8_interval = do_notch(cfg, D_8_interval);
 
-%% Processing, Freq analysis
+%% Processing, freq analysis
 cfg = []; 
 cfg.savefile = []; 
 cfg.saveflag = 0;
@@ -54,13 +59,13 @@ do_fft(cfg, nD_8_interval);
 %% Processing, layout selection
 cfg = []; cfg.layout = 'neuromag306mag.lay'; lay = ft_prepare_layout(cfg);
 
-%% Processing, Time-Freq analysis
+%% Processing, time-freq analysis
 cfg = []; cfg.layout = lay; cfg.subj = []; cfg.baseline = [-0.5,0];
 cfg.fmax = 45; cfg.title = 'Time-Freq';
 [t_max_4,f_max_4, tfr_4]  = do_tfr_analysis(cfg, nD_4_interval);
 [t_max_8,f_max_8, tfr_8]  = do_tfr_analysis(cfg, nD_8_interval);
 
-%% Processing, Grand mean
+%% Processing, grand mean
 aD_4 = do_ave(nD_4_interval);
 aD_8 = do_ave(nD_8_interval);
 

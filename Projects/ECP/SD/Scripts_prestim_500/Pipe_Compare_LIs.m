@@ -208,81 +208,79 @@ for i=1:length(LI_method_label)
     LI_pt_val_new.(LI_method_label{i}) = LI_pt.(LI_method_label{i}).LI_sub(:, IA,:);
 end
 
-% Corr, MEG-fMRI
-cfg = []; cfg.wi = wi;
-cfg.ID = sub_MF_pt;
-cfg.ternary = 0;
-cfg.thre = .2;
-cfg.savefig = 1;
-cfg.bf = 5;
-cfg.outdir = save_dir;
-cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_val = LI_pt_val_new;
-cfg.fmri_LIs_val = fmri_LIs_val;
-cfg.LI_method_label = LI_method_label;
+%%
+% 
+% % Corr, MEG-fMRI
+% cfg = []; cfg.wi = wi;
+% cfg.ID = sub_MF_pt;
+% cfg.ternary = 0;
+% cfg.thre = .2;
+% cfg.savefig = 1;
+% cfg.bf = 5;
+% cfg.outdir = save_dir;
+% cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+% cfg.LI_val = LI_pt_val_new;
+% cfg.fmri_LIs_val = fmri_LIs_val;
+% cfg.LI_method_label = LI_method_label;
+% % cfg.net_sel = [1,2,6];
+% cfg.net_sel = [11]; % 6, 1, 2
+% [megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
+% cfg.net_sel = [1];
+% [megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
+% cfg.net_sel = [5];
+% [megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
+% cfg.net_sel = [2];
+% [megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
+% cfg.net_sel = [6];
+% [megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
+% cfg.net_sel = [2,6];
+% [megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
 % cfg.net_sel = [1,2,6];
-cfg.net_sel = [11]; % 6, 1, 2
-[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
-cfg.net_sel = [1];
-[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
-cfg.net_sel = [5];
-[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
-cfg.net_sel = [2];
-[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
-cfg.net_sel = [6];
-[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
-cfg.net_sel = [2,6];
-[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
-cfg.net_sel = [1,2,6];
-[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
-cfg.net_sel = [9];
-[megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
-
-%% MEG LI vs fMRI LI (Ternary language_Lateral)
+% [megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
+% cfg.net_sel = [9];
+% [megLI_sub_pt, fmri_LIs_val, ~] = do_MEG_fMRI_corr_contrast_approches(cfg);
+% 
+% %% MEG LI vs fMRI LI (Ternary language_Lateral)
 % pause, close all,
-% clc
-
+% 
 cfg = [];
 cfg.thre = .2; cfg.LI = fmri_LIs_val;
 fmri_LIs_trn = do_ternary_classification(cfg);
 size(fmri_LIs_trn);
-
-% concordance, MEG-fMRI
-cfg = [];
-cfg.wi = wi;
-cfg.ID = sub_MF_pt;
-cfg.ternary = 1;
-cfg.savefig = 1;
-cfg.outdir = save_dir;
-cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.LI_val = LI_pt_val_new;
-cfg.fmri_LIs_val = fmri_LIs_trn;
-cfg.LI_method_label = LI_method_label;
+% 
+% % concordance, MEG-fMRI
+% cfg = [];
+% cfg.wi = wi;
+% cfg.ID = sub_MF_pt;
+% cfg.ternary = 1;
+% cfg.savefig = 1;
+% cfg.outdir = save_dir;
+% cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+% cfg.LI_val = LI_pt_val_new;
+% cfg.fmri_LIs_val = fmri_LIs_trn;
+% cfg.LI_method_label = LI_method_label;
+% % cfg.net_sel = [1,2,6];
+% cfg.net_sel = [11];
+% cfg.thre = 0.1;
+% cfg.buffervalue = 1;
+% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
+% cfg.net_sel = [1];
+% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
+% cfg.net_sel = [5];
+% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
+% cfg.net_sel = [2];
+% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
+% cfg.net_sel = [6];
+% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
+% cfg.net_sel = [2,6];
+% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
 % cfg.net_sel = [1,2,6];
-cfg.net_sel = [11];
-cfg.thre = 0.1;
-cfg.buffervalue = 1;
-[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
-cfg.net_sel = [1];
-[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
-cfg.net_sel = [5];
-[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
-cfg.net_sel = [2];
-[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
-cfg.net_sel = [6];
-[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
-cfg.net_sel = [2,6];
-[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
-cfg.net_sel = [1,2,6];
-[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
-cfg.net_sel = [9];
-[megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
+% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
+% cfg.net_sel = [9];
+% [megLIs_trn, fmri_LIs_trn] = do_MEG_fMRI_concordance_contrast_approches(cfg);
 
 %% mean MEG li vs. fMRI
-% pause,
-%
-close all,
-clc
+pause, close all,
 
 for i=1:length(LI_method_label)
     
@@ -296,8 +294,9 @@ for i=1:length(LI_method_label)
     cfg.savefig = 0;
     cfg.outdir = save_dir;
     cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-    cfg.net_sel_id = [1,2,5,6,11];
-    cfg.lang_id = {'language_Angular'; 'language_Frontal';'language_PCingPrecun'; 'language_Temporal'; 'language_Lateral'};
+    cfg.net_sel_id = [1,2,6,11];
+%     cfg.lang_id = {'language_Angular'; 'language_Frontal';'language_PCingPrecun'; 'language_Temporal'; 'language_Lateral'};
+    cfg.lang_id = {'language_Angular'; 'language_Frontal';'language_Temporal'; 'language_Lateral'};
     cfg.LI_val = LI_pt_val_new.(LI_method_label{i});
     cfg.fmri_LIs_val = fmri_LIs;
     cfg.idx = IB;
@@ -317,8 +316,9 @@ for i=1:length(LI_method_label)
     cfg.savefig = 0;
     cfg.outdir = save_dir;
     cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-    cfg.net_sel_id = [1,2,5,6,11];
-    cfg.lang_id = {'language_Angular'; 'language_Frontal';'language_PCingPrecun'; 'language_Temporal'; 'language_Lateral'};
+    cfg.net_sel_id = [1,2,6,11];
+%     cfg.lang_id = {'language_Angular'; 'language_Frontal';'language_PCingPrecun'; 'language_Temporal'; 'language_Lateral'};
+    cfg.lang_id = {'language_Angular'; 'language_Frontal';'language_Temporal'; 'language_Lateral'};
     cfg.LI_val = LI_pt_val_new.(LI_method_label{i});
     cfg.fmri_LIs_val = fmri_LIs_trn;
     cfg.idx = IB;
@@ -333,7 +333,8 @@ end
 cd(save_dir)
 
 %%
-close all
+pause, close all,
+
 % Initialize a table to store results
 resultsTable = table([], [], 'VariableNames', {'Method', 'Metrics'});
 
@@ -348,8 +349,8 @@ for i=1:length(LI_method_label)
     cfg.savefig = 1; % Assuming this controls figure saving inside the functions
     cfg.outdir = save_dir;
     cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-    cfg.net_sel_id = [1,2,5,6,11];
-    cfg.lang_id = {'language_Angular'; 'language_Frontal';'language_PCingPrecun'; 'language_Temporal'; 'language_Lateral'};
+    cfg.net_sel_id = [1,2,6,11];
+    cfg.lang_id = {'language_Angular'; 'language_Frontal';'language_Temporal'; 'language_Lateral'};
     cfg.LI_val = LI_pt_val_new.(LI_method_label{i});
     cfg.fmri_LIs_val = fmri_LIs;
     cfg.idx = IB;
@@ -373,11 +374,12 @@ for i=1:length(LI_method_label)
 end
 
 %%
-close all
+pause, close all,
 
 % Example metric name - adjust according to your actual data structure
 metricName = {'Correlation','Concordance'}; % Assuming this is the name of the correlation/concordance field
-roi_label = {'Angular'; 'Frontal';'PCingPrecun'; 'Temporal'; 'Lateral'};
+% roi_label = {'Angular'; 'Frontal';'PCingPrecun'; 'Temporal'; 'Lateral'};
+roi_label = {'Ang', 'Front', 'Temp', 'Lat'};
 
 % Colors for each method, adjust or extend as needed
 colors = lines(length(LI_method_label));
@@ -390,11 +392,11 @@ for k = 1:length(metricName)
         hold on; % Hold on to plot multiple lines
         for i = 1:height(resultsTable)
             % Extract the relevant metric for the current method
-            currentMetrics = resultsTable.Metrics(i).(metricName{k});            
+            currentMetrics = resultsTable.Metrics(i).(metricName{k});
             % Example plotting command - adjust as needed
             plot(mean(wi'), currentMetrics(j,:), 'LineWidth', 3, 'Color', colors(i,:));
             title([resultsTable.Method{i}, '-', roi_label{j}]);
-        end        
+        end
         
         % Beautify the plot
         set(gca, 'color', 'none');
@@ -410,12 +412,12 @@ end
 % title([net_sel_mutiple_label{net_sel}]);
 
 %%
-clc
-close all;
+pause, close all,
 
 % Assuming metricName contains the names of the fields we want to plot
 metricNames = {'Correlation', 'Concordance'};
-roi_labels = {'Angular', 'Frontal', 'PCingPrecun', 'Temporal', 'Lateral'};
+% roi_labels = {'Angular', 'Frontal', 'PCingPrecun', 'Temporal', 'Lateral'};
+roi_labels = {'Ang', 'Front', 'Temp', 'Lat'};
 
 baseColors = [
     31, 78, 121;
@@ -468,7 +470,7 @@ for metricIdx = 1:length(metricNames)
                     end
                 end
             end
-        end       
+        end
         
         if maxValue > -inf
             text(maxTime, maxValue, sprintf('Max: %.2f', maxValue), 'VerticalAlignment', 'bottom', 'HorizontalAlignment', 'right');
@@ -486,11 +488,11 @@ for metricIdx = 1:length(metricNames)
             xlabel('Time (sec)');
         end
         legend(resultsTable.Method, 'Location', 'southoutside', 'NumColumns', 2, 'Orientation', 'horizontal');
-
+        
         
         title(roi_labels{roiIdx});
         box off;
-%         axis square
+        %         axis square
         hold off;
     end
     
@@ -503,11 +505,12 @@ end
 disp(['saved as, ', filename])
 
 %%
-close all;
+pause, close all,
 
 % Assuming metricName contains the names of the fields we want to plot
 metricNames = {'Correlation', 'Concordance'};
-roi_labels = {'Angular', 'Frontal', 'PCingPrecun', 'Temporal', 'Lateral'};
+% roi_labels = {'Angular', 'Frontal', 'PCingPrecun', 'Temporal', 'Lateral'};
+roi_labels = {'Ang', 'Front', 'Temp', 'Lat'};
 
 % Colors for each method, adjust or extend as needed
 colors = lines(height(resultsTable));
@@ -565,11 +568,12 @@ for roiIdx = 1:length(roi_labels)
 end
 
 %%
-close all;
+pause, close all,
 
 % Assuming metricName contains the names of the fields we want to plot
 metricNames = {'Correlation', 'Concordance'};
-roi_labels = {'Ang', 'Front', 'PCingPrecun', 'Temp', 'Lat'};
+% roi_labels = {'Ang', 'Front', 'PCingPrecun', 'Temp', 'Lat'};
+roi_labels = {'Ang', 'Front', 'Temp', 'Lat'};
 LI_method_labels = {'SourceMag', 'Count', 'Bootstrp'}; % LI Methods
 
 % Colors for each ROI, adjust or extend as needed
@@ -666,8 +670,9 @@ end
 fclose(fid); % Close the file
 
 
-%%
-close all
+%% Constant interval
+pause, close all,
+
 % Unique ROIs for iteration
 uniqueROIs = unique(summaryTable.ROI);
 
@@ -676,7 +681,7 @@ figure;
 sgtitle('Corr Max'); % Super title for the figure
 for i = 1:length(uniqueROIs)
     
-    subplot (3,2,i)
+    subplot (1,4,i)
     roi = uniqueROIs{i};
     
     % Extract data for the current ROI
@@ -690,7 +695,7 @@ for i = 1:length(uniqueROIs)
     for method = unique(roiData.LI_Method)'
         methodData = roiData(strcmp(roiData.LI_Method, method) & strcmp(roiData.Metric_Type, 'Correlation'), :);
         bar(categorical(methodData.LI_Method), methodData.Max_Value, 'BarWidth', 0.2);
-        text(k, methodData.Max_Value + 0.02, sprintf('%.1f', methodData.Max_Value), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
+        text(k, methodData.Max_Value + 0.02, sprintf('%.2f', methodData.Max_Value), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
         k=1+k;
     end
     title([roi]);
@@ -699,7 +704,7 @@ for i = 1:length(uniqueROIs)
     set(gca,'color','none');
     axis tight
     ylim([0, 1])
-    set(gcf, 'Position', [100, 100, 400, 800]); % Adjust figure size
+    set(gcf, 'Position', [100, 100, 800, 200]); % Adjust figure size
 end
 
 cfg = []; cfg.outdir = save_dir; filename = ' Corr max'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
@@ -709,7 +714,7 @@ figure;
 sgtitle('Conc Max'); % Super title for the figure
 for i = 1:length(uniqueROIs)
     
-    subplot (3,2,i)
+    subplot (1,4,i)
     % Plot Max Values for Concordance
     
     roi = uniqueROIs{i};
@@ -723,7 +728,7 @@ for i = 1:length(uniqueROIs)
     for method = unique(roiData.LI_Method)'
         methodData = roiData(strcmp(roiData.LI_Method, method) & strcmp(roiData.Metric_Type, 'Concordance'), :);
         bar(categorical(methodData.LI_Method), methodData.Max_Value, 'BarWidth', 0.2);
-        text(k, methodData.Max_Value + 0.02, sprintf('%.1f', methodData.Max_Value), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
+        text(k, methodData.Max_Value + 0.02, sprintf('%.2f', methodData.Max_Value), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
         k=1+k;
     end
     title([roi]);
@@ -731,81 +736,232 @@ for i = 1:length(uniqueROIs)
     hold off;
     set(gca,'color','none');
     ylim([0, 100])
-    set(gcf, 'Position', [100, 100, 400, 800]); % Adjust figure size
+    set(gcf, 'Position', [100, 100, 800, 200]); % Adjust figure size
     
 end
 
 cfg = []; cfg.outdir = save_dir; filename = ' Conc max'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
 
+disp('constant interval')
+disp(summaryTable)
 
-%%
-close all
+%% Constant interval
+% pause, close all,
+% 
+% % Loop through each ROI for plotting
+% figure;
+% sgtitle('Correlation Max Values'); % Super title for the figure
+% for i = 1:length(uniqueROIs)
+%     subplot(3, 2, i);
+%     roi = uniqueROIs{i};
+%     
+%     % Extract data for the current ROI for Correlation
+%     roiData = summaryTable(strcmp(summaryTable.ROI, roi) & strcmp(summaryTable.Metric_Type, 'Correlation'), :);
+%     
+%     % Assuming roiData.LI_Method is categorical with unique categories for each method
+%     % If not, consider converting or ensuring uniqueness
+%     methods = categories(categorical(roiData.LI_Method));
+%     maxValues = roiData.Max_Value;
+%     
+%     b = bar(1:length(methods), maxValues, 'BarWidth', 0.2); % Plot bars
+%     ytickangle(45); xtickangle(45);
+%     
+%     % Annotations
+%     for j = 1:length(maxValues)
+%         % Manually calculate X position (center of each bar) and Y position (height of each bar)
+%         x = b.XData(j);
+%         y = maxValues(j);
+%         text(x, y, sprintf('%.2f', y), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
+%     end
+%     
+%     set(gca, 'xtick', 1:length(methods), 'xticklabel', methods);
+%     title(roi);
+%     ylabel('Corr.');
+%     set(gca, 'color', 'none');
+%     ylim([0, 1]); % Adjust based on your data range
+% end
+% set(gcf, 'Position', [100, 100, 400, 700]); % Adjust figure size
+% 
+% cfg = []; cfg.outdir = save_dir; filename = ' Corr max rois'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+% 
+% figure;
+% sgtitle('Concordance Max Values'); % Super title for the figure
+% for i = 1:length(uniqueROIs)
+%     subplot(3, 2, i);
+%     roi = uniqueROIs{i};
+%     
+%     % Extract data for the current ROI for Concordance
+%     roiData = summaryTable(strcmp(summaryTable.ROI, roi) & strcmp(summaryTable.Metric_Type, 'Concordance'), :);
+%     
+%     % Ensure LI_Method is categorical and methods are unique for plotting
+%     methods = categories(categorical(roiData.LI_Method));
+%     maxValues = roiData.Max_Value; % Extract max values for Concordance
+%     
+%     b = bar(1:length(methods), maxValues, 'BarWidth', 0.4); % Plot bars for Concordance
+%     ytickangle(45); xtickangle(45);
+%     
+%     % Annotations
+%     for j = 1:length(maxValues)
+%         x = b.XData(j); % Use XData for horizontal position
+%         y = maxValues(j); % Max value for vertical position
+%         text(x, y + 2, sprintf('%.1f', y), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
+%     end
+%     
+%     set(gca, 'xtick', 1:length(methods), 'xticklabel', methods);
+%     title([roi]);
+%     ylabel('Concordance');
+%     set(gca, 'color', 'none');
+%     ylim([0, 100]); % Adjust based on your range of Concordance values
+% end
+% set(gcf, 'Position', [100, 100, 400, 700]); % Adjust figure size
+% 
+% cfg = []; cfg.outdir = save_dir; filename = ' Conc max rois'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+
+%% Dynamic interval analysis
+pause, close all,
+% clc
+
+% Initialize variables
+fMRI_LI = fmri_LIs_val;
+timePoints = mean(wi, 2);
+lowerBound = 0.45; upperBound = 1.1;
+% lowerBound = 0.3; upperBound = 1.1;
+MEG_thre = 0.2;
+fMRI_thre = 0.1;
+sub_IDs = sub_MF_pt;
+nsub_IDs = cellfun(@(x) [num2str(find(strcmp(sub_IDs, x))), ':', x], sub_IDs, 'UniformOutput', false);
+
+idcx = [1, 2, 6, 11];
+MEG_LI_ROIs = cell(1, length(idcx));
+
+for j = 1:length(idcx)
+    MEG_LI_ROIs{j} = squeeze(LI_pt_val_new.(LI_method_label{1})(idcx(j), :, :)); % Placeholder for methodIdx
+%     disp(net_sel_mutiple_label{idcx(j)})
+end
+
+fmri_LIs_ROIs = [fmri_LIs.val.language_Angular, fmri_LIs.val.language_Frontal, ...
+    fmri_LIs.val.language_PCingPrecun, fmri_LIs.val.language_Temporal, fmri_LIs.val.language_Lateral];
+
+summaryTableDynamic = table();
+
+for j = 1:length(idcx)
+    
+    fMRI_LI = fmri_LIs_ROIs(IB, j);
+    
+    for methodIdx = 1:length(LI_method_label)
+        
+        MEG_LI = squeeze(LI_pt_val_new.(LI_method_label{methodIdx})(idcx(j), :, :));
+        
+        % Compute group-level correlation
+        [groupCorrelation, optimalTimePoints] = computeGroupLevelMEGfMRICorrelation_timepoints(MEG_LI, fMRI_LI, timePoints, lowerBound, upperBound);
+        meanOptimalTime = mean(optimalTimePoints);
+%         disp(['Mean of optimal time points for ', LI_method_label{methodIdx}, ' in ', net_sel_mutiple_label{idcx(j)}, ': ', num2str(meanOptimalTime)]);
+        
+        % Calculate concordance
+        [concordance, discordantSubs] = calculateConcordanceForTimePoints(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalTimePoints);
+%         disp(['Concordance for ', LI_method_label{methodIdx}, ' in ', net_sel_mutiple_label{idcx(j)}, ': ', num2str(concordance)]);
+%         disp(['Correlation for ', LI_method_label{methodIdx}, ' in ', net_sel_mutiple_label{idcx(j)}, ': ', num2str(groupCorrelation)]);
+%         if ~isempty(discordantSubs)
+%             disp(['Discordant Subjects for ', LI_method_label{methodIdx}, ' in ', net_sel_mutiple_label{idcx(j)}, ':']);
+%             disp(nsub_IDs(discordantSubs));
+%         else
+%             disp(['No Discordant Subjects Found for ', LI_method_label{methodIdx}, ' in ', net_sel_mutiple_label{idcx(j)}]);
+%         end
+        
+        % Store results in the summary table
+        newRow = {LI_method_label{methodIdx}, net_sel_mutiple_label{idcx(j)}, groupCorrelation, concordance, meanOptimalTime};
+        summaryTableDynamic = [summaryTableDynamic; newRow];
+        
+        % Plot optimal time points on MEG LI
+        % plotOptimalTimePointsOnMEG2(MEG_LI, fMRI_LI, timePoints, optimalTimePoints, discordantSubs, MEG_thre, lowerBound, upperBound);
+    end
+end
+
+% Set column names for the summary table
+summaryTableDynamic.Properties.VariableNames = {'LI_Method', 'ROI', 'Correlation', 'Concordance', 'Optimal_Time'};
+
+% Save summary table
+writetable(summaryTableDynamic, 'LI_Metrics_Summary_Dynamic.csv');
+
+% Save dynamic summary table as text file
+fid = fopen('LI_Metrics_Summary_Dynamic.txt', 'wt');
+fprintf(fid, '%s\t%s\t%s\t%s\t%s\n', summaryTableDynamic.Properties.VariableNames{:});
+for i = 1:height(summaryTableDynamic)
+    fprintf(fid, '%s\t%s\t%f\t%f\t%f\n', summaryTableDynamic.LI_Method{i}, summaryTableDynamic.ROI{i}, ...
+        summaryTableDynamic.Correlation(i), summaryTableDynamic.Concordance(i), summaryTableDynamic.Optimal_Time(i));
+end
+fclose(fid);
+
+disp('Summary table for dynamic intervals saved.');
+
+disp(summaryTableDynamic)
+
+
+%% Dynamic interval plotting
+pause, close all,
+
+% Unique ROIs for iteration
+uniqueROIs = unique(summaryTableDynamic.ROI);
+
 % Loop through each ROI for plotting
 figure;
-sgtitle('Correlation Max Values'); % Super title for the figure
+sgtitle('Corr Max'); % Super title for the figure
 for i = 1:length(uniqueROIs)
-    subplot(3, 2, i);
+    
+    subplot(1, 4, i)
     roi = uniqueROIs{i};
-
-    % Extract data for the current ROI for Correlation
-    roiData = summaryTable(strcmp(summaryTable.ROI, roi) & strcmp(summaryTable.Metric_Type, 'Correlation'), :);
     
-    % Assuming roiData.LI_Method is categorical with unique categories for each method
-    % If not, consider converting or ensuring uniqueness
-    methods = categories(categorical(roiData.LI_Method));
-    maxValues = roiData.Max_Value;
+    % Extract data for the current ROI
+    roiData = summaryTableDynamic(strcmp(summaryTableDynamic.ROI, roi), :);
     
-    b = bar(1:length(methods), maxValues, 'BarWidth', 0.2); % Plot bars
-    ytickangle(45); xtickangle(45);
-    
-    % Annotations
-    for j = 1:length(maxValues)
-        % Manually calculate X position (center of each bar) and Y position (height of each bar)
-        x = b.XData(j);
-        y = maxValues(j);
-        text(x, y, sprintf('%.2f', y), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
+    % Plot Max Values for Correlation
+    hold on;
+    k = 1;
+    for method = unique(roiData.LI_Method)'
+        methodData = roiData(strcmp(roiData.LI_Method, method), :);
+        bar(categorical(methodData.LI_Method), methodData.Correlation, 'BarWidth', 0.2);
+        text(k, methodData.Correlation + 0.02, sprintf('%.2f', methodData.Correlation), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
+        k = k + 1;
     end
-    
-    set(gca, 'xtick', 1:length(methods), 'xticklabel', methods);
     title(roi);
     ylabel('Corr.');
+    hold off;
     set(gca, 'color', 'none');
-    ylim([0, 1]); % Adjust based on your data range
+    axis tight
+    ylim([0, 1])
+    set(gcf, 'Position', [100, 100, 800, 200]); % Adjust figure size
 end
-set(gcf, 'Position', [100, 100, 400, 700]); % Adjust figure size
 
-cfg = []; cfg.outdir = save_dir; filename = ' Corr max rois'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = 'Corr_dynamic'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+
 
 figure;
-sgtitle('Concordance Max Values'); % Super title for the figure
+sgtitle('Conc Max'); % Super title for the figure
 for i = 1:length(uniqueROIs)
-    subplot(3, 2, i);
+    
+    subplot(1, 4, i)
     roi = uniqueROIs{i};
-
-    % Extract data for the current ROI for Concordance
-    roiData = summaryTable(strcmp(summaryTable.ROI, roi) & strcmp(summaryTable.Metric_Type, 'Concordance'), :);
     
-    % Ensure LI_Method is categorical and methods are unique for plotting
-    methods = categories(categorical(roiData.LI_Method));
-    maxValues = roiData.Max_Value; % Extract max values for Concordance
+    % Extract data for the current ROI
+    roiData = summaryTableDynamic(strcmp(summaryTableDynamic.ROI, roi), :);
     
-    b = bar(1:length(methods), maxValues, 'BarWidth', 0.4); % Plot bars for Concordance
-    ytickangle(45); xtickangle(45);
-    
-    % Annotations
-    for j = 1:length(maxValues)
-        x = b.XData(j); % Use XData for horizontal position
-        y = maxValues(j); % Max value for vertical position
-       text(x, y + 2, sprintf('%.1f', y), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
+    % Plot Max Values for Concordance
+    hold on;
+    k = 1;
+    for method = unique(roiData.LI_Method)'
+        methodData = roiData(strcmp(roiData.LI_Method, method), :);
+        bar(categorical(methodData.LI_Method), methodData.Concordance, 'BarWidth', 0.2);
+        text(k, methodData.Concordance + 0.02, sprintf('%.2f', methodData.Concordance), 'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom', 'FontSize', 7);
+        k = k + 1;
     end
-    
-    set(gca, 'xtick', 1:length(methods), 'xticklabel', methods);
-    title([roi]);
+    title(roi);
     ylabel('Concordance');
+    hold off;
     set(gca, 'color', 'none');
-    ylim([0, 100]); % Adjust based on your range of Concordance values
+    ylim([0, 100])
+    set(gcf, 'Position', [100, 100, 800, 200]); % Adjust figure size
 end
-set(gcf, 'Position', [100, 100, 400, 700]); % Adjust figure size
 
-cfg = []; cfg.outdir = save_dir; filename = ' Conc max rois'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = 'Conc_dynamic'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
 
+disp('Dynamic interval analysis plotting completed.')

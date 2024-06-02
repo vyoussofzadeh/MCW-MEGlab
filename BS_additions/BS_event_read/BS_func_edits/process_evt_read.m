@@ -458,7 +458,7 @@ function [events, EventsTrackMode, StimChan] = Compute(sFile, ChannelMat, StimCh
     end
     % Display warning with removed events
     if (nTooShort > 0)
-        disp(sprintf('BST> %d events shorter than %d sample(s) removed.', nTooShort, MinDuration));
+        fprintf('BST> %d events shorter than %d sample(s) removed.\n', nTooShort, MinDuration);
     end
     % Close progress bar
     if ~isProgressBar

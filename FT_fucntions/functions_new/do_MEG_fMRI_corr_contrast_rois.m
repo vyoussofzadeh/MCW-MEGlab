@@ -45,7 +45,6 @@ for j=1:length(lang_id)
     crr_all(j,:) = crr;   
 end
 
-
 figure,
 plot(mean(wi'),crr_all,'LineWidth', 3), 
 % title([net_sel_mutiple_label{net_sel}]);

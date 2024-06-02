@@ -6,7 +6,7 @@ thre = cfg.thre;
 
 % LI = (LI - min(LI(:))) ./ (max(LI(:)) - min(LI(:)));
 
-LI = LI./max(LI(:));
+% LI = LI./max(LI(:));
 
 
 ternary_values = zeros(size(LI)); % Preallocate for speed
