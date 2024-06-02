@@ -7,7 +7,7 @@ end
 
 cfg = [];
 cfg.savefile = []; 
-cfg.saveflag = 1; 
+cfg.saveflag = 0; 
 cfg.lay  = cfg_main.layout;
 cfg.subj = num2str(cfg_main.subj); 
 cfg.toi = [datain.time{i}(1),min(tmax)];

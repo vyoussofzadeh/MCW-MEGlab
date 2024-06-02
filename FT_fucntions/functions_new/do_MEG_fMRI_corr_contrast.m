@@ -33,27 +33,17 @@ for i=1:length(wi)
 end
 
 % Determine the time point of max LI for each subject
-[~, max_time_pts] = max(squeeze(LI_pt_new(net_sel,:,:)), [], 2);
-% [~, max_time_pts_symb] = max(squeeze(LI_symb_pt_val_new(net_sel,:,:)), [], 2);
+[~, ~] = max(squeeze(LI_pt_new(net_sel,:,:)), [], 2);
 
-% LI_diff_pt_val = LI_anim_pt_val_new - LI_symb_pt_val_new;
-% [val, max_time_pts_diff] = max(squeeze(LI_diff_pt_val(net_sel,:,:)), [], 2);
-
-% difference_LI = squeeze(LI_anim_pt_val_new(net_sel,:,:)) - squeeze(LI_symb_pt_val_new(net_sel,:,:));
-% [~, max_time_pts_diff] = max(difference_LI, [], 2);
-
-
-% figure,
-% m1 = squeeze(mean(LI_anim_pt_val_new(net_sel,:,:),1));
-% m2 = squeeze(mean(LI_symb_pt_val_new(net_sel,:,:),1));
-% m3 = m1 - m2;
-% figure, plot(mean(wi'), m3(2,:)), title(ID(2))
+if cfg_main.ternary ~= 1
 
 figure, plot(nanmean(wi'),crr, 'LineWidth', 3), title([net_sel_mutiple_label{net_sel}]);
 set(gca,'color','none');
 ylabel('LIs corr (MEG vs. fMRI)')
 xlabel('Time (sec)')
 max(crr)
+
+end
 
 % - export figs
 if savefig == 1

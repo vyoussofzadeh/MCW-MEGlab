@@ -41,7 +41,7 @@ set(gca,'color','none');
 xlabel('Time (sec)')
 
 [mx, idx] = max(mean(conc,2));
-disp(mx)
+% disp(mx)
 
 mwi = mean(wi,2);
 mwi_interval = mwi(idx-bf:idx+bf);

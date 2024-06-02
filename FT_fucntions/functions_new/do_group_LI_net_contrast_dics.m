@@ -46,11 +46,12 @@ else
         cfg = [];
         cfg.sinput = S_data_sel.sFiles_in; %sFiles_anim_hc;
         cfg.BS_data_dir = BS_data_dir;
-        cfg.atlas = Data_hcp_atlas.atlas; cfg.thre = thre; cfg.fplot = 0;
+        cfg.atlas = Data_hcp_atlas.atlas; cfg.thre = thre; cfg.fplot = 0; % cfg.fplot = 1;
         cfg.index_L = idx_L{j};
         cfg.index_R = idx_R{j};
         cfg.Threshtype = Threshtype;
         cfg.doavg = doavg;
+        cfg.parcellaion = 0;
         
         for i=1:length(sFiles_in)
             pause(0.1);

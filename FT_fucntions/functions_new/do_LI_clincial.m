@@ -6,20 +6,27 @@ ImageGridAmp = abs(cfg_main.d_in);
 % ImageGridAmp = (cfg_main.d_in);
 sScout = cfg_main.atlas;
 
-% Get left and right subregions from scout data
-LHscout = [];
-for i = 1:length(cfg_main.idx_L)
-    LHscout = [LHscout, sScout.Scouts(cfg_main.idx_L(i)).Vertices];
+if cfg_main.parcellaion == 1
+    % Extract amplitude values for left and right subregions
+    LHvals = ImageGridAmp(cfg_main.idx_L,:);
+    RHvals = ImageGridAmp(cfg_main.idx_R,:);
+    
+else
+    % Get left and right subregions from scout data
+    LHscout = [];
+    for i = 1:length(cfg_main.idx_L)
+        LHscout = [LHscout, sScout.Scouts(cfg_main.idx_L(i)).Vertices];
+    end
+    
+    RHscout = [];
+    for i = 1:length(cfg_main.idx_R)
+        RHscout = [RHscout, sScout.Scouts(cfg_main.idx_R(i)).Vertices];
+    end
+    
+    % Extract amplitude values for left and right subregions
+    LHvals = ImageGridAmp(LHscout,:);
+    RHvals = ImageGridAmp(RHscout,:);
 end
-
-RHscout = [];
-for i = 1:length(cfg_main.idx_R)
-    RHscout = [RHscout, sScout.Scouts(cfg_main.idx_R(i)).Vertices];
-end
-
-% Extract amplitude values for left and right subregions
-LHvals = ImageGridAmp(LHscout(:),:);
-RHvals = ImageGridAmp(RHscout(:),:);
 
 % Calculate maximum values for left and right subregions
 LH_max = max(LHvals(:));

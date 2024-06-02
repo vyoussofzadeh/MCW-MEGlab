@@ -1,4 +1,3 @@
-
 function [LI, LI_max, pow_values] = do_lat_analysis_asymetric_magnitude(cfg_main)
 
 wi = cfg_main.wi;
@@ -37,6 +36,7 @@ for j=1:size(wi,1)
     cfg.Threshtype = cfg_main.Threshtype;
     cfg.thre = thre;
     cfg.globalmax = max(max(tmp.ImageGridAmp));
+    cfg.parcellaion = cfg_main.parcellaion;
     [LI_clin, pow] = do_LI_magnitude(cfg);
     LI(j) = LI_clin;
     

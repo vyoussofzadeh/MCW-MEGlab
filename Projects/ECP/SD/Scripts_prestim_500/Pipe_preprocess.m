@@ -12,7 +12,7 @@ restoredefaultpath
 cd('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD')
 addpath('./run')
 Run_setpath
-addpath('./data')
+addpath('./data_full')
 addpath('./run')
 
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/functions_new')
@@ -52,8 +52,8 @@ disp('choose DB from BS, then enter!');
 pause
 
 BS_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/';
-BS_data_dir = fullfile(BS_dir,'data');
-protocol = fullfile(BS_dir, 'data/protocol.mat');
+BS_data_dir = fullfile(BS_dir,'data_full');
+protocol = fullfile(BS_dir, 'data_full/protocol.mat');
 
 %%
 db_reload_database('current',1)
@@ -102,7 +102,7 @@ not_imported = [];
 for ii=1:L_data
     [~, name] = fileparts(datafile_fif{ii});
     idx = strfind(name,'_'); sub_sel = name(3:idx(1)-1); run_sel = name(idx(2)+1:idx(3)-1);
-    datadir_sub = fullfile(BS_dir,'data/',['EC',sub_sel]);
+    datadir_sub = fullfile(BS_dir,'data_full/',['EC',sub_sel]);
     cd(datadir_sub)
     idx = strfind(datadir_sub,'/');
     okrun = find(contains(no_anat,datadir_sub(idx(end)+1:end))==1);
@@ -111,6 +111,7 @@ for ii=1:L_data
             ~isfolder(['@rawEC',sub_sel, '_SD_', run_sel, '_raw'])...
             && ~isfolder(['@rawEC',sub_sel, '_SD_', run_sel, '_raw_ica_clean']) ...
             && ~isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_raw_ica_clean'])...
+            && ~isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_raw_tsss_ica_clean'])...
             && ~isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_raw_tsss_ica_clean_low_clean'])...
             && ~isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_raw_tsss']) ...
             && ~isfolder(['@rawec',sub_sel, '_SD_', run_sel, '_elecfix_raw_ica_clean'])
@@ -126,8 +127,8 @@ end
 
 %% Preprocess raw data
 d1 = rdir(fullfile(BS_data_dir,'/EC*/@raw*/*_raw_ica_clean.mat'));
-% d2 = rdir(fullfile(BS_data_dir,'/EC*/@raw*/*_raw_ica_clean.mat'));
-d = d1;%[d1;d2];
+d2 = rdir(fullfile(BS_data_dir,'/EC*/@raw*/*_raw_tsss_ica_clean.mat'));
+d = [d1;d2];
 
 for i=1:length(d)
     [pathstr, name] = fileparts(d(i).name);
@@ -154,14 +155,18 @@ for i=1:length(d)
         cd(pathstr2)
         disp(sFiles)
         disp(i)
-%                 pause,
+%         pause,
         bs_preprocess(sFiles)
     end
 end
 
 %% Import epoched data
-db_reload_database('current',1)
-d = rdir(fullfile(BS_data_dir,'/**/@raw*/*clean_low_clean.mat'));
+% db_reload_database('current',1)
+d1 = rdir(fullfile(BS_data_dir,'/**/@raw*/*clean_low_clean.mat'));
+% d2 = rdir(fullfile(BS_data_dir,'/**/@raw*/*tsss_ica_clean.mat'));
+
+% d = [d1; d2];
+d = d1;
 % d = rdir(fullfile(BS_data_dir,'/**/@raw*/*raw_ica_clean_low.mat'));
 
 % Exception: ec1134 (no eog?)
@@ -184,7 +189,7 @@ for i=1:length(d)
         %         import_raw_to_db(sFiles{1}); % GUI-based
         
         % Define epoching parameters
-        EpochTime = [-0.3, 2];  % Epoch from -100 ms to +300 ms around the event
+        EpochTime = [-0.5, 2];  % Epoch from -100 ms to +300 ms around the event
         subjectName = ['EC',sub_sel];
         
         % Create epochs
@@ -216,15 +221,6 @@ for i=1:length(d)
             'baseline', []);
     end
 end
-
-%% DC correction
-
-% Process: DC offset correction: [-300ms,-1ms]
-sFiles = bst_process('CallProcess', 'process_baseline_norm', sFiles, [], ...
-    'baseline',    [-0.3, -0.001], ...
-    'sensortypes', 'MEG, EEG', ...
-    'method',      'bl', ...  % DC offset correction:    x_std = x - &mu;
-    'overwrite',   0);
 
 %% Est. head model
 d1 = rdir(fullfile(BS_data_dir,'/*/ec*_ica_clean_low_clean/channel_vectorview306_acc1.mat'));
