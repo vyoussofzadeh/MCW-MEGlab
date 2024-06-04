@@ -205,46 +205,6 @@ TLE_left = find(TLESide_sel == 'Left');
 LI_pt_val_left = LI_pt.LI_sub(:,TLE_left,:);
 mLI_sub_left = squeeze(mean(LI_pt_val_left,2));
 
-%% Demographic Details
-patn_MEGfMRI_neuropsych = patn_neuropsych_tle(IB_tle,:);
-summaryStats = @(x) table(mean(x,'omitnan'), median(x,'omitnan'), std(x,'omitnan'));
-stats = varfun(summaryStats, patn_MEGfMRI_neuropsych, 'InputVariables', ...
-    {'Age', 'EHQ', 'EducationYRS', 'WASI_BlckR_ZScore', 'WASI_VocR_ZScore'}, ...
-    'OutputFormat', 'table');
-disp(stats);
-
-variablesToCorrelate = {'Age', 'EHQ', 'EducationYRS', 'WASI_BlckR_ZScore', 'WASI_VocR_ZScore'};
-correlationMatrix = corr(patn_MEGfMRI_neuropsych{:, variablesToCorrelate}, 'Rows', 'complete');
-disp(array2table(correlationMatrix, 'VariableNames', variablesToCorrelate, 'RowNames', variablesToCorrelate));
-
-lm = fitlm(patn_MEGfMRI_neuropsych, 'Age~EHQ');
-disp(lm);
-
-% Gender summary
-genderSummary = groupsummary(patn_MEGfMRI_neuropsych, 'Sex', 'IncludeMissingGroups', true);
-disp(genderSummary);
-
-% TLE side summary
-TLESummary = groupsummary(patn_MEGfMRI_neuropsych, 'TLESide', 'IncludeMissingGroups', true);
-disp(TLESummary);
-
-% Age statistics
-meanAge = mean(patn_MEGfMRI_neuropsych.Age, 'omitnan');
-stdAge = std(patn_MEGfMRI_neuropsych.Age, 'omitnan');
-disp(['Mean Age: ', num2str(meanAge)]);
-disp(['Standard Deviation of Age: ', num2str(stdAge)]);
-
-minAge = min(patn_MEGfMRI_neuropsych.Age);
-maxAge = max(patn_MEGfMRI_neuropsych.Age);
-ageRange = maxAge - minAge;
-disp(['Minimum Age: ', num2str(minAge)]);
-disp(['Maximum Age: ', num2str(maxAge)]);
-disp(['Age Range: ', num2str(ageRange)]);
-
-% Handedness summary
-handednessSummary = groupsummary(patn_MEGfMRI_neuropsych, 'DomntHand', 'IncludeMissingGroups', true);
-disp(handednessSummary);
-
 %% Lateralization Index Analysis
 LI_class_label = {'HC', 'PT', 'HC-PT', 'PT-Left', 'HC-PT-Left'};
 for j = 1:2
@@ -280,6 +240,9 @@ fMRI_LI = fmri_LIs.val.language_Lateral(IB_megfmri);
 difference = setdiff(LI_pt_ID, sub_MF_pt');
 disp('missing from fMRI')
 disp(difference');
+
+%- Demographic Details
+patn_MEGfMRI_neuropsych = ecpfunc_sum_neuropsych(sub_MF_pt);
 
 %% MEG LI vs fMRI LI (language_Lateral)
 cfg = [];

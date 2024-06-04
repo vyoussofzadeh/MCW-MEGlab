@@ -17,6 +17,10 @@ Run_setpath
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/other/')
 
 %%
+MEG_thre = 10; % MEG threshold
+fMRI_thre = 10; % fMRI threshold
+
+%%
 LI_analysis_label = {'DICS_indirect','DICS_directcontrast','LCMV_anim_vs_Symb','-','DICS_anim', 'DICS_contrast_prestim', 'dSPM_contrast'};
 
 for i = 1:length(LI_analysis_label)
@@ -48,8 +52,6 @@ for i=1:length(LI_method_label)
 end
 
 %% Run Brainstorm
-% Run_BS
-% %% BS
 bs_path = '/opt/matlab_toolboxes/Brainstorm/Brainstorm3_2022/brainstorm3';
 
 BS_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/';
@@ -207,69 +209,71 @@ end
 
 %%
 cfg = [];
-cfg.thre = .2; cfg.LI = fmri_LIs_val;
-fmri_LIs_trn = do_ternary_classification(cfg);
+cfg.thre = fMRI_thre; cfg.LI = fmri_LIs_val;
+fmri_LIs_trn = do_ternary_classification2(cfg);
 size(fmri_LIs_trn);
 
-
-%%
+%% Plot MEG LI for selected networks
 close all;
-
 network_sel = [1, 2, 6, 11]; % Define the networks to include in the plot
 colors = distinguishable_colors(length(network_sel)); % Generate distinct colors for each selected network
 
 figure; % Open a new figure window
 hold on; % Keep the plot active to add more elements
-
-legendEntries = cell(length(network_sel), 1); % Initialize legend entries once outside the loop
-plotHandles = gobjects(length(network_sel), 1); % Initialize array to store plot handles
+plotHandles = gobjects(length(network_sel), 1); % Initialize array for plot handles
 
 % Loop through the selected networks
 for net_idx = 1:length(network_sel)
     current_network = network_sel(net_idx); % Current network index
-    
+
     % Prepare data to plot
     LI_values = []; % Initialize LI_values array
     for i = 1:length(LI_method_label)
         LI_values(i, :) = squeeze(mean(LI_pt_val_new.(LI_method_label{i})(current_network, :, :), 2)); % Extract and average LI values for the current method and network
     end
 
-    mwi = mean(wi');
+    % Calculate mean across methods
+    meanLI = nanmean(LI_values, 1);
     % Plot the averaged LI values for the current network
-    plotHandles(net_idx) = plot(mwi, nanmean(LI_values, 1), 'LineWidth', 2, 'Color', colors(net_idx,:));
+    plotHandles(net_idx) = plot(mean(wi'), meanLI, 'LineWidth', 2, 'Color', colors(net_idx,:));
     
-    % Set legend entry for the current network
+    % Find the maximum LI value and its corresponding time
+    [maxLI, idx] = max(meanLI);
+    maxTime = mean(wi(idx,:));  % Average time at the maximum LI point
+    
+    % Annotate the maximum value on the plot
+    %     text(maxTime, maxLI, sprintf('Mx:%.2f %.2fs', maxLI, maxTime), ...
+    %         'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
+    
+    text(maxTime, maxLI, sprintf('%.2fs', maxTime), ...
+        'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
+    
+    % Draw a vertical line at the max time
+    line([maxTime maxTime], ylim, 'Color', colors(net_idx,:), 'LineWidth', 1.5, 'LineStyle', '--');
+    
     legendEntries{net_idx} = net_sel_mutiple_label{network_sel(net_idx)}; % Store legend entry
-
-    % Find the peak LI value and its time
-    [~, peak_idx] = max(nanmean(LI_values, 1)); % Index of the peak LI value
-    peak_time = mwi(peak_idx); % Time corresponding to the peak LI value
-    peak_value = nanmean(LI_values(:, peak_idx)); % Peak LI value
-    
-    % Overlay a vertical dashed gray line at the peak time
-    line([peak_time peak_time], ylim, 'Color', [0.5,0.5,0.5], 'LineWidth', 2, 'LineStyle', '--');
-    
-    % Overlay the peak value as text
-    text(peak_time, peak_value, sprintf('%.2f', peak_time), 'Color', 'k', 'FontSize', 12, 'HorizontalAlignment', 'left', 'VerticalAlignment', 'bottom');
 end
 
 xlabel('Time (s)');
 ylabel('Laterality Index');
 title({'MEG Laterality Index'; 'Over Time for Selected Networks'});
 set(gca, 'color', 'none');
-legend(plotHandles, legendEntries, 'Location', 'southoutside', 'NumColumns', 4) % Use plot handles for legend
-box off
-set(gcf, 'Position', [100, 400, 500, 400]);
+
+% Use the plot handles for the legend to ensure continuity
+legend(plotHandles,legendEntries, 'Location', 'southoutside', 'NumColumns', 4, 'Orientation', 'horizontal');
+
+box off;
+set(gcf, 'Position', [800, 400, 500, 400]);
 hold off; % Release the plot hold
 
 % Set up configuration for exporting the figure
-cfg = []; 
-cfg.outdir = save_dir; % Make sure save_dir is defined and points to a valid directory path
+cfg = [];
+cfg.outdir = save_dir; % Ensure save_dir is defined and points to a valid directory path
 cfg.filename = 'MEG_Laterality_Index_Selected_Networks_Over_Time'; % Filename without the extension
-cfg.type = 'fig'; % Specify the type as 'fig' if thats supported, otherwise use appropriate type like 'png' or 'pdf'
+cfg.type = 'fig'; % Specify the type as 'fig'
 do_export_fig(cfg); % Call the export function
 
-cd(save_dir)
+cd(save_dir); % Change back to the save directory
 
 %% mean MEG li vs. fMRI
 close all,
@@ -280,7 +284,7 @@ for i=1:length(LI_method_label)
     
     cfg = []; cfg.wi = wi;
     cfg.ID = sub_MF_pt;
-    cfg.thre = 0.10;
+    cfg.thre = MEG_thre;
     cfg.bf = 1;
     cfg.ternary = 0;
     cfg.savefig = 0;
@@ -303,7 +307,7 @@ for i=1:length(LI_method_label)
     % clc
     cfg = []; cfg.wi = wi;
     cfg.ID = sub_MF_pt;
-    cfg.thre = 0.10;
+    cfg.thre = MEG_thre;
     cfg.ternary = 1;
     cfg.savefig = 0;
     cfg.outdir = save_dir;
@@ -350,17 +354,17 @@ for i=1:length(LI_method_label)
     cfg.title = LI_method_label{i};
     
     % Correlation Analysis
-    cfg.thre = 10;
+    cfg.thre = MEG_thre;
     cfg.ternary = 0;
-    [~, ~, correlationMetrics] = do_MEG_fMRI_corr_contrast_rois(cfg);
+    [~, ~, correlationMetrics] = do_MEG_fMRI_corr_contrast_rois2(cfg);
     
     % Concordance Analysis
-    cfg.thre = 10;
+    cfg.thre = MEG_thre;
     cfg.ternary = 1;
     cfg.buffervalue = 2;
     cfg.fmri_LIs_val = fmri_LIs_trn;
-    [~, ~, concordanceMetrics] = do_MEG_fMRI_concordance_contrast_rois(cfg);
-%     [~, concordanceMetrics] = do_MEG_fMRI_concordance_contrast_rois_interval(cfg);
+%     [~, ~, concordanceMetrics] = do_MEG_fMRI_concordance_contrast_rois(cfg);
+    [~, concordanceMetrics] = do_MEG_fMRI_concordance_contrast_rois_interval(cfg);
     
     % Compile results
     metrics = struct('Correlation', correlationMetrics, 'Concordance', concordanceMetrics);
@@ -426,6 +430,7 @@ contrastFactorCounting = 0.2;   % Lower factor for slightly brighter colors in C
 colorsMagnitude = min(baseColors + contrastFactorMagnitude, 1);
 colorsCounting = min(baseColors + contrastFactorCounting, 1);
 
+
 % Loop through each metric type (Correlation and Concordance)
 for metricIdx = 1:length(metricNames)
     figure;
@@ -437,7 +442,7 @@ for metricIdx = 1:length(metricNames)
         maxValue = -inf;
         maxTime = 0;
         maxMethodIndex = 0;
-      
+
         for i = 1:height(resultsTable)
             if isfield(resultsTable.Metrics(i), metricNames{metricIdx})
                 currentMetrics = resultsTable.Metrics(i).(metricNames{metricIdx});
@@ -488,11 +493,8 @@ for metricIdx = 1:length(metricNames)
             ylabel(['LIs ', metricNames{metricIdx}, ' (MEG vs. fMRI)']);
             xlabel('Time (sec)');
         end
-        lgd = legend(resultsTable.Method, 'Location', 'southoutside', 'NumColumns', 3, 'Orientation', 'horizontal');
-        lgdPos = lgd.Position; % Get current position
-%         lgdPos(2) = lgdPos(2) - 0.01; % Move legend down
-%         lgd.Position = lgdPos; % Set new position
-        
+        legend(resultsTable.Method, 'Location', 'southoutside', 'NumColumns', 2, 'Orientation', 'horizontal');
+               
         title(roi_labels{roiIdx});
         box off;
         %         axis square
@@ -505,7 +507,6 @@ for metricIdx = 1:length(metricNames)
     
     cfg = []; cfg.outdir = save_dir; filename = [metricNames{metricIdx}, ' rois']; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg);
 end
-
 disp(['saved as, ', filename])
 
 %%
@@ -754,7 +755,7 @@ disp(summaryTable)
 
 %% Dynamic interval analysis
 % pause, 
-% close all,
+close all,
 
 % Initialize variables
 fMRI_LI = fmri_LIs_val;
@@ -765,12 +766,9 @@ lowerBound = 0.4; upperBound = 0.9;
 lowerBound = 0.2; upperBound = 1.1;
 lowerBound = 0.35; upperBound = 1.0;
 lowerBound = 0.4; upperBound = 1.0;
+lowerBound = 0.3; upperBound = 1.2;
 
 % MEG_thre = 0.1;
-% fMRI_thre = 0.1;
-
-MEG_thre = 10;
-fMRI_thre = 10;
 
 sub_IDs = sub_MF_pt;
 nsub_IDs = cellfun(@(x) [num2str(find(strcmp(sub_IDs, x))), ':', x], sub_IDs, 'UniformOutput', false);
@@ -799,18 +797,29 @@ for j = 1:length(idcx)
         
         MEG_LI = squeeze(LI_pt_val_new.(LI_method_label{methodIdx})(idcx(j), :, :));
         
-        
         % Compute group-level correlation
-        [groupCorrelation, optimalTimePoints] = computeGroupLevelMEGfMRICorrelation_timepoints(MEG_LI, fMRI_LI, timePoints, lowerBound, upperBound);
-        meanOptimalTime = mean(optimalTimePoints);
+        [groupCorrelation, optimalInterval, optimalInterval_all]= ...
+            computeGroupLevelMEGfMRICorrelation_timepoints_interval(MEG_LI, fMRI_LI, wi, lowerBound, upperBound);
+
+%         [groupCorrelation, optimalInterval, ~]= ...
+%             computeGroupLevelMEGfMRICorrelation_timepoints_interval(MEG_LI, fMRI_LI, wi, optimalInterval_all(1), optimalInterval_all(2));
+
         
-        % Calculate concordance
-        [concordance, discordantSubs] = calculateConcordanceForTimePoints(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalTimePoints);
+%         [groupCorrelation, optimalInterval, ~]= computeGroupLevelMEGfMRICorrelation_timepoints_interval(MEG_LI, fMRI_LI, wi, optimalInterval_all(1), optimalInterval_all(2));
+%         [groupCorrelation, optimalTimePoints] = computeGroupLevelMEGfMRICorrelation_timepoints(MEG_LI, fMRI_LI, timePoints, lowerBound, upperBound);
+
+        meanOptimalTime = mean(optimalInterval);
+        
+        [concordance, discordantSubs] = ...
+            calculateConcordanceForTimePoints_interval(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, wi, optimalInterval);
+%         [concordance, discordantSubs] = calculateConcordanceForTimePoints(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalTimePoints);
         
         % Store results in the summary table
         newRow = {LI_method_labels{methodIdx}, net_sel_mutiple_label{idcx(j)}, groupCorrelation, concordance, meanOptimalTime};
         summaryTableDynamic = [summaryTableDynamic; newRow];
         
+        % Plot optimal time points on MEG LI
+        % plotOptimalTimePointsOnMEG2(MEG_LI, fMRI_LI, timePoints, optimalTimePoints, discordantSubs, MEG_thre, lowerBound, upperBound);
     end
 end
 
@@ -904,14 +913,13 @@ cfg = []; cfg.outdir = save_dir; filename = 'Conc_dynamic'; cfg.filename = filen
 disp('Dynamic interval analysis plotting completed.');
 
 
-%% Plot difference between Constant and Dynamic Intervals
+% Plot difference between Constant and Dynamic Intervals
 % pause, 
 % close all,
 
 % Extract unique ROIs and methods
 uniqueROIs = unique(summaryTable.ROI);
 uniqueMethods = unique(summaryTable.LI_Method);
-
 
 % uniqueROIs_d = unique(summaryTableDynamic.ROI);
 % uniqueMethods_d = unique(summaryTableDynamic.LI_Method);
@@ -998,7 +1006,6 @@ end
 cfg = []; cfg.outdir = save_dir; filename = 'Conc_diff'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
 
 disp('Difference plotting completed.')
-
 
 %% Plot Comparison of Constant vs. Dynamic LIs Approach
 % close all,
@@ -1088,7 +1095,7 @@ for i = 1:length(uniqueROIs)
     concordanceValues = roiData.Concordance;
     
     % Create bar plot
-    barData = reshape(concordanceValues, [], 2);
+    barData = reshape(concordanceValues, [], 3)';
     b = bar(categories(1:2:end), barData, 'BarWidth', 0.2);
     b(1).FaceColor = 'b';
     b(2).FaceColor = 'r';
