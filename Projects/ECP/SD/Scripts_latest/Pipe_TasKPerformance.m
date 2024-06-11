@@ -133,8 +133,8 @@ disp(['The total mean of mean_Falsefont_ACC is: ', num2str(totalmean)]);
 totalstd = std(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
 disp(['The total std of mean_Falsefont_ACC is: ', num2str(totalstd)]);
 totalmean = mean(meanAccBySubject_Animal.mean_Animal_ACC);
-disp(['The total mean of mean_Falsefont_ACC is: ', num2str(totalmean)]);
-totalstd = std(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
+disp(['The total mean of mean_Anim_ACC is: ', num2str(totalmean)]);
+totalstd = std(meanAccBySubject_Animal.mean_Animal_ACC);
 disp(['The total std of mean_Falsefont_ACC is: ', num2str(totalstd)]);
 
 %% Task Performance (2)

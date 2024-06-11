@@ -1,4 +1,4 @@
-function [groupCorrelation, optimalInterval, optimalInterval_all] = computeGroupLevelMEGfMRICorrelation_timepoints_interval(MEG_LI, fMRI_LI, timePoints, lowerBound, upperBound)
+function [groupCorrelation, optimalInterval, optimalInterval_all, pval] = computeGroupLevelMEGfMRICorrelation_timepoints_interval(MEG_LI, fMRI_LI, timePoints, lowerBound, upperBound)
     % Find individual optimal time points
 %     optimalTimePoints = findIndividualOptimalTimePoints(MEG_LI, fMRI_LI, timePoints, NaN, lowerBound, upperBound); % NaN means no plot
     [optimalIndices, optimalMEG_LI] = findIndividualOptimalTimePoints_interval(MEG_LI, fMRI_LI, timePoints, NaN, lowerBound, upperBound); % NaN means no plot
@@ -17,7 +17,7 @@ function [groupCorrelation, optimalInterval, optimalInterval_all] = computeGroup
 
     % Perform group-level correlation analysis
 %     validIndices = ~isnan(optimalMEG_LI) & ~isnan(fMRI_LI); % Exclude NaN values
-    groupCorrelation = corr(optimalMEG_LI', fMRI_LI, 'Rows', 'complete');
+    [groupCorrelation, pval] = corr(optimalMEG_LI', fMRI_LI, 'Rows', 'complete');
     
     % Display or return the correlation result
     disp(['Group-level correlation between MEG LI at optimal time points and fMRI LI: ', num2str(groupCorrelation)]);
