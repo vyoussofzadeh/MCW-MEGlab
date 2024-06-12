@@ -22,7 +22,7 @@ function varargout = process_export_screenshot( varargin )
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors: Francois Tadel, 2012-2022
+% Authors: Francois Tadel, 2012-2022; Vahab Youssof Zadeh, 2024
 
 eval(macro_method);
 end
