@@ -23,8 +23,7 @@ function create_flowchart()
         1, -5; % Compute LI
         1, -6; % Atlas and ROIs
         1, -7; % Comparisons and Interpretations
-        1, -8; % End
-    ];
+];
     
     % Scale positions
     positions(:, 1) = positions(:, 1) * horizontalSpacing;
@@ -32,10 +31,10 @@ function create_flowchart()
     
     % Node labels
     labels = {
-        'Start: Dataset - MEG and fMRI', 'Task/Conditions', 'MEG: Semantic Decision', 'fMRI: Tone', ...
+        'Dataset - MEG and fMRI', 'Task/Conditions', 'MEG: Semantic Decision', 'fMRI: Tone', ...
         'Subjects', 'Patients with Temporal Lobe Epilepsy', 'Healthy Control', 'Preprocessing', ...
         'Source Analysis', 'Contrasts', 'Compute LI', 'Atlas and ROIs', ...
-        'Comparisons and Interpretations', 'End'
+        'Comparisons and Interpretations', ...
     };
     
     % Draw nodes

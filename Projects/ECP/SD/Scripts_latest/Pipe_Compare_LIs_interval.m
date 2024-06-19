@@ -211,7 +211,7 @@ fmri_LIs_trn = do_ternary_classification2(cfg);
 size(fmri_LIs_trn);
 
 %% Plot MEG LI for selected networks
-close all;
+% close all;
 network_sel = [1, 2, 6, 11]; % Define the networks to include in the plot
 colors = distinguishable_colors(length(network_sel)); % Generate distinct colors for each selected network
 
@@ -267,13 +267,15 @@ hold off; % Release the plot hold
 cfg = [];
 cfg.outdir = save_dir; % Ensure save_dir is defined and points to a valid directory path
 cfg.filename = 'MEG_Laterality_Index_Selected_Networks_Over_Time'; % Filename without the extension
-cfg.type = 'fig'; % Specify the type as 'fig'
+cfg.type = 'svg'; % Specify the type as 'fig'
 do_export_fig(cfg); % Call the export function
 
 cd(save_dir); % Change back to the save directory
 
+close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+
 %% mean MEG li vs. fMRI
-close all,
+% close all,
 
 for i=1:length(LI_method_label)
     
@@ -296,8 +298,9 @@ for i=1:length(LI_method_label)
     do_MEG_fMRI_corr_contrast_rois(cfg);
     
     % - export figs
-    cfg = []; cfg.outdir = save_dir; filename = ['corr ROIs_', LI_method_label{i}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
-    
+    cfg = []; cfg.outdir = save_dir; filename = ['corr ROIs_', LI_method_label{i}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+    close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+
     disp(['Concordance analysis: ',LI_method_label{i}])
     
     disp('---')
@@ -320,14 +323,13 @@ for i=1:length(LI_method_label)
     do_MEG_fMRI_concordance_contrast_rois_interval(cfg);
     
     % - export figs
-    cfg = []; cfg.outdir = save_dir; filename = ['concor ROIs_', LI_method_label{i}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
-    
+    cfg = []; cfg.outdir = save_dir; filename = ['concor ROIs_', LI_method_label{i}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+    close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 end
 cd(save_dir)
 
 %%
 % pause, 
-close all,
 
 % Initialize a table to store results
 resultsTable = table([], [], 'VariableNames', {'Method', 'Metrics'});
@@ -367,9 +369,11 @@ for i=1:length(LI_method_label)
     metrics = struct('Correlation', correlationMetrics, 'Concordance', concordanceMetrics);
     resultsTable = [resultsTable; {LI_method_label{i}, metrics}];
 end
+close all,
+
 
 %%
-close all,
+% close all,
 
 % Example metric name - adjust according to your actual data structure
 metricName = {'Correlation','Concordance'}; % Assuming this is the name of the correlation/concordance field
@@ -405,9 +409,11 @@ end
 % Optionally, set the title based on `net_sel_mutiple_label` and `net_sel_id`
 % title([net_sel_mutiple_label{net_sel}]);
 
+close all
+
 %% Constant 
 % pause, 
-close all,
+% close all,
 
 % Assuming metricName contains the names of the fields we want to plot
 metricNames = {'Correlation', 'Concordance'};
@@ -502,13 +508,15 @@ for metricIdx = 1:length(metricNames)
     sgtitle([metricNames{metricIdx}, ' Analysis']);
     set(gcf, 'Position', [1000, 400, 350, 800]);
     
-    cfg = []; cfg.outdir = save_dir; filename = [metricNames{metricIdx}, ' rois']; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg);
+    cfg = []; cfg.outdir = save_dir; filename = [metricNames{metricIdx}, ' rois']; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg);
+    close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+
 end
 disp(['saved as, ', filename])
 
 %%
 % pause, 
-close all,
+% close all,
 
 % Assuming metricName contains the names of the fields we want to plot
 metricNames = {'Correlation', 'Concordance'};
@@ -569,9 +577,11 @@ for roiIdx = 1:length(roi_labels)
     end
 end
 
+close all
+
 %%
 % pause, 
-close all,
+% close all,
 
 % Assuming metricName contains the names of the fields we want to plot
 metricNames = {'Correlation', 'Concordance'};
@@ -629,7 +639,9 @@ for methodIdx = 1:length(LI_method_labels)
         
         hold off; % Release hold for next metric type subplot
     end
-    cfg = []; cfg.outdir = save_dir; filename = [LI_method_labels{methodIdx}, ' Analysis across ROIs']; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+    cfg = []; cfg.outdir = save_dir; filename = [LI_method_labels{methodIdx}, ' Analysis across ROIs']; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+    close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+
 end
 
 %%
@@ -677,7 +689,7 @@ disp(summaryTable)
 
 %% Constant interval
 % pause, 
-close all,
+% close all,
 
 % Unique ROIs for iteration
 uniqueROIs = unique(summaryTable.ROI);
@@ -687,7 +699,7 @@ figure;
 sgtitle('Corr Max'); % Super title for the figure
 for i = 1:length(uniqueROIs)
     
-    subplot (1,4,i)
+    subplot (4,1,i)
     roi = uniqueROIs{i};
     
     % Extract data for the current ROI
@@ -710,17 +722,18 @@ for i = 1:length(uniqueROIs)
     set(gca,'color','none');
     axis tight
     ylim([0, 1])
-    set(gcf, 'Position', [100, 100, 800, 200]); % Adjust figure size
+    set(gcf, 'Position', [100, 100, 200, 800]); % Adjust figure size
 end
 
-cfg = []; cfg.outdir = save_dir; filename = ' Corr max'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = ' Corr max'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
 
 figure;
 sgtitle('Conc Max'); % Super title for the figure
 for i = 1:length(uniqueROIs)
     
-    subplot (1,4,i)
+    subplot (4,1, i)
     % Plot Max Values for Concordance
     
     roi = uniqueROIs{i};
@@ -742,11 +755,11 @@ for i = 1:length(uniqueROIs)
     hold off;
     set(gca,'color','none');
     ylim([0, 100])
-    set(gcf, 'Position', [100, 100, 800, 200]); % Adjust figure size
-    
+    set(gcf, 'Position', [100, 100, 200, 800]); % Adjust figure size    
 end
 
-cfg = []; cfg.outdir = save_dir; filename = ' Conc max'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = ' Conc max'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
 disp(summaryTable)
 
@@ -852,7 +865,7 @@ figure;
 sgtitle('Corr Max'); % Super title for the figure
 for i = 1:length(uniqueROIs)
     
-    subplot(1, 4, i)
+    subplot(4, 1, i)
     roi = uniqueROIs{i};
     
     % Extract data for the current ROI
@@ -873,17 +886,18 @@ for i = 1:length(uniqueROIs)
     set(gca, 'color', 'none');
     axis tight
     ylim([0, 1])
-    set(gcf, 'Position', [100, 100, 800, 200]); % Adjust figure size
+    set(gcf, 'Position', [1000, 400, 200, 700]); % Adjust figure size
 end
 
-cfg = []; cfg.outdir = save_dir; filename = 'Corr_dynamic'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = 'Corr_dynamic'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
 
 figure;
 sgtitle('Conc Max'); % Super title for the figure
 for i = 1:length(uniqueROIs)
     
-    subplot(1, 4, i)
+    subplot(4, 1, i)
     roi = uniqueROIs{i};
     
     % Extract data for the current ROI
@@ -903,10 +917,11 @@ for i = 1:length(uniqueROIs)
     hold off;
     set(gca, 'color', 'none');
     ylim([0, 100])
-    set(gcf, 'Position', [100, 100, 800, 200]); % Adjust figure size
+    set(gcf, 'Position', [1000, 400, 200, 700]); % Adjust figure size
 end
 
-cfg = []; cfg.outdir = save_dir; filename = 'Conc_dynamic'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = 'Conc_dynamic'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
 disp('Dynamic interval analysis plotting completed.');
 
@@ -954,9 +969,9 @@ differenceTable.Properties.VariableNames = {'LI_Method', 'ROI', 'Correlation_Dif
 
 % Plot differences
 figure;
-sgtitle('Correlation Differences (Dynamic - Constant)');
+sgtitle('Corr Diff, Opt-fixed)');
 for i = 1:length(uniqueROIs)
-    subplot(1, 4, i)
+    subplot(4, 1, i)
     roi = uniqueROIs{i};
     roiData = differenceTable(strcmp(differenceTable.ROI, roi), :);
     hold on;
@@ -973,15 +988,17 @@ for i = 1:length(uniqueROIs)
     set(gca, 'color', 'none');
     axis tight
     ylim([-0.5, 0.5])
-    set(gcf, 'Position', [1000, 400, 700, 200]); % Adjust figure size
+    set(gcf, 'Position', [1000, 400, 200, 700]); % Adjust figure size
 end
 
-cfg = []; cfg.outdir = save_dir; filename = 'Corr_diff'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = 'Corr_diff'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+
 
 figure;
-sgtitle('Concordance Differences (Dynamic - Constant)');
+sgtitle('Conc Diff, Opt-fixed)');
 for i = 1:length(uniqueROIs)
-    subplot(1, 4, i)
+    subplot(4, 1, i)
     roi = uniqueROIs{i};
     roiData = differenceTable(strcmp(differenceTable.ROI, roi), :);
     hold on;
@@ -998,10 +1015,12 @@ for i = 1:length(uniqueROIs)
     set(gca, 'color', 'none');
     axis tight
     ylim([-30, 30])
-    set(gcf, 'Position', [1000, 400, 700, 200]); % Adjust figure size
+    set(gcf, 'Position', [1000, 400, 200, 700]); % Adjust figure size
 end
 
-cfg = []; cfg.outdir = save_dir; filename = 'Conc_diff'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = 'Conc_diff'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+
 
 disp('Difference plotting completed.')
 
@@ -1076,7 +1095,8 @@ lgd.Position = lgdPos; % Set new position
 % legend(intervalTypes, 'Location', 'southoutside', 'Orientation', 'horizontal');
 set(gcf, 'Position', [1000, 400, 700, 200]); % Adjust figure size
 
-cfg = []; cfg.outdir = save_dir; filename = 'Correlation_Comparison'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = 'Correlation_Comparison'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
 figure;
 sgtitle('Concordance: Constant vs. Dynamic Intervals');
@@ -1112,7 +1132,8 @@ lgdPos(2) = lgdPos(2) - 0.10; % Move legend down
 lgd.Position = lgdPos; % Set new position
 set(gcf, 'Position', [100, 400, 700, 200]); % Adjust figure size
 
-cfg = []; cfg.outdir = save_dir; filename = 'Concordance_Comparison'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = 'Concordance_Comparison'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
 disp('Comparison of constant vs. dynamic intervals completed.')
 
@@ -1152,7 +1173,7 @@ comparisonTable.Properties.VariableNames = {'LI_Method', 'ROI', 'Interval_Type',
 
 % Plot comparison
 figure;
-sgtitle('Correlation: Constant vs. Dynamic Intervals');
+sgtitle('Corr: Fixed-vs-Opt');
 for i = 3:3%length(uniqueROIs)
     subplot(1, 2, 1)
     roi = uniqueROIs{i};
@@ -1183,7 +1204,7 @@ end
 
 set(gcf, 'Position', [100, 400, 300, 200]); % Adjust figure size
 
-sgtitle('Concordance: Constant vs. Dynamic Intervals');
+sgtitle('Conc: Fixed-vs-Opt');
 for i = 3:3%length(uniqueROIs)
     subplot(1, 2, 2)
     roi = uniqueROIs{i};
@@ -1214,7 +1235,8 @@ end
 lgd = legend(intervalTypes, 'Location', 'south', 'Orientation', 'horizontal', 'NumColumns', length(intervalTypes));
 set(gcf, 'Position', [400, 400, 300, 250]); % Adjust figure size
 
-cfg = []; cfg.outdir = save_dir; filename = 'Concordance_Comparison_lat'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = 'Conc_Compr_lat'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
 disp('Comparison of constant vs. dynamic intervals completed.');
 
@@ -1297,8 +1319,10 @@ cfg = [];
 cfg.outdir = save_dir; 
 filename = 'Concordance_Comparison_lat'; 
 cfg.filename = filename; 
-cfg.type = 'fig'; 
+cfg.type = 'svg'; 
 do_export_fig(cfg);
+
+close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
 disp('Comparison of constant vs. dynamic intervals completed.');
 
@@ -1397,6 +1421,7 @@ end
 lgd = legend(intervalTypes, 'Location', 'south', 'Orientation', 'horizontal', 'NumColumns', length(intervalTypes));
 set(gcf, 'Position', [400, 400, 300, 250]); % Adjust figure size
 
-cfg = []; cfg.outdir = save_dir; filename = 'Concordance_Comparison_lat'; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = 'Concordance_Comparison_lat'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
 disp('Comparison of constant vs. dynamic intervals completed.')
