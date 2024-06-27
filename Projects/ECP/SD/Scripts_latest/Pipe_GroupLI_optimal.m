@@ -227,8 +227,11 @@ for j = 1:2
     cfg.titleText = [LI_method_label{LI_method},', ', LI_class_label{j}];
     cfg.wi = wi;
     plotData(cfg);
-    cfg = []; cfg.outdir = save_dir; filename = LI_class_label{j}; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+    cfg = []; cfg.outdir = save_dir; filename = LI_class_label{j}; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+    combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 end
+
+close all
 
 %% MEG vs. fMRI Lat Analysis (PT)
 [sub_MF_pt,IA,IB_megfmri] = intersect(LI_pt_ID, fmri_LIs.ID.language_Lateral');
@@ -273,7 +276,7 @@ IntervalSize = 1;
 sub_IDs = sub_MF_pt;
 nsub_IDs = cellfun(@(x) [num2str(find(strcmp(sub_IDs, x))), ':', x], sub_IDs, 'UniformOutput', false);
 optimalInterval_constant = ones(size(MEG_LI, 1),1).*optimalInterval;
-bf = 0.1;
+bf = 0.15;
 lowerBound_constant = optimalInterval - bf;
 upperBound_constant =  optimalInterval + bf;
 [groupCorrelation_cnst, optimalTimePoints_cnst] = computeGroupLevelMEGfMRICorrelation_timepoints(MEG_LI, fMRI_LI, timePoints, lowerBound_constant, upperBound_constant);
@@ -282,7 +285,11 @@ upperBound_constant =  optimalInterval + bf;
 disp(nsub_IDs(discordantSubs_cnst)')
 subjectForPlot = discordantSubs_cnst;
 findIndividualOptimalTimePoints(MEG_LI, fMRI_LI, timePoints, subjectForPlot, lowerBound_constant, upperBound_constant);
-cfg = []; cfg.outdir = save_dir; filename = ['ConstantTimePoints_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = ['ConstantTimePoints_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+
+close all
+
 
 %% Optimal Time Points LIs
 lowerBound = 0.4;
@@ -308,7 +315,8 @@ end
 %%
 % plotOptimalTimePointsOnMEG(MEG_LI, fMRI_LI, [], timePoints, optimalTimePoints);
 plotOptimalTimePointsOnMEG2(MEG_LI, fMRI_LI, timePoints, optimalTimePoints, discordantSubs, MEG_thre, lowerBound, upperBound);
-cfg = []; cfg.outdir = save_dir; filename = ['Optimal_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = ['Optimal_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
 %% Mean Based Analysis
 [groupCorrelation_mean] = computeGroupLevelMEGfMRICorrelation_avgLI(MEG_LI, fMRI_LI, timePoints, lowerBound, upperBound);
@@ -316,10 +324,12 @@ cfg = []; cfg.outdir = save_dir; filename = ['Optimal_LIs_', LI_method_label{LI_
 disp(['Concordance_mean: ', num2str(concordance_mean)]);
 disp(['Correlation_mean: ', num2str(groupCorrelation_mean)]);
 findIndividualOptimalTimePoints(MEG_LI, fMRI_LI, timePoints, discordantSubs_mean, lowerBound, upperBound);
-cfg = []; cfg.outdir = save_dir; filename = ['mean_optimalTimePoints_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = ['mean_optimalTimePoints_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+
+close all
 
 %% Power Values
-close all
 if LI_method == 1
     
     % first method
@@ -333,7 +343,8 @@ if LI_method == 1
     
     [optimalTimePoints_pow] = plotSubjectPowerOverlay(power_left, power_right, sub_IDs, timePoints, plot_flag, lowerBound, upperBound);
     if plot_flag == 1
-        cfg = []; cfg.outdir = save_dir; filename = ['Power_values_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+        cfg = []; cfg.outdir = save_dir; filename = ['Power_values_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+        close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
     end
     [concordance_pow, discordantSubs_pow] = calculateConcordanceForTimePoints(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalTimePoints_pow);
     disp(['Concordance: ', num2str(concordance_pow)]);
@@ -346,11 +357,11 @@ if LI_method == 1
     
     % Second method
     % - diff (L - R)
-    [optimalTimePoints, interval] = plotSubjectPowerOverlay(power_left, power_right, sub_IDs, timePoints, 1, 0.2, 1.0);
+    [optimalTimePoints, interval] = plotSubjectPowerOverlay(power_left, power_right, sub_IDs, timePoints, 1, 0.2, 2.0);
     [optimalTimePoints, ~] = plotSubjectPowerOverlay(power_left, power_right, sub_IDs, timePoints, 0, interval(1), interval(2));
     
     % - Left vs. right
-    [optimalTimePoints, interval] = plotSubjectPowerOverlay2(power_left, power_right, sub_IDs, timePoints, 0, 0.3, 1.0);
+    [optimalTimePoints, interval] = plotSubjectPowerOverlay2(power_left, power_right, sub_IDs, timePoints, 1, 0.3, 1.5);
     [optimalTimePoints, ~] = plotSubjectPowerOverlay2(power_left, power_right, sub_IDs, timePoints, 0, interval(1), interval(2));
     
     % sum of left and right
@@ -359,7 +370,7 @@ if LI_method == 1
     [groupCorrelation_cnst, optimalTimePoints] = computeGroupLevelMEGfMRICorrelation_timepoints(MEG_LI, fMRI_LI, timePoints, interval(1), interval(2));
     
     % - Area under the curve
-    aucDiff = plotSubjectPowerOverlay4(power_left, power_right, sub_IDs, timePoints, 0,  0.1, 0.8)
+    aucDiff = plotSubjectPowerOverlay4(power_left, power_right, sub_IDs, timePoints, 0,  0.1, 0.8);
     groupCorrelation = corr(aucDiff, fMRI_LI, 'Rows', 'complete')   
     
     if plot_flag == 1

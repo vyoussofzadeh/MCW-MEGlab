@@ -1,30 +1,30 @@
 function [optimalIndices, maxLI_opt] = findIndividualOptimalTimePoints_interval(MEG_LI, fMRI_LI, timePoints, subjectsForPlot, lowerBound, upperBound)
+
 numSubjects = size(MEG_LI, 1);
 optimalIndices = zeros(numSubjects, 1); % Initialize array for optimal indices
+maxLI_opt = zeros(numSubjects, 1); % Initialize array for maximum LI
 
 % Create a figure outside the loop for all subplots
 if ~isempty(subjectsForPlot) && mean(~isnan(subjectsForPlot))
     figure;
 end
 
-k = 1;
 for subj = 1:numSubjects
-    maxMEG_LI = 0; % Initialize maximum absolute MEG LI
+    maxMEG_LI = -inf; % Initialize maximum MEG LI to negative infinity
     optimalTimePointIdx = NaN; % Initialize index of optimal time point
+    timePointMid = (timePoints(:,1) + timePoints(:,2)) / 2; % Midpoint of each time interval
     
-    for i = 1:length(timePoints)
-        % Check if the current time point is within the desired interval
-        if timePoints(i, 1) >= lowerBound && timePoints(i, 2) <= upperBound
-            % Find the maximum absolute MEG LI within the interval
-            if abs(MEG_LI(subj, i)) > maxMEG_LI
-%                 disp(i)
-                maxMEG_LI = abs(MEG_LI(subj, i));
+    for i = 1:length(timePointMid)
+        % Check if the midpoint of the current time interval is within the desired interval
+        if timePointMid(i) >= lowerBound && timePointMid(i) <= upperBound
+            % Find the maximum MEG LI within the interval
+            if MEG_LI(subj, i) > maxMEG_LI
+                maxMEG_LI = MEG_LI(subj, i);
                 optimalTimePointIdx = i;
                 maxLI_opt(subj) = MEG_LI(subj, i);
             end
-        end        
+        end
     end
-    
     
     if ~isnan(optimalTimePointIdx)
         optimalIndices(subj) = optimalTimePointIdx; % Store the index of the optimal time point
@@ -35,147 +35,112 @@ for subj = 1:numSubjects
     % Optional Plotting for selected subjects
     if ismember(subj, subjectsForPlot)
         % Create subplot for each selected subject
-        subplot(ceil(length(subjectsForPlot) / 2), 2, find(subjectsForPlot == subj)); % Adjust for 2 columns layout
-        plot(timePoints(:, 1), MEG_LI(subj, :), 'b'); % Plot MEG LI as a blue line
+        if length(subjectsForPlot) > 20
+            subplot(ceil(length(subjectsForPlot) / 6), 6, find(subjectsForPlot == subj)); % Adjust for 6 columns layout
+        else
+            subplot(ceil(length(subjectsForPlot) / 2), 2, find(subjectsForPlot == subj)); % Adjust for 2 columns layout
+        end
+        plot(timePointMid, MEG_LI(subj, :), 'b'); % Plot MEG LI as a blue line
         hold on;
         
         % Highlight the optimal time point
         if ~isnan(optimalTimePointIdx)
-            plot(timePoints(optimalTimePointIdx, 1), MEG_LI(subj, optimalTimePointIdx), 'ro'); % Mark optimal point as a red circle
+            plot(timePointMid(optimalTimePointIdx), MEG_LI(subj, optimalTimePointIdx), 'ro'); % Mark optimal point as a red circle
         end
         
         % Set the y-axis limits
         ylim([-100 100]);
         
+        % Plot vertical lines for the lower and upper bounds
+        xline(lowerBound, '--k');
+        xline(upperBound, '--k');
+        
         hold off;
-        title(sprintf('Subject %d | fMRI LI: %.2f | MEG LI: %.2f', subj, fMRI_LI(subj), MEG_LI(subj, optimalTimePointIdx)));
-        xlabel('Time Points');
-        ylabel('MEG LI');
+        title(sprintf('S%d|fMRI LI:%.2f|MEG LI:%.2f', subj, fMRI_LI(subj), MEG_LI(subj, optimalTimePointIdx)));
         set(gcf, 'Position', [200, 400, 800, 400]);
-
-%         if ~isnan(optimalTimePointIdx)
-%             LI_opt(k) = MEG_LI(subj, optimalTimePointIdx);
-%             k = k + 1;
-%         end
     end
 end
+
+% Set common xlabel and ylabel for the entire figure
+han = gcf;
+if ~isempty(han.Children)
+    han.Children(end).XLabel.String = 'Time Points';
+    han.Children(end).YLabel.String = 'MEG LI';
+end
+
 end
 
 
-
-% function [optimalTimePoints, LI_opt] = findIndividualOptimalTimePoints_interval(MEG_LI, fMRI_LI, timePoints, subjectsForPlot, lowerBound, upperBound)
-% 
+% function [optimalIndices, maxLI_opt] = findIndividualOptimalTimePoints_interval(MEG_LI, fMRI_LI, timePoints, subjectsForPlot, lowerBound, upperBound)
 % numSubjects = size(MEG_LI, 1);
-% optimalTimePoints = zeros(numSubjects, 1); % Initialize array for optimal time points
+% optimalIndices = zeros(numSubjects, 1); % Initialize array for optimal indices
+% maxLI_opt = zeros(numSubjects, 1); % Initialize array for maximum LI
 % 
 % % Create a figure outside the loop for all subplots
 % if ~isempty(subjectsForPlot) && mean(~isnan(subjectsForPlot))
 %     figure;
 % end
 % 
-% k = 1;
 % for subj = 1:numSubjects
-%     maxMEG_LI = 0; % Initialize maximum absolute MEG LI
+%     maxMEG_LI = -inf; % Initialize maximum MEG LI to negative infinity
 %     optimalTimePointIdx = NaN; % Initialize index of optimal time point
 %     
 %     for i = 1:length(timePoints)
 %         % Check if the current time point is within the desired interval
 %         if timePoints(i, 1) >= lowerBound && timePoints(i, 2) <= upperBound
-%             % Find the maximum absolute MEG LI within the interval
-%             if abs(MEG_LI(subj, i)) > maxMEG_LI
-%                 maxMEG_LI = abs(MEG_LI(subj, i));
+%             % Find the maximum MEG LI within the interval
+%             if MEG_LI(subj, i) > maxMEG_LI
+%                 maxMEG_LI = MEG_LI(subj, i);
 %                 optimalTimePointIdx = i;
+%                 maxLI_opt(subj) = MEG_LI(subj, i);
 %             end
 %         end
 %     end
 %     
 %     if ~isnan(optimalTimePointIdx)
-%         optimalTimePoints(subj) = timePoints(optimalTimePointIdx, 1); % Store the optimal time point (start time)
+%         optimalIndices(subj) = optimalTimePointIdx; % Store the index of the optimal time point
 %     else
-%         optimalTimePoints(subj) = NaN; % Assign NaN if no maximum is found in the interval
+%         optimalIndices(subj) = NaN; % Assign NaN if no maximum is found in the interval
 %     end
+%     
+%     tt = mean(timePoints,2);
 %     
 %     % Optional Plotting for selected subjects
 %     if ismember(subj, subjectsForPlot)
 %         % Create subplot for each selected subject
-%         subplot(ceil(length(subjectsForPlot) / 2), 2, find(subjectsForPlot == subj)); % Adjust for 2 columns layout
-%         plot(timePoints(:, 1), MEG_LI(subj, :), 'b'); % Plot MEG LI as a blue line
+%         %         subplot(ceil(length(subjectsForPlot) / 2), 2, find(subjectsForPlot == subj)); % Adjust for 2 columns layout
+%         
+%         if length(subjectsForPlot) > 20
+%             subplot(ceil(length(subjectsForPlot) / 6), 6, find(subjectsForPlot == subj)); % Adjust for 6 columns layout
+%         else
+%             subplot(ceil(length(subjectsForPlot) / 2), 2, find(subjectsForPlot == subj)); % Adjust for 2 columns layout
+%         end
+%         plot(tt, MEG_LI(subj, :), 'b'); % Plot MEG LI as a blue line
 %         hold on;
 %         
 %         % Highlight the optimal time point
-%         plot(optimalTimePoints(subj), MEG_LI(subj, optimalTimePointIdx), 'ro'); % Mark optimal point as a red circle
+%         if ~isnan(optimalTimePointIdx)
+%             plot(tt(optimalTimePointIdx), MEG_LI(subj, optimalTimePointIdx), 'ro'); % Mark optimal point as a red circle
+%         end
 %         
 %         % Set the y-axis limits
 %         ylim([-100 100]);
 %         
+%         % Plot vertical lines for the lower and upper bounds
+%         xline(lowerBound, '--k');
+%         xline(upperBound, '--k');
+%         
 %         hold off;
-%         title(sprintf('Subject %d | fMRI LI: %.2f | MEG LI: %.2f', subj, fMRI_LI(subj), MEG_LI(subj, optimalTimePointIdx)));
-%         xlabel('Time Points');
-%         ylabel('MEG LI');
+%         title(sprintf('S%d|fMRI LI:%.2f|MEG LI:%.2f', subj, fMRI_LI(subj), MEG_LI(subj, optimalTimePointIdx)));
+% %         xlabel('Time Points');
+% %         ylabel('MEG LI');
 %         set(gcf, 'Position', [200, 400, 800, 400]);
-% 
-%         LI_opt(k) = MEG_LI(subj, optimalTimePointIdx);
-%         k = k + 1;
 %     end
 % end
-% end
-
-
-
-% function [optimalTimePoints, LI_opt] = findIndividualOptimalTimePoints_interval(MEG_LI, fMRI_LI, timePoints, subjectsForPlot, lowerBound, upperBound)
-% numSubjects = size(MEG_LI, 1);
-% optimalTimePoints = zeros(numSubjects, 1); % Initialize array for optimal time points
 % 
-% % Create a figure outside the loop for all subplots
-% if ~isempty(subjectsForPlot) && mean(~isnan(subjectsForPlot))
-%     figure;
-% end
+% % Set common xlabel and ylabel for the entire figure
+% han = gcf;
+% han.Children(end).XLabel.String = 'Time Points';
+% han.Children(end).YLabel.String = 'MEG LI';
 % 
-% k=1;
-% for subj = 1:numSubjects
-%     maxMEG_LI = 0; % Initialize maximum absolute MEG LI
-%     optimalTimePointIdx = NaN; % Initialize index of optimal time point
-%     
-%     for i = 1:length(timePoints)
-%         % Check if the current time point is within the desired interval
-%         if timePoints(i) >= lowerBound && timePoints(i) <= upperBound
-%             % Find the maximum absolute MEG LI within the interval
-%             if abs(MEG_LI(subj, i)) > maxMEG_LI
-%                 maxMEG_LI = abs(MEG_LI(subj, i));
-%                 optimalTimePointIdx = i;
-%             end
-%         end
-%     end
-%     
-%     if ~isnan(optimalTimePointIdx)
-%         optimalTimePoints(subj) = timePoints(optimalTimePointIdx);
-%     else
-%         optimalTimePoints(subj) = NaN; % Assign NaN if no maximum is found in the interval
-%     end
-%     
-%     % Optional Plotting for selected subjects
-%     if ismember(subj, subjectsForPlot)
-%         % Create subplot for each selected subject
-%         subplot(ceil(length(subjectsForPlot) / 2), 2, find(subjectsForPlot == subj)); % Adjust for 2 columns layout
-%         plot(timePoints, MEG_LI(subj, :), 'b'); % Plot MEG LI as a blue line
-%         hold on;
-%         
-%         % Highlight the optimal time point
-%         plot(optimalTimePoints(subj), MEG_LI(subj, optimalTimePointIdx), 'ro'); % Mark optimal point as a red circle
-%         
-%         % Set the y-axis limits
-%         ylim([-100 100]);
-%         
-%         hold off;
-%         title(sprintf('Subject %d | fMRI LI: %.2f | MEG LI: %.2f', subj, fMRI_LI(subj), MEG_LI(subj, optimalTimePointIdx)));
-%         xlabel('Time Points');
-%         ylabel('MEG LI');
-%         set(gcf, 'Position', [200   400   800   400]);
-% 
-%         
-%         LI_opt(k) = MEG_LI(subj, optimalTimePointIdx);
-%         k = k+1;
-%     end
 % end
-% end
-

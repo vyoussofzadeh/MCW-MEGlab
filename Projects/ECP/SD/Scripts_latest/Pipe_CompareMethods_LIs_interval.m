@@ -12,6 +12,7 @@ clear; clc, close('all'); warning off,
 restoredefaultpath
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/run')
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/function')
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/tools/helpful_tools/daviolinplot/daboxplot')
 Run_setpath
 
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/other/')
@@ -97,7 +98,7 @@ switch LI_analysis
         cfg.sFiles_3 = S_data.sFiles_3; cfg.sFiles_2 = S_data.sFiles_2;
         sub_demog_data = ecpfunc_read_sub_demog(cfg);
     case {2,4,6}
-        clc
+%         clc
         cfg = []; cfg.subjs = S_data.subjs;
         cfg.sFiles = S_data.sFiles_32;
         sub_demog_data = ecpfunc_read_sub_demog_contrast(cfg);
@@ -114,7 +115,7 @@ switch LI_analysis
         cfg.patn_neuropsych_data = patn_neuropsych_data;
         sub_TLE_sub_data = ecpfunc_read_sub_TLE_sub(cfg);
     case {2,4,6}
-        clc
+%         clc
         cfg = [];
         cfg.sub_demog_data = sub_demog_data;
         cfg.patn_neuropsych_data = patn_neuropsych_data;
@@ -198,6 +199,7 @@ difference = setdiff(LI_pt_ID, sub_MF_pt');
 disp('missing from fMRI')
 disp(difference');
 
+
 %% MEG LI vs fMRI LI (language_Lateral)
 LI_pt_val_new = [];
 for i=1:length(LI_method_label)
@@ -211,7 +213,6 @@ fmri_LIs_trn = do_ternary_classification2(cfg);
 size(fmri_LIs_trn);
 
 %% Plot MEG LI for selected networks
-% close all;
 network_sel = [1, 2, 6, 11]; % Define the networks to include in the plot
 colors = distinguishable_colors(length(network_sel)); % Generate distinct colors for each selected network
 
@@ -275,7 +276,6 @@ cd(save_dir); % Change back to the save directory
 close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
 %% mean MEG li vs. fMRI
-% close all,
 
 for i=1:length(LI_method_label)
     
@@ -329,8 +329,6 @@ end
 cd(save_dir)
 
 %%
-% pause, 
-
 % Initialize a table to store results
 resultsTable = table([], [], 'VariableNames', {'Method', 'Metrics'});
 
@@ -355,7 +353,7 @@ for i=1:length(LI_method_label)
     % Correlation Analysis
     cfg.thre = MEG_thre;
     cfg.ternary = 0;
-    [~, ~, correlationMetrics] = do_MEG_fMRI_corr_contrast_rois2(cfg);
+    [megLI_sub, ~, correlationMetrics] = do_MEG_fMRI_corr_contrast_rois2(cfg);
     
     % Concordance Analysis
     cfg.thre = MEG_thre;
@@ -371,10 +369,7 @@ for i=1:length(LI_method_label)
 end
 close all,
 
-
 %%
-% close all,
-
 % Example metric name - adjust according to your actual data structure
 metricName = {'Correlation','Concordance'}; % Assuming this is the name of the correlation/concordance field
 roi_label = {'Ang', 'Front', 'Temp', 'Lat'};
@@ -412,9 +407,6 @@ end
 close all
 
 %% Constant 
-% pause, 
-% close all,
-
 % Assuming metricName contains the names of the fields we want to plot
 metricNames = {'Correlation', 'Concordance'};
 roi_labels = {'Ang', 'Front', 'Temp', 'Lat'};
@@ -515,9 +507,6 @@ end
 disp(['saved as, ', filename])
 
 %%
-% pause, 
-% close all,
-
 % Assuming metricName contains the names of the fields we want to plot
 metricNames = {'Correlation', 'Concordance'};
 roi_labels = {'Ang', 'Front', 'Temp', 'Lat'};
@@ -580,13 +569,12 @@ end
 close all
 
 %%
-% pause, 
-% close all,
 
 % Assuming metricName contains the names of the fields we want to plot
 metricNames = {'Correlation', 'Concordance'};
 roi_labels = {'Ang', 'Front', 'Temp', 'Lat'};
-LI_method_labels = {'SourceMag', 'Count', 'Bootstrp'}; % LI Methods
+% LI_method_labels = {'SourceMag', 'Count', 'Bootstrp'}; % LI Methods
+LI_method_labels = LI_method_label;
 
 % Colors for each ROI, adjust or extend as needed
 colors = lines(length(roi_labels));
@@ -686,7 +674,6 @@ fclose(fid); % Close the file
 disp('constant interval')
 disp(summaryTable)
 
-
 %% Constant interval
 % pause, 
 % close all,
@@ -761,7 +748,7 @@ end
 cfg = []; cfg.outdir = save_dir; filename = ' Conc max'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
 close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
-disp(summaryTable)
+% disp(summaryTable)
 
 %% Dynamic interval analysis
 % pause, 
@@ -776,7 +763,7 @@ lowerBound = 0.4; upperBound = 0.9;
 lowerBound = 0.2; upperBound = 1.1;
 lowerBound = 0.35; upperBound = 1.0;
 lowerBound = 0.4; upperBound = 1.0;
-lowerBound = 0.3; upperBound = 1.2;
+lowerBound = 0.3; upperBound = 1.4;
 
 % MEG_thre = 0.1;
 
@@ -811,6 +798,7 @@ for j = 1:length(idcx)
         [groupCorrelation, optimalInterval, optimalInterval_all, pval]= ...
             computeGroupLevelMEGfMRICorrelation_timepoints_interval(MEG_LI, fMRI_LI, wi, lowerBound, upperBound);
         disp(['pval:', num2str(pval)])
+        
 
 %         [groupCorrelation, optimalInterval, ~]= ...
 %             computeGroupLevelMEGfMRICorrelation_timepoints_interval(MEG_LI, fMRI_LI, wi, optimalInterval_all(1), optimalInterval_all(2));
@@ -826,7 +814,7 @@ for j = 1:length(idcx)
 %         [concordance, discordantSubs] = calculateConcordanceForTimePoints(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalTimePoints);
         
         % Store results in the summary table
-        newRow = {LI_method_labels{methodIdx}, net_sel_mutiple_label{idcx(j)}, groupCorrelation, concordance, meanOptimalTime};
+        newRow = {LI_method_labels{methodIdx}, net_sel_mutiple_label{idcx(j)}, groupCorrelation, concordance, meanOptimalTime, discordantSubs', MEG_LI, fMRI_LI};
         summaryTableDynamic = [summaryTableDynamic; newRow];
         
         % Plot optimal time points on MEG LI
@@ -835,7 +823,7 @@ for j = 1:length(idcx)
 end
 
 % Set column names for the summary table
-summaryTableDynamic.Properties.VariableNames = {'LI_Method', 'ROI', 'Correlation', 'Concordance', 'mean_Optimal_Time'};
+summaryTableDynamic.Properties.VariableNames = {'LI_Method', 'ROI', 'Correlation', 'Concordance', 'mean_Optimal_Time', 'discord_Subs', 'MEG_LI', 'fMRI_LI'};
 
 % Save summary table
 writetable(summaryTableDynamic, 'LI_Metrics_Summary_Dynamic.csv');
@@ -850,7 +838,7 @@ for i = 1:height(summaryTableDynamic)
 end
 
 fclose(fid);
-disp('Summary table for dynamic intervals saved.');
+disp('Summary table for dynamic intervals.');
 disp(summaryTableDynamic)
 
 %% Dynamic interval plotting
@@ -969,7 +957,7 @@ differenceTable.Properties.VariableNames = {'LI_Method', 'ROI', 'Correlation_Dif
 
 % Plot differences
 figure;
-sgtitle('Corr Diff, Opt-fixed)');
+sgtitle('Corr Diff, Opt-fixed');
 for i = 1:length(uniqueROIs)
     subplot(4, 1, i)
     roi = uniqueROIs{i};
@@ -996,7 +984,7 @@ close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combin
 
 
 figure;
-sgtitle('Conc Diff, Opt-fixed)');
+sgtitle('Conc Diff, Opt-fixed');
 for i = 1:length(uniqueROIs)
     subplot(4, 1, i)
     roi = uniqueROIs{i};
@@ -1020,7 +1008,6 @@ end
 
 cfg = []; cfg.outdir = save_dir; filename = 'Conc_diff'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
 close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
-
 
 disp('Difference plotting completed.')
 
@@ -1139,7 +1126,7 @@ disp('Comparison of constant vs. dynamic intervals completed.')
 
 
 %% Lateral
-clc, close all
+% clc, close all
 % Extract unique ROIs and methods
 uniqueROIs = unique(summaryTable.ROI);
 uniqueMethods = unique(summaryTable.LI_Method);
@@ -1241,8 +1228,8 @@ close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combin
 disp('Comparison of constant vs. dynamic intervals completed.');
 
 %% Lateral
-clc;
-close all;
+% clc;
+% close all;
 
 % Extract unique ROIs and methods
 uniqueROIs = unique(summaryTable.ROI);
@@ -1317,7 +1304,7 @@ set(gcf, 'Position', [1000, 400, 600, 400]);
 % Save the figure
 cfg = []; 
 cfg.outdir = save_dir; 
-filename = 'Concordance_Comparison_lat'; 
+filename = 'Concordance_Comparison_lat1'; 
 cfg.filename = filename; 
 cfg.type = 'svg'; 
 do_export_fig(cfg);
@@ -1327,7 +1314,7 @@ close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combin
 disp('Comparison of constant vs. dynamic intervals completed.');
 
 %% Lateral
-clc, close all
+% clc, close all
 % Extract unique ROIs and methods
 uniqueROIs = unique(summaryTable.ROI);
 uniqueMethods = unique(summaryTable.LI_Method);
@@ -1421,7 +1408,148 @@ end
 lgd = legend(intervalTypes, 'Location', 'south', 'Orientation', 'horizontal', 'NumColumns', length(intervalTypes));
 set(gcf, 'Position', [400, 400, 300, 250]); % Adjust figure size
 
-cfg = []; cfg.outdir = save_dir; filename = 'Concordance_Comparison_lat'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
+cfg = []; cfg.outdir = save_dir; filename = 'Concordance_Comparison_lat2'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
 close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
 disp('Comparison of constant vs. dynamic intervals completed.')
+
+
+%% Pick the Best Results Out of 3 LI Methods for Discordant Analyses
+
+% Initialize a table to store the best results
+bestResultsTable = table();
+
+% Loop through each ROI and select the best LI method based on highest Concordance
+for i = 1:length(uniqueROIs)
+    roi = uniqueROIs{i};
+    
+    % Extract data for the current ROI
+    roiData = summaryTableDynamic(strcmp(summaryTableDynamic.ROI, roi), :);
+    
+    % Initialize variables to keep track of the best results
+    bestCorrelation = -inf;
+    bestConcordance = -inf;
+    bestMethod = '';
+    bestTimeInterval = [];
+    bestDiscordSubs = [];
+    
+    % Loop through each method and find the best one based on Concordance
+    for j = 1:height(roiData)
+        methodData = roiData(j, :);
+        
+        if methodData.Concordance > bestConcordance
+            bestConcordance = methodData.Concordance;
+            bestCorrelation = methodData.Correlation;
+            bestMethod = methodData.LI_Method;
+            bestTimeInterval = methodData.mean_Optimal_Time;
+            bestDiscordSubs = methodData.discord_Subs;
+            bestDiscordSubs_megli = methodData.MEG_LI;
+            bestDiscordSubs_fmrili = methodData.fMRI_LI;
+        end
+    end
+    
+    % Store the best results in the table
+    newRow = {bestMethod, roi, bestCorrelation, bestConcordance, bestTimeInterval, bestDiscordSubs, bestDiscordSubs_megli, bestDiscordSubs_fmrili};
+    bestResultsTable = [bestResultsTable; newRow];
+end
+
+% Set column names for the best results table
+bestResultsTable.Properties.VariableNames = {'Best_LI_Method', 'ROI', 'Best_Correlation', 'Best_Concordance', 'Best_Time_Interval', 'Best_Discord_Subs', 'MEG_LI', 'fMRI_LI'};
+
+% Save best results table
+writetable(bestResultsTable, 'Best_LI_Methods_Summary.csv');
+
+% Save best results table as text file
+fid = fopen('Best_LI_Methods_Summary.txt', 'wt');
+fprintf(fid, '%s\t%s\t%s\t%s\t%s\n', bestResultsTable.Properties.VariableNames{:});
+
+for i = 1:height(bestResultsTable)
+    fprintf(fid, '%s\t%s\t%f\t%f\t%f\n', bestResultsTable.Best_LI_Method{i}, bestResultsTable.ROI{i}, ...
+        bestResultsTable.Best_Correlation(i), bestResultsTable.Best_Concordance(i), bestResultsTable.Best_Time_Interval(i));
+end
+
+fclose(fid);
+disp('Best LI methods for discordant analyses.');
+disp(bestResultsTable);
+
+%% Response (Reaction) Time Data
+load('/data/MEG/Research/aizadi/process/RT_summary/ResponseTime.mat')
+[~,~,IB_reactiontime] = intersect(sub_MF_pt, T.Sub_ID);
+T_patn_MEGfMRI = T(IB_reactiontime,:);
+meanAnimal = mean(T_patn_MEGfMRI.Animal, 'omitnan');
+stdAnimal = std(T_patn_MEGfMRI.Animal, 'omitnan');
+meanSymbol = mean(T_patn_MEGfMRI.Symbol, 'omitnan');
+stdSymbol = std(T_patn_MEGfMRI.Symbol, 'omitnan');
+disp(['Mean of Animal reaction times: ', num2str(meanAnimal)]);
+disp(['Standard Deviation of Animal reaction times: ', num2str(stdAnimal)]);
+disp(['Mean of Symbol reaction times: ', num2str(meanSymbol)]);
+disp(['Standard Deviation of Symbol reaction times: ', num2str(stdSymbol)]);
+[correlationCoefficient, p] = corr(T_patn_MEGfMRI.Animal, T_patn_MEGfMRI.Symbol, 'Rows', 'complete');
+validPairs = sum(~isnan(T_patn_MEGfMRI.Animal) & ~isnan(T_patn_MEGfMRI.Symbol));
+df = validPairs - 2;
+disp(['Correlation coefficient: ', num2str(correlationCoefficient)]);
+disp(['Degrees of freedom: ', num2str(df)]);
+
+%% Task Performance
+taskperf_datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/';
+sub_MF_pt_num = cellfun(@(x) str2double(x(3:end)), sub_MF_pt);
+taskPerformanceDataPath = fullfile(taskperf_datadir, 'TaskPerformanceSD.mat');
+load(taskPerformanceDataPath); 
+[~,~,IB_taskperformance] = intersect(sub_MF_pt_num, accuracyResults.Subject);
+accuracyResults_updt = accuracyResults(IB_taskperformance,:);
+meanAccBySubject_Animal = groupsummary(accuracyResults_updt, 'Subject', 'mean', 'Animal_ACC');
+meanAccBySubject_Falsefont = groupsummary(accuracyResults_updt, 'Subject', 'mean', 'Falsefont_ACC');
+totalmean = mean(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
+disp(['The total mean of mean_Falsefont_ACC is: ', num2str(totalmean)]);
+totalstd = std(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
+disp(['The total std of mean_Falsefont_ACC is: ', num2str(totalstd)]);
+totalmean = mean(meanAccBySubject_Animal.mean_Animal_ACC);
+disp(['The total mean of mean_Falsefont_ACC is: ', num2str(totalmean)]);
+totalstd = std(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
+disp(['The total std of mean_Falsefont_ACC is: ', num2str(totalstd)]);
+
+%% Investigate Discordant Samples of Best Results and Obtain Corresponding MEG_LI and fMRI_LI
+close all
+% Loop through each entry in the table and plot
+for i = 3:3%length(bestResultsTable.ROI)
+    
+    roi = bestResultsTable.ROI{i};
+    method = bestResultsTable.Best_LI_Method{i};
+    MEG_LI = bestResultsTable.MEG_LI{i};
+    fMRI_LI = bestResultsTable.fMRI_LI{i};
+    discordSubs = bestResultsTable.Best_Discord_Subs{i};
+
+    %   findIndividualOptimalTimePoints(MEG_LI, fMRI_LI, timePoints, discordSubs, lowerBound, upperBound);
+    findIndividualOptimalTimePoints_interval(MEG_LI, fMRI_LI, wi, discordSubs, lowerBound, upperBound); % NaN means no plot
+    sgtitle(sprintf('ROI: %s, Method: %s', roi, method));
+    
+    cfg = []; cfg.outdir = save_dir; filename = sprintf('Dicordance ROI: %s, Method: %s', roi, method); cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+    
+    %    findIndividualOptimalTimePoints(MEG_LI, fMRI_LI, timePoints, 1:72, lowerBound, upperBound);
+    findIndividualOptimalTimePoints_interval(MEG_LI, fMRI_LI, wi, 1:72, lowerBound, upperBound); % NaN means no plot
+    sgtitle(sprintf('ROI: %s, Method: %s', roi, method));
+    set(gcf, 'Position', [100, 100, 1600, 1300]);
+    
+    cfg = []; cfg.outdir = save_dir; filename = sprintf('indvLIs ROI: %s, Method: %s', roi, method); cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+    
+    plotDiscordantReactionTimes2(sub_MF_pt, discordSubs, T_patn_MEGfMRI);
+    sgtitle(sprintf('Reaction Time Discordant ROI: %s, Method: %s', roi, method));
+    
+    cfg = []; cfg.outdir = save_dir; filename = sprintf('ReactionTime Discordant ROI: %s, Method: %s', roi, method); cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+    
+    plotDiscordantTaskPerformance(sub_MF_pt(discordSubs), meanAccBySubject_Animal, meanAccBySubject_Falsefont, xllabel, save_dir, method)
+    sgtitle(sprintf('Task performace: %s, Method: %s', roi, method));
+    cfg = []; cfg.outdir = save_dir; filename = sprintf('Task performace ROI: %s, Method: %s', roi, method); cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+    
+    plotDiscordantTaskPerformance2(sub_MF_pt(discordSubs), meanAccBySubject_Animal, meanAccBySubject_Falsefont, xllabel, save_dir, method)
+    sgtitle(sprintf('Task performace: %s, Method: %s', roi, method));
+    cfg = []; cfg.outdir = save_dir; filename = sprintf('Task performace ROI2: %s, Method: %s', roi, method); cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+    
+    plotCorrResponseAccReactionTime(accuracyResults_updt, T_patn_MEGfMRI)
+%     sgtitle(sprintf('Task performace: %s, Method: %s', roi, method));
+    cfg = []; cfg.outdir = save_dir; filename = sprintf('Corr_ReactionTvsAcc_: %s, Method: %s', roi, method); cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+
+end
+cd(save_dir)
+
+%%
