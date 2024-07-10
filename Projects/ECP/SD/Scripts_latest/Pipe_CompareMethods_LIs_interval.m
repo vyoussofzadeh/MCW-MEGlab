@@ -238,6 +238,8 @@ run_table_fixedinterval
 run_plot_fixedinterval
 
 %% Dynamic interval analysis
+plot_indiv_LI = 1;
+lowerBound = 0.3; upperBound = 1.3;
 run_optimalLIs
 
 %% plot_compare_fixed_opt_methods

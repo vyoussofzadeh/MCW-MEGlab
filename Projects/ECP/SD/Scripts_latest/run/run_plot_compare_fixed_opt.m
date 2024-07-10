@@ -84,7 +84,7 @@ for i = 3:3%length(uniqueROIs)
     disp(barData)
     
     title(roi);
-    ylabel('Concordance');
+    ylabel('LI Concordance (%)');
     set(gca, 'color', 'none');
     ylim([0, 100]);
     box off;

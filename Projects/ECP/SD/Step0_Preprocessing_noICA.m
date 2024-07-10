@@ -98,6 +98,8 @@ sub_all1 = setdiff(unq_bs_subj,no_anat);
 %% Import raw data
 clc
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/BS_func_edits')
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/BS_additions/BS_event_read/BS_func_edits'))
+% addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/MEGIN_project')
 
 L_data =length(datafile_fif);
 not_imported = [];

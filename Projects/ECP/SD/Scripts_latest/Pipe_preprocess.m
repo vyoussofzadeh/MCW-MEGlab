@@ -126,6 +126,8 @@ for ii=1:L_data
 end
 
 %% Preprocess raw data
+Unload('fieldtrip');
+
 d1 = rdir(fullfile(BS_data_dir,'/EC*/@raw*/*_raw_ica_clean.mat'));
 d2 = rdir(fullfile(BS_data_dir,'/EC*/@raw*/*_raw_tsss_ica_clean.mat'));
 d = [d1;d2];
@@ -161,6 +163,8 @@ for i=1:length(d)
 end
 
 %% Import epoched data
+Load('fieldtrip');
+
 % db_reload_database('current',1)
 d1 = rdir(fullfile(BS_data_dir,'/**/@raw*/*clean_low_clean.mat'));
 % d2 = rdir(fullfile(BS_data_dir,'/**/@raw*/*tsss_ica_clean.mat'));
@@ -193,7 +197,7 @@ for i=1:length(d)
         subjectName = ['EC',sub_sel];
         
         % Create epochs
-        bst_process('CallProcess', 'process_import_data_event', sFiles{1}, [], ...
+        sFiles_3 = bst_process('CallProcess', 'process_import_data_event', sFiles{1}, [], ...
             'subjectname', subjectName, ...
             'condition', '', ...
             'eventname', '3', ...
@@ -206,8 +210,12 @@ for i=1:length(d)
             'freq', 1000, ...
             'baseline', []);
         
+        % Reject bad trials
+        bst_process('CallProcess', 'process_ft_reject_trials_edit', sFiles_3, [], 'sensortype', 'MEG', 'mrej', 'Auto', 'arej', 0.9); % Process: FieldTrip: process_ft_reject_trials kurtosis > 15
+        
+        
         % Create epochs
-        bst_process('CallProcess', 'process_import_data_event', sFiles{1}, [], ...
+        sFiles_2 = bst_process('CallProcess', 'process_import_data_event', sFiles{1}, [], ...
             'subjectname', subjectName, ...
             'condition', '', ...
             'eventname', '2', ...
@@ -219,8 +227,58 @@ for i=1:length(d)
             'usessp', 1, ...
             'freq', 1000, ...
             'baseline', []);
+        
+        % Reject bad trials
+        bst_process('CallProcess', 'process_ft_reject_trials_edit', sFiles_2, [], 'sensortype', 'MEG', 'mrej', 'Auto', 'arej', 0.9); % Process: FieldTrip: process_ft_reject_trials kurtosis > 15
+        
     end
 end
+
+%% run BAD trials as separe section (BAKUP in case FT causing issues) 
+% d = rdir(fullfile(BS_data_dir,'/**/@raw*/*clean_band_clean.mat'));
+% 
+% clc
+% for i=1:length(d)
+%     
+%     [pathstr, name] = fileparts(d(i).name);
+%     [pathstr2, name2] = fileparts(pathstr);
+%     [pathstr3, name3] = fileparts(pathstr2);
+%     sFiles = {fullfile(name3, name2, [name, '.mat'])};
+%     idx = strfind(name,'ec'); idx1 = strfind(name,'_');
+%     sub_sel = name(idx+2:idx+5);
+%     run_sel = name(idx1(end-5)+1:idx1(end-4)-1);
+%     iSubject = find(contains(unq_bs_subj, sub_sel)==1);
+%     cd(pathstr2)
+%     
+%     disp(sFiles)
+%     
+%     run_idx = strfind(name,'run'); 
+%     dd_32 = rdir(fullfile(pathstr2,['/*run',name(run_idx+3),'*/data_3_trial*.mat']));
+% 
+%     sFiles_3 = [];
+%     for j=1:length(dd_32)
+%         [pathstr, name_32] = fileparts(dd_32(j).name);
+%         [pathstr2, name2] = fileparts(pathstr);
+%         [~, name3] = fileparts(pathstr2);
+%         sFiles_3{j} = fullfile(name3, name2, [name_32, '.mat']);
+%     end
+%     
+%     % Reject bad trials
+%     bst_process('CallProcess', 'process_ft_reject_trials_edit', sFiles_3, [], 'sensortype', 'MEG', 'mrej', 'Auto', 'arej', 0.9); % Process: FieldTrip: process_ft_reject_trials kurtosis > 15
+%       
+%     dd_22 = rdir(fullfile(pathstr2,['/*run',name(run_idx+3),'*/data_3_trial*.mat']));
+%     
+%     sFiles_2 = [];
+%     for j=1:length(dd_22)
+%         [pathstr, name_22] = fileparts(dd_22(j).name);
+%         [pathstr2, name2] = fileparts(pathstr);
+%         [~, name3] = fileparts(pathstr2);
+%         sFiles_2{j} = fullfile(name3, name2, [name_22, '.mat']);
+%     end
+%     
+%     % Reject bad trials
+%     bst_process('CallProcess', 'process_ft_reject_trials_edit', sFiles_2, [], 'sensortype', 'MEG', 'mrej', 'Auto', 'arej', 0.9); % Process: FieldTrip: process_ft_reject_trials kurtosis > 15
+% end
 
 %% Est. head model
 d1 = rdir(fullfile(BS_data_dir,'/*/ec*_ica_clean_low_clean/channel_vectorview306_acc1.mat'));
