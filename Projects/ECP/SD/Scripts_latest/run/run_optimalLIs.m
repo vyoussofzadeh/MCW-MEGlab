@@ -3,13 +3,6 @@ close all,
 % Initialize variables
 fMRI_LI = fmri_LIs_val;
 timePoints = mean(wi, 2);
-% lowerBound = 0.45; upperBound = 1.1;
-% lowerBound = 0.4; upperBound = 0.9;
-% lowerBound = 0.4; upperBound = 0.9;
-% lowerBound = 0.2; upperBound = 1.1;
-% lowerBound = 0.35; upperBound = 1.0;
-% lowerBound = 0.4; upperBound = 1.0;
-% lowerBound = 0.3; upperBound = 1.4;
 
 sub_IDs = sub_MF_pt;
 nsub_IDs = cellfun(@(x) [num2str(find(strcmp(sub_IDs, x))), ':', x], sub_IDs, 'UniformOutput', false);
@@ -54,8 +47,7 @@ for j = 1:length(idcx)
             plotOptimalTimePointsOnMEG2(MEG_LI, fMRI_LI, timePoints,  mean(optimalInterval,2), discordantSubs, MEG_thre, lowerBound, upperBound);
             suptitle(LI_method_label(methodIdx));
             set(gcf, 'Position', [100, 100, 1600, 1300]);
-            cfg = []; cfg.outdir = save_dir; filename = ['LI_individuals_',LI_method_label{methodIdx}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
-            
+            cfg = []; cfg.outdir = save_dir; filename = ['LI_individuals_',LI_method_label{methodIdx}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');           
         end
     end
 end

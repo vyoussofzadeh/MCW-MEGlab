@@ -1,4 +1,4 @@
-function [LI_ROIcount, ROIcount] = do_LI_clincial(cfg_main)
+function [LI_ROIcount, ROIsumcount, ROIcount] = do_LI_clincial(cfg_main)
 % Script for computing laterality indices from MEG language activation dSPM maps
 
 % Load dSPM image grid and scout information
@@ -49,7 +49,12 @@ R_ROIcount = sum(RHvals(:) > threshold);
 
 % Calculate laterality index and total significant voxels
 LI_ROIcount = 100 * ((L_ROIcount - R_ROIcount) / (L_ROIcount + R_ROIcount));
-ROIcount = L_ROIcount + R_ROIcount;
+ROIsumcount = L_ROIcount + R_ROIcount;
+
+ROIcount = [];
+ROIcount.L = L_ROIcount;
+ROIcount.R = R_ROIcount;
+
 
 % Display results
 % fprintf('Total Significant Voxels: %d\n', ROIcount);

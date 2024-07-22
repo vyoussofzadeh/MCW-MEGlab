@@ -71,7 +71,7 @@ switch LI_method
         LI_hc.LI_sub = LI_hc_combined.mean;
 end
 
-%% Brainstorm
+%% BS
 bs_path = '/opt/matlab_toolboxes/Brainstorm/Brainstorm3_2022/brainstorm3';
 BS_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/';
 protocol = fullfile(BS_dir, 'data_full/protocol.mat');
@@ -289,7 +289,6 @@ cfg = []; cfg.outdir = save_dir; filename = ['ConstantTimePoints_Dicordant_LIs_'
 combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
 close all
-
 
 %% Optimal Time Points LIs
 lowerBound = 0.4;

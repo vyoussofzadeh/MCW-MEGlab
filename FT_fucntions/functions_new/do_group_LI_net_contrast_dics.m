@@ -62,14 +62,16 @@ else
                 [LI, ~, pow] = do_lat_analysis_asymetric_magnitude(cfg);
                 pow_sub(j,i,:) = pow;
             elseif contains(method, 'Counting')
-                [LI, ~] = do_lat_analysis_contrast_Counting(cfg);
+                [LI, ~, ~, roi_count] = do_lat_analysis_contrast_Counting(cfg);
+                count_sub(j,i,:) = roi_count;
             elseif contains (method, 'Bootstrapping')
                 cfg.divs = 20;
                 cfg.n_resampling = 100;
                 cfg.RESAMPLE_RATIO = 0.75;
                 cfg.dvd = 5;
                 cfg.downsamplerate = 1; % 2 times down-sampling
-                [LI, ~] = do_LI_bootstrap(cfg);
+                [LI, ~, ~, roi_count] = do_LI_bootstrap(cfg);
+                count_sub(j,i,:) = roi_count;
             end
             LI_sub(j,i,:) = LI;
             m_LI_max_sub(i) = nanmean(LI);
@@ -84,10 +86,11 @@ else
     setup.Threshtype = Threshtype;
     setup.S_data = S_data_sel;
     
-    if contains(method,'Magnitude')
-        save(savefilename,'LI_sub','m_LI_max_sub','pow_sub', 'setup'),
-    else
-        save(savefilename,'LI_sub','m_LI_max_sub', 'setup'),
+    switch contains(method, 'Magnitude')
+        case 1
+            save(savefilename,'LI_sub','m_LI_max_sub','pow_sub', 'setup'),
+        otherwise
+            save(savefilename,'LI_sub','m_LI_max_sub','count_sub', 'setup'),
     end
 end
 end

@@ -71,6 +71,8 @@ sOutputStudy = bst_get('Study', iOutputStudy);
 
 Tolerance = [];
 [ChannelFile, ChannelMat, ImportOptions.ChannelReplace, ImportOptions.ChannelAlign, Modality, Tolerance] = db_set_channel_edit(iChannelStudy, ChannelMat, ImportOptions.ChannelReplace, ImportOptions.ChannelAlign, Tolerance);
+% [ChannelFile, ChannelMat, ImportOptions.ChannelReplace, ImportOptions.ChannelAlign, Modality, Tolerance] = db_set_channel(iChannelStudy, ChannelMat, ImportOptions.ChannelReplace, ImportOptions.ChannelAlign, Tolerance);
+
 sFileOut = sFile;
 
 
