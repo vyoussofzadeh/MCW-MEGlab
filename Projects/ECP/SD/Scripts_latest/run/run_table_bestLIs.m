@@ -38,18 +38,30 @@ end
 % Set column names for the best results table
 bestResultsTable.Properties.VariableNames = {'Best_LI_Method', 'ROI', 'Best_Correlation', 'Best_Concordance', 'Best_Time_Interval', 'Best_Discord_Subs', 'MEG_LI', 'fMRI_LI'};
 
+bestResultsTable_save = bestResultsTable;
+bestResultsTable_save = bestResultsTable_save(:,1:end-3);
+
+
+
+% Format the numeric data to two decimal places before saving to CSV
+bestResultsTable_save.Best_Correlation = round(bestResultsTable_save.Best_Correlation, 2);
+bestResultsTable_save.Best_Concordance = round(bestResultsTable_save.Best_Concordance, 2);
+bestResultsTable_save.Best_Time_Interval = round(bestResultsTable_save.Best_Time_Interval, 2);
+
 % Save best results table
-writetable(bestResultsTable, 'Best_LI_Methods_Summary.csv');
+writetable(bestResultsTable_save, 'Best_LI_Methods_Summary.csv');
+
 
 % Save best results table as text file
 fid = fopen('Best_LI_Methods_Summary.txt', 'wt');
 fprintf(fid, '%s\t%s\t%s\t%s\t%s\n', bestResultsTable.Properties.VariableNames{:});
 
 for i = 1:height(bestResultsTable)
-    fprintf(fid, '%s\t%s\t%f\t%f\t%f\n', bestResultsTable.Best_LI_Method{i}, bestResultsTable.ROI{i}, ...
+    fprintf(fid, '%s\t%s\t%.2f\t%.2f\t%.2f\n', bestResultsTable.Best_LI_Method{i}, bestResultsTable.ROI{i}, ...
         bestResultsTable.Best_Correlation(i), bestResultsTable.Best_Concordance(i), bestResultsTable.Best_Time_Interval(i));
 end
 
 fclose(fid);
+
 disp('Best LI methods for discordant analyses.');
 disp(bestResultsTable);

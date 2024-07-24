@@ -22,10 +22,23 @@ end
 % Set column names
 summaryTable.Properties.VariableNames = {'LI_Method', 'Metric_Type', 'ROI', 'Max_Value', 'Time_Interval'};
 
-writetable(summaryTable, 'LI_Metrics_Summary.csv');
+% Round numeric data to two decimal places before saving to CSV
+summaryTable.Max_Value = round(summaryTable.Max_Value, 2);
+
+% If Time_Interval is numeric and needs rounding
+% for i = 1:height(summaryTable)
+%     summaryTable.Time_Interval(i,1) = round(summaryTable.Time_Interval(i,1), 2);
+%     summaryTable.Time_Interval(i,2) = round(summaryTable.Time_Interval(i,2), 2);
+% end
+
+% Save to CSV
+writetable(summaryTable, 'LI_Metrics_Summary_fixed.csv');
+
+
+% writetable(summaryTable, 'LI_Metrics_Summary.csv');
 
 %
-fid = fopen('LI_Metrics_Summary.txt', 'wt'); % Open file for writing
+fid = fopen('LI_Metrics_Summary_fixed.txt', 'wt'); % Open file for writing
 % Print a header
 fprintf(fid, '%s\t%s\t%s\t%s\t%s\n', summaryTable.Properties.VariableNames{:});
 

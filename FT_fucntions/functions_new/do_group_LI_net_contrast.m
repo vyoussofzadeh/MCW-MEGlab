@@ -84,6 +84,8 @@ else
     setup.thre = thre;
     setup.Threshtype = Threshtype;
     setup.S_data = S_data_sel;
+    setup.math = cfg.math;
+
     
     if contains(method,'Magnitude')
         save(savefilename,'LI_sub','m_LI_max_sub','pow_sub', 'setup'),
