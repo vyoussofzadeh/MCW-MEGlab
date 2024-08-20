@@ -2,7 +2,7 @@ close all
 
 xllabel = [];
 for i=1:length(discordantSubs)
-    xllabel{i} = ['Subj ', num2str(discordantSubs(i))];
+    xllabel{i} = ['S', num2str(discordantSubs(i))];
 end
 
 % Loop through each entry in the table and plot

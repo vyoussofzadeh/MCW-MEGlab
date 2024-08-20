@@ -8,7 +8,7 @@ uniqueROIs = unique(summaryTableDynamic.ROI);
 
 % Loop through each ROI for plotting
 figure;
-sgtitle('Corr Max'); % Super title for the figure
+sgtitle('Corr Max, Optimal'); % Super title for the figure
 for i = 1:length(uniqueROIs)
     
     subplot(4, 1, i)
@@ -40,7 +40,7 @@ close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combin
 
 
 figure;
-sgtitle('Conc Max'); % Super title for the figure
+sgtitle('Conc Max, Optimal'); % Super title for the figure
 for i = 1:length(uniqueROIs)
     
     subplot(4, 1, i)

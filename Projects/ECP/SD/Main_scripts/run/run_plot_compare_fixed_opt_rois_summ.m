@@ -55,12 +55,14 @@ for i = 1:length(uniqueROIs)
     title(['Corr - ' roi]);
     ylabel('Correlation');
     ylim([0, 1]);
+    box off
     set(gca, 'color', 'none');
 %     legend(intervalTypes(1:2), 'Location', 'northwest');
     
     subplot(2, length(uniqueROIs), i + length(uniqueROIs));
     barDataConcordance = reshape(concordanceValues, [], 3)';
     bar(1:2, mean(barDataConcordance), 'grouped');
+    box off
     title(['Con - ' roi]);
     ylabel('Concordance');
     ylim([0, 100]);

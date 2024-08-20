@@ -28,7 +28,7 @@ for metricIdx = 1:length(metricNames)
         maxValue = -inf;
         maxTime = 0;
         maxMethodIndex = 0;
-
+        
         for i = 1:height(resultsTable)
             if isfield(resultsTable.Metrics(i), metricNames{metricIdx})
                 currentMetrics = resultsTable.Metrics(i).(metricNames{metricIdx});
@@ -76,11 +76,12 @@ for metricIdx = 1:length(metricNames)
         end
         
         if roiIdx == length(roi_labels)
-            ylabel(['LIs ', metricNames{metricIdx}, ' (MEG vs. fMRI)']);
+            %             ylabel(['LIs ', metricNames{metricIdx}, ' (MEG vs. fMRI)']);
+            ylabel([metricNames{metricIdx}]);
             xlabel('Time (sec)');
         end
-        legend(resultsTable.Method, 'Location', 'southoutside', 'NumColumns', 2, 'Orientation', 'horizontal');
-               
+        lgd = legend(resultsTable.Method, 'Location', 'southout', 'NumColumns', 2, 'Orientation', 'horizontal');        
+        
         title(roi_labels{roiIdx});
         box off;
         %         axis square
@@ -89,10 +90,11 @@ for metricIdx = 1:length(metricNames)
     
     % Super title for the entire figure
     sgtitle([metricNames{metricIdx}, ' Analysis']);
-    set(gcf, 'Position', [1000, 400, 350, 800]);
+    set(gcf, 'Position', [1000, 400, 350, 1100]);
     
     cfg = []; cfg.outdir = save_dir; filename = [metricNames{metricIdx}, ' rois']; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg);
     close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
-
+    
 end
 disp(['saved as, ', filename])
+
