@@ -22,13 +22,15 @@ flags.plot_atlasnetworks = 0;
 %% HCP Atlas
 src_fname = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/cortex_pial_low.fs';
 data_save_dir = '/data/MEG/Research/ECP/Semantic_Decision/Results_prestim';
-% glass_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_symmetrical_final_updated.mat';
 glass_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/Best/scout_mmp_in_mni_symmetrical_final_updated.mat';
 
 glass_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/Glasser';
 
 cfg = struct('src_fname', src_fname, 'glass_dir', glass_dir, 'glass_atlas', glass_atlas, 'plotflag', 0);
-Data_hcp_atlas = ecpfunc_hcp_atlas2(cfg);
+Data_hcp_atlas = ecpfunc_hcp_atlas3(cfg);
+
+%% SAVE ATLAS NETWORKS
+cfg = []; cfg.glass_dir = glass_dir; cfg.Data_hcp_atlas = Data_hcp_atlas; ecpfunc_hcp_atlas_save(cfg);
 
 %%
 % Lateral network

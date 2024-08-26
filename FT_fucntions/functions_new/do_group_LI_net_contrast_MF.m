@@ -52,7 +52,7 @@ else
         cfg.Threshtype = Threshtype;
         cfg.doavg = doavg;
         cfg.parcellaion = 1;
-        cfg.math = cfg_main.math; 'rectify'; % 'db';
+        cfg.math = cfg_main.math; %'raw'; % 'db';
         
         for i=1:length(sFiles_in)
             pause(0.1);

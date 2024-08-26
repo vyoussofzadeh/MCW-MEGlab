@@ -104,51 +104,41 @@ end
 LI_analysis = input('');
 
 %%
-datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data';
-BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data_full';
-
-cfg = [];
-cfg.protocol = protocol;
-cfg.datadir = datadir;
-cfg.BS_data_dir = BS_data_dir;
-
-switch LI_analysis
-    case {1,5}
-        cfg.BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data';
-        %         cfg.datamask = 'wDICS_baseline_18_4_50ms';
-        cfg.datatag = 'wDICS_baseline_18_4';
-        S_data = ecpfunc_read_sourcemaps_dics(cfg);
-    case 2
-        %         cfg.datamask = 'wDICS_18_4_50ms';
-        %         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
-        
-        cfg.BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data';
-        cfg.datatag = 'wDICS_contrast_18_4';
-        S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
-        
-    case 3
-        cfg.datamask = fullfile('./Group_analysis/LCMV/results_average*.mat');
-        S_data = ecpfunc_read_sourcemaps(cfg);
-    case 6
-        cfg.datamask = 'wDICS_18_4_50ms';
-        S_data = ecpfunc_read_sourcemaps_prestim(cfg);
-    case 7
-        cfg.datamask = 'dSPM_contrast';
-        S_data = ecpfunc_read_sourcemaps_contrast(cfg);
-    case 8
-        cfg.datamask = 'wDICS_18_4_presim500ms';
-        S_data = ecpfunc_read_sourcemaps_prestim(cfg);
-end
-
-
-
-
-
-
-
-
-
-
+% datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data';
+% BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data_full';
+% 
+% cfg = [];
+% cfg.protocol = protocol;
+% cfg.datadir = datadir;
+% cfg.BS_data_dir = BS_data_dir;
+% 
+% switch LI_analysis
+%     case {1,5}
+%         cfg.BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data';
+%         %         cfg.datamask = 'wDICS_baseline_18_4_50ms';
+%         cfg.datatag = 'wDICS_baseline_18_4';
+%         S_data = ecpfunc_read_sourcemaps_dics(cfg);
+%     case 2
+%         %         cfg.datamask = 'wDICS_18_4_50ms';
+%         %         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
+%         
+%         cfg.BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data';
+%         cfg.datatag = 'wDICS_contrast_18_4';
+%         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
+%         
+%     case 3
+%         cfg.datamask = fullfile('./Group_analysis/LCMV/results_average*.mat');
+%         S_data = ecpfunc_read_sourcemaps(cfg);
+%     case 6
+%         cfg.datamask = 'wDICS_18_4_50ms';
+%         S_data = ecpfunc_read_sourcemaps_prestim(cfg);
+%     case 7
+%         cfg.datamask = 'dSPM_contrast';
+%         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
+%     case 8
+%         cfg.datamask = 'wDICS_18_4_presim500ms';
+%         S_data = ecpfunc_read_sourcemaps_prestim(cfg);
+% end
 
 
 datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data';
@@ -327,11 +317,13 @@ cfg.linterval = 0.15;
 % cfg.linterval = 0.1;
 wi  = do_time_intervals(cfg);
 
-for startTime = wi
-    endTime = startTime + interval; % Define the end time of the current window
+sFiles = sFiles_mean;
+
+for startTime = 1:length(wi)
+%     endTime = startTime + interval; % Define the end time of the current window
     % Ensure the time is in seconds for the Brainstorm process
-    startTimeSec = wi;
-    endTimeSec = endTime;
+    startTimeSec = wi(startTime,1);
+    endTimeSec = wi(startTime,2);
     
     disp([startTimeSec, endTimeSec])
     % Process: MEAN: [startTimeSec, endTimeSec], abs
@@ -367,34 +359,34 @@ end
 % 
 % sFiles = {'Group_analysis/wDICS_18_4_presim500ms/results_average_240304_1523.mat'};
 
-sFiles = sFiles_mean;
-
-timeWindowStart = -0.5; % Start time in ms
-timeWindowEnd = 0; % End time in ms
-interval = .25; % Interval in ms
-
-
-
-%%
-% Convert ms to seconds for Brainstorm functions
-for startTime = timeWindowStart: interval: timeWindowEnd
-    endTime = startTime + interval; % Define the end time of the current window
-    % Ensure the time is in seconds for the Brainstorm process
-    startTimeSec = startTime;
-    endTimeSec = endTime;
-    
-    disp([startTimeSec, endTimeSec])
-    % Process: MEAN: [startTimeSec, endTimeSec], abs
-    bst_process('CallProcess', 'process_average_time', sFiles, [], ...
-        'timewindow', [startTimeSec, endTimeSec], ...
-        'avg_func', 'mean', ...  % Arithmetic average: mean(x)
-        'overwrite', 0, ...
-        'source_abs', 1);
-    
-    pause(2)
-    
-    % Optionally, you can add commands here to save or process the output
-end
+% sFiles = sFiles_mean;
+% 
+% timeWindowStart = -0.5; % Start time in ms
+% timeWindowEnd = 0; % End time in ms
+% interval = .25; % Interval in ms
+% 
+% 
+% 
+% %%
+% % Convert ms to seconds for Brainstorm functions
+% for startTime = timeWindowStart: interval: timeWindowEnd
+%     endTime = startTime + interval; % Define the end time of the current window
+%     % Ensure the time is in seconds for the Brainstorm process
+%     startTimeSec = startTime;
+%     endTimeSec = endTime;
+%     
+%     disp([startTimeSec, endTimeSec])
+%     % Process: MEAN: [startTimeSec, endTimeSec], abs
+%     bst_process('CallProcess', 'process_average_time', sFiles, [], ...
+%         'timewindow', [startTimeSec, endTimeSec], ...
+%         'avg_func', 'mean', ...  % Arithmetic average: mean(x)
+%         'overwrite', 0, ...
+%         'source_abs', 1);
+%     
+%     pause(2)
+%     
+%     % Optionally, you can add commands here to save or process the output
+% end
 
 % After the loop, you may want to finalize the report or save the last state
 % of sFiles, depending on your requirements.

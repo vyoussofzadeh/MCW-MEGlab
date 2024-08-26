@@ -22,11 +22,27 @@ MIN_NUM_THRESH_VOXELS = round(5 / RESAMPLE_RATIO);
 %%
 tmp = load(fullfile(cfg_main.BS_data_dir, sinput)); tmp.ImageGridAmp = tmp.Value;
 
+idx_LR = [idx_L,idx_R];
+
 switch cfg_main.math
     case 'db'
-        tmp.ImageGridAmp =  10*log10(tmp.ImageGridAmp);
-    case 'rectify'
+        Fdata = tmp.ImageGridAmp; tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
+        Fdata = 10 .* log10(abs(bst_bsxfun(@rdivide, Fdata, meanBaseline)));
+        tmp.ImageGridAmp = Fdata;
         tmp.ImageGridAmp(tmp.ImageGridAmp < 0) = 0;
+    case 'raw'
+        %         tmp.ImageGridAmp(tmp.ImageGridAmp < 0) = 0;
+    case 'rectif'
+        Fdata = tmp.ImageGridAmp;
+        Fdata(Fdata < 0) = 0;
+%         Fdata = Fdata + 0.1;
+        tmp.ImageGridAmp = Fdata;
+    case 'rectif_bslnormal'
+        Fdata = tmp.ImageGridAmp(idx_LR,:);
+        Fdata(Fdata < 0) = 0;
+        tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
+        Fdata = Fdata./meanBaseline;
+        tmp.ImageGridAmp(idx_LR,:) = Fdata;
 end
 
 %%
@@ -169,7 +185,7 @@ if cfg_main.fplot ==1
     set(gcf, 'Position', [1000, 400, 1000, 300]);
     
     xlabel('Mean Temporal Windows (sec)');
-    title(['Bootstrap']);    
+    title(['Bootstrap']);
     set(gca, 'color', 'none'); % Transparent background
     
 end

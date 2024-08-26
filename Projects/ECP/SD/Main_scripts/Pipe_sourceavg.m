@@ -119,12 +119,12 @@ switch LI_analysis
         cfg.datatag = 'wDICS_baseline_18_4';
         S_data = ecpfunc_read_sourcemaps_dics(cfg);
     case 2
-        %         cfg.datamask = 'wDICS_18_4_50ms';
-        %         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
-        
-        cfg.BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data';
-        cfg.datatag = 'wDICS_contrast_18_4';
+        cfg.datatag = 'wDICS_18_4_50ms';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
+        
+%         cfg.BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data';
+%         cfg.datatag = 'wDICS_contrast_18_4';
+%         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
         
     case 3
         cfg.datamask = fullfile('./Group_analysis/LCMV/results_average*.mat');
@@ -138,46 +138,6 @@ switch LI_analysis
     case 8
         cfg.datamask = 'wDICS_18_4_presim500ms';
         S_data = ecpfunc_read_sourcemaps_prestim(cfg);
-end
-
-
-
-
-
-
-
-
-
-
-
-
-datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data';
-BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data_full';
-
-cfg = [];
-cfg.protocol = protocol;
-cfg.datadir = datadir;
-cfg.BS_data_dir = BS_data_dir;
-
-switch LI_analysis
-    case {1,5}
-        cfg.datatag = 'wDICS_baseline_18_4_50ms';
-        S_data = ecpfunc_read_sourcemaps_dics(cfg);
-    case 2
-        cfg.datatag = 'wDICS_18_4_50ms';
-        S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
-    case 3
-        cfg.datamask = fullfile('./Group_analysis/LCMV/results_average*.mat');
-        S_data = ecpfunc_read_sourcemaps(cfg);
-%     case 4
-%         cfg.datamask = fullfile('./Group_analysis/LCMV/results_abs*.mat');
-%         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
-    case 6
-        cfg.datatag = 'wDICS_contrast_18_4_50ms';
-        S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
-    case 7
-        cfg.datatag = 'dSPM_contrast';
-        S_data = ecpfunc_read_sourcemaps_contrast(cfg);
 end
 
 %% TLE side (PT only)
@@ -268,10 +228,10 @@ switch LI_analysis
         
     case {2, 6, 7, 8}
         
-%         % Process: Extract time: [0.000s,2.100s]
-%         sFiles = bst_process('CallProcess', 'process_extract_time', sub_demog_data.sFiles_patn(1:2), [], ...
-%             'timewindow', [7.21644966e-16, 0.3], ...
-%             'overwrite',  0);
+        %         % Process: Extract time: [0.000s,2.100s]
+        %         sFiles = bst_process('CallProcess', 'process_extract_time', sub_demog_data.sFiles_patn(1:2), [], ...
+        %             'timewindow', [7.21644966e-16, 0.3], ...
+        %             'overwrite',  0);
         
         % PT
         % Process: Average: Everything
@@ -282,38 +242,50 @@ switch LI_analysis
             'Comment', 'avg_patn', ...
             'scalenormalized', 0);
         
-%         % Process: t-test zero [-500ms,1950ms]          H0:(X=0), H1:(X<>0)
-%         bst_process('CallProcess', 'process_test_parametric1', sub_demog_data.sFiles_patn, [], ...
-%             'timewindow',    [-0.5, 1.95], ...
-%             'scoutsel',      {}, ...
-%             'scoutfunc',     1, ...  % Mean
-%             'isnorm',        0, ...
-%             'avgtime',       0, ...
-%             'Comment',       '', ...
-%             'Comment', 'stats_patn', ...
-%             'test_type',     'ttest_onesample', ...  % One-sample Student's t-test    X~N(m,s)t = mean(X) ./ std(X) .* sqrt(n)      df=n-1
-%             'tail',          'two');  % Two-tailed
         
-%         % HC
-%         % Process: Average: Everything
-%         bst_process('CallProcess', 'process_average', sub_demog_data.sFiles_ctrl, [], ...
-%             'avgtype',         1, ...  % Everything
-%             'avg_func',        1, ...  % Arithmetic average:  mean(x)
-%             'weighted',        0, ...
-%             'Comment', 'avg_ctrl', ...
-%             'scalenormalized', 0);
-%         
-%         % Process: t-test zero [-500ms,1950ms]          H0:(X=0), H1:(X<>0)
-%         bst_process('CallProcess', 'process_test_parametric1', sub_demog_data.sFiles_ctrl, [], ...
-%             'timewindow',    [-0.5, 1.95], ...
-%             'scoutsel',      {}, ...
-%             'scoutfunc',     1, ...  % Mean
-%             'isnorm',        0, ...
-%             'avgtime',       0, ...
-%             'Comment',       '', ...
-%             'Comment', 'stats_ctrl', ...
-%             'test_type',     'ttest_onesample', ...  % One-sample Student's t-test    X~N(m,s)t = mean(X) ./ std(X) .* sqrt(n)      df=n-1
-%             'tail',          'two');  % Two-tailed
+        % Process: Run Matlab command
+        sFiles_mean_norm = bst_process('CallProcess', 'process_matlab_eval', sFiles_mean, [], ...
+            'matlab',    ['% Available variables: Data, TimeVector' 10 '' 10 'Data = 20*Data;' 10 ''], ...
+            'overwrite', 0);
+        
+        
+        % Process: Downsample to atlas
+        sFiles_mean_atlas = bst_process('CallProcess', 'process_source_atlas', sFiles_mean_norm, [], ...
+            'atlas',   [], ...
+            'isnorm',  0);
+        
+        %         % Process: t-test zero [-500ms,1950ms]          H0:(X=0), H1:(X<>0)
+        %         bst_process('CallProcess', 'process_test_parametric1', sub_demog_data.sFiles_patn, [], ...
+        %             'timewindow',    [-0.5, 1.95], ...
+        %             'scoutsel',      {}, ...
+        %             'scoutfunc',     1, ...  % Mean
+        %             'isnorm',        0, ...
+        %             'avgtime',       0, ...
+        %             'Comment',       '', ...
+        %             'Comment', 'stats_patn', ...
+        %             'test_type',     'ttest_onesample', ...  % One-sample Student's t-test    X~N(m,s)t = mean(X) ./ std(X) .* sqrt(n)      df=n-1
+        %             'tail',          'two');  % Two-tailed
+        
+        %         % HC
+        %         % Process: Average: Everything
+        %         bst_process('CallProcess', 'process_average', sub_demog_data.sFiles_ctrl, [], ...
+        %             'avgtype',         1, ...  % Everything
+        %             'avg_func',        1, ...  % Arithmetic average:  mean(x)
+        %             'weighted',        0, ...
+        %             'Comment', 'avg_ctrl', ...
+        %             'scalenormalized', 0);
+        %
+        %         % Process: t-test zero [-500ms,1950ms]          H0:(X=0), H1:(X<>0)
+        %         bst_process('CallProcess', 'process_test_parametric1', sub_demog_data.sFiles_ctrl, [], ...
+        %             'timewindow',    [-0.5, 1.95], ...
+        %             'scoutsel',      {}, ...
+        %             'scoutfunc',     1, ...  % Mean
+        %             'isnorm',        0, ...
+        %             'avgtime',       0, ...
+        %             'Comment',       '', ...
+        %             'Comment', 'stats_ctrl', ...
+        %             'test_type',     'ttest_onesample', ...  % One-sample Student's t-test    X~N(m,s)t = mean(X) ./ std(X) .* sqrt(n)      df=n-1
+        %             'tail',          'two');  % Two-tailed
         
 end
 
@@ -327,7 +299,33 @@ cfg.linterval = 0.15;
 % cfg.linterval = 0.1;
 wi  = do_time_intervals(cfg);
 
-sFiles = sFiles_mean;
+%%
+
+
+sFiles = sFiles_mean_norm;
+
+for startTime = 1:length(wi)
+%     endTime = startTime + interval; % Define the end time of the current window
+    % Ensure the time is in seconds for the Brainstorm process
+    startTimeSec = wi(startTime,1);
+    endTimeSec = wi(startTime,2);
+    
+    disp([startTimeSec, endTimeSec])
+    % Process: MEAN: [startTimeSec, endTimeSec], abs
+    bst_process('CallProcess', 'process_average_time', sFiles, [], ...
+        'timewindow', [startTimeSec, endTimeSec], ...
+        'avg_func', 'mean', ...  % Arithmetic average: mean(x)
+        'overwrite', 0, ...
+        'source_abs', 1);
+    
+    pause(2)
+    
+    % Optionally, you can add commands here to save or process the output
+end
+
+%%
+
+sFiles = sFiles_mean_atlas;
 
 for startTime = 1:length(wi)
 %     endTime = startTime + interval; % Define the end time of the current window

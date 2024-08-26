@@ -13,18 +13,53 @@ doavg = cfg_main.doavg;
 tmp_1 = load(fullfile(cfg_main.BS_data_dir, sinput{1})); tmp_1.ImageGridAmp = tmp_1.Value;
 tmp_2 = load(fullfile(cfg_main.BS_data_dir, sinput{2})); tmp_2.ImageGridAmp = tmp_2.Value;
 
+idx_LR = [idx_L,idx_R];
+
+
 % disp({tmp_1.Comment; tmp_2.Comment})
 
 tmp = tmp_1;
 
 switch cfg_main.math
     case 'db'
-        tmp.ImageGridAmp = 10*log10(tmp_1.ImageGridAmp) - 10*log10(tmp_2.ImageGridAmp); % dB coversion
+        tmp.ImageGridAmp = 10 * log10(tmp_1.ImageGridAmp) - 10 * log10(tmp_2.ImageGridAmp); tmp.ImageGridAmp(tmp.ImageGridAmp < 0) = 0;
+        
+    case 'db_baseline'
+        Fdata1 = tmp_1.ImageGridAmp; tidx = tmp_1.Time < 0; meanBaseline = mean(Fdata1(:,tidx),2);
+        Fdata1 = 10 .* log10(abs(bst_bsxfun(@rdivide, Fdata1, meanBaseline)));
+        
+        Fdata2 = tmp_2.ImageGridAmp; tidx = tmp_2.Time < 0; meanBaseline = mean(Fdata2(:,tidx),2);
+        Fdata2 = 10 .* log10(abs(bst_bsxfun(@rdivide, Fdata2, meanBaseline)));
+        
+        tmp.ImageGridAmp = Fdata1 - Fdata2;
+        tmp.ImageGridAmp(tmp.ImageGridAmp < 0) = 0;
+        
     case 'diff'
         tmp.ImageGridAmp = tmp_1.ImageGridAmp - tmp_2.ImageGridAmp;
+        
     case 'rec_diff'
         tmp.ImageGridAmp = tmp_1.ImageGridAmp - tmp_2.ImageGridAmp;
         tmp.ImageGridAmp(tmp.ImageGridAmp < 0) = 0;
+        %         tmp.ImageGridAmp = tmp.ImageGridAmp + 0.1;
+        
+    case 'rec_diff_mbsl'
+        tmp.ImageGridAmp(idx_LR,:) = tmp_1.ImageGridAmp(idx_LR,:) - tmp_2.ImageGridAmp(idx_LR,:);
+        Fdata = tmp.ImageGridAmp(idx_LR,:); Fdata(Fdata < 0) = 0;
+        tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
+        Fdata = Fdata./meanBaseline; tmp.ImageGridAmp(idx_LR,:) = Fdata;
+    case 'bsl_diff_rec'
+        Fdata = tmp_1.ImageGridAmp(idx_LR,:);
+        tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2); Fdata = Fdata./meanBaseline; % bsl norm
+        tmp_1.ImageGridAmp(idx_LR,:) = Fdata;
+        
+        Fdata = tmp_2.ImageGridAmp(idx_LR,:);
+        tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2); Fdata = Fdata./meanBaseline; % bsl norm
+        tmp_2.ImageGridAmp(idx_LR,:) = Fdata;
+        
+        tmp.ImageGridAmp(idx_LR,:) = tmp_1.ImageGridAmp(idx_LR,:) - tmp_2.ImageGridAmp(idx_LR,:);
+        Fdata = tmp.ImageGridAmp(idx_LR,:);
+        Fdata(Fdata < 0) = 0;
+        tmp.ImageGridAmp(idx_LR,:) = Fdata;
 end
 
 LI = [];

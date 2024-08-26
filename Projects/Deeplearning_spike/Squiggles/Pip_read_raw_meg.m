@@ -8,13 +8,19 @@ clear; clc, close('all'); warning off
 
 %% FieldTrip toolbox
 restoredefaultpath % reset the default path
-ft_path ='/opt/matlab_toolboxes/ft_packages/Stable_version/fieldtrip-master';
+% ft_path ='/opt/matlab_toolboxes/ft_packages/Stable_version/fieldtrip-master';
+ft_path = '/opt/matlab_toolboxes/ft_packages/fieldtrip_latest';
 addpath(ft_path);
 ft_defaults
 
 addpath('/data/MEG/Research/awang/Scripts/func')
 
-datadir = '/data/MEG/Research/awang/Epil_annotated_data/raw_data';
+datadir = '/data/MEG/Research/SpikeDectection/Epil_annotated_data/raw_data';
+
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/helper')
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/Deeplearning_spike/Squiggles/func')
+
+addpath(genpath('/opt/matlab_toolboxes/mne_matlab/matlab'))
 
 % if exist(savedir, 'file') == 0, mkdir(savedir);  end
 
@@ -26,12 +32,14 @@ d = rdir([datadir,'/**/*.fif']);
 clear subj run sub_run datafile
 for i=1:length(d)
     [pathstr, name] = fileparts(d(i).name);
-    tkz = tokenize(pathstr,'_'); tkz1 = tokenize(tkz{end-2},'/');
-    sub_run{i} = [tkz1{2}, '_', tkz{end-1},'_', name];
+    tkz = tokenize(pathstr,'_'); 
+    tkz1 = tokenize(tkz{end-2},'/');
+    sub_run{i} = [num2str(i), ':', tkz1{2}, '_', tkz{end-1},'_', tkz{end}];
     datafile{i} = d(i).name;
 end
-[sub_run_unq,IA,IC] = unique(sub_run);
-disp(sub_run_unq')
+% [sub_run_unq,IA,IC] = unique(sub_run);
+% disp(sub_run_unq')
+disp(sub_run')
 
 %%
 disp('Enter data sub')
