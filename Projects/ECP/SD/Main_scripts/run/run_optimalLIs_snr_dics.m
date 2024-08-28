@@ -43,15 +43,21 @@ for j = 1:length(idcx)
         %         [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_rSNR(rSNR_left, rSNR_right, wi, NaN, interval(1), interval(2));
         
         %         [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_rSNR(rSNR_left, rSNR_right, wi, 1:10, lowerBound, upperBound);
-        %         [optimalIndices, maxSNR_opt] = findIndividualOptimalTimePoints_dominantHemisphere(rSNR_left, rSNR_right, wi, 19:20, lowerBound, upperBound);
-        %         [optimalIndices, maxAUC_opt] = findIndividualOptimalTimePoints_maxAUC(rSNR_left, rSNR_right, wi, 19:20, lowerBound, upperBound);
-        %         [optimalIndices, maxAUC_opt] = findIndividualOptimalTimePoints_interval_rSNR_MaxInd(rSNR_left, rSNR_right, wi, 19:20, lowerBound, upperBound);        
+        %                
         
         switch opt_method
             case 'rsnr'
                 [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_rSNR(rSNR_left, rSNR_right, wi, NaN, lowerBound, upperBound);
             case 'LI'
                 [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval(MEG_LI, fMRI_LI, wi, NaN, lowerBound, upperBound);
+            case 'AUC'
+                [optimalIndices, maxAUC_opt] = findIndividualOptimalTimePoints_maxAUC(rSNR_left, rSNR_right, wi, NaN, lowerBound, upperBound);
+            case 'DomH'
+                [optimalIndices, maxSNR_opt] = findIndividualOptimalTimePoints_dominantHemisphere(rSNR_left, rSNR_right, wi, NaN, lowerBound, upperBound);
+            case 'rsnrmax'
+                [optimalIndices, maxAUC_opt] = findIndividualOptimalTimePoints_interval_rSNR_MaxInd(rSNR_left, rSNR_right, wi, NaN, lowerBound, upperBound);
+            case 'wrsnr'
+                [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_WrSNR(rSNR_left, rSNR_right, wi, NaN, lowerBound, upperBound);
         end
         
         optimalInterval = wi(optimalIndices,:);

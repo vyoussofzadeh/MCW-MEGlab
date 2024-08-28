@@ -22,7 +22,7 @@ for i=1:length(LI_method_label)
     % Correlation Analysis
     cfg.thre = MEG_thre;
     cfg.ternary = 0;
-    [megLI_sub, ~, correlationMetrics] = do_MEG_fMRI_corr_contrast_rois2(cfg);
+    [megLI_sub, fmri_LIs, correlationMetrics] = do_MEG_fMRI_corr_contrast_rois2(cfg);
     
     % Concordance Analysis
     cfg.thre = MEG_thre;

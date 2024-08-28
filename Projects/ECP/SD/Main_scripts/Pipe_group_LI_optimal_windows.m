@@ -281,20 +281,46 @@ run_table_fixedinterval
 run_plot_fixedinterval
 
 %% Dynamic interval analysis
-clc
+% clc
 
 plot_indiv_LI = 0; plot_rSNR = 0; plot_rSNR_LI = 0;
 
 % lowerBound = 0.3; upperBound = 1.3;
-lowerBound = 0.45; upperBound = 1.2;
-lowerBound = 0.5; upperBound = 1.4;
-% lowerBound = 0.3; upperBound = 1.3;
+% lowerBound = 0.45; upperBound = 1.2;
+lowerBound = 0.5; upperBound = 1.5;
+lowerBound = 0.5; upperBound = 1.6;
+lowerBound = 0.90; upperBound = 1.6;
+
+% lowerBound = 0.45; upperBound = 0.75;
+
 
 % opt_method = 'LI'; %'rsnr'
 opt_method = 'rsnr';
+% opt_method = 'AUC';
+% opt_method = 'DomH';
+% opt_method = 'rsnrmax';
+% opt_method = 'wrsnr';
 
 run_optimalLIs_snr_dics
 % run_optimalLIs
+
+%%
+cfg  = [];
+cfg.fmri_LIs_val = fmri_LIs_val; cfg.wi = wi;
+cfg.sub_MF_pt = sub_MF_pt;
+cfg.LI_method_label = LI_method_label;
+cfg.LI_pt_val_new = LI_pt_val_new;
+cfg.fmri_LIs = fmri_LIs;
+cfg.IB_megfmri = IB_megfmri;
+cfg.rSNR_new = rSNR_new;
+cfg.opt_method = opt_method; cfg.lowerBound = lowerBound; cfg.upperBound = upperBound;
+cfg.MEG_thre = MEG_thre; cfg.fMRI_thre = fMRI_thre;
+cfg.LI_method_labels = LI_method_labels;
+cfg.net_sel_mutiple_label = net_sel_mutiple_label;
+cfg.plot_indiv_LI = plot_indiv_LI;
+cfg.plot_rSNR = plot_rSNR; cfg.plot_rSNR_LI = plot_rSNR_LI;
+cfg.idcx =  [1, 2, 6, 11];
+MConcordance = func_run_optimalLIs_snr_dics(cfg);
 
 %%
 %- plot_compare_fixed_opt_methods

@@ -50,7 +50,9 @@ end
 concordance = (concordantCount / numSubjects) * 100;
 
 [groupCorrelation, pval] = corr(optimalMEG_LI', fMRI_LI, 'Rows', 'complete');
+%         groupCorrelation = corr2(optimalMEG_LI', fMRI_LI);
 
-disp(['Group-level concordance between MEG LI at optimal time points and fMRI LI: ', num2str(concordance), '%']);
+
+% disp(['Group-level concordance between MEG LI at optimal time points and fMRI LI: ', num2str(concordance), '%']);
 
 end
