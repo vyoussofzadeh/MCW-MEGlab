@@ -12,7 +12,8 @@ end
 for subj = 1:numSubjects
     maxDiff = -inf; % Initialize maximum difference to negative infinity
     optimalTimePointIdx = NaN; % Initialize index of optimal time point
-    timePointMid = (timePoints(:,1) + timePoints(:,2)) / 2; % Midpoint of each time interval
+%     timePointMid = (timePoints(:,1) + timePoints(:,2)) / 2; % Midpoint of each time interval
+    timePointMid = (timePoints(:,1));
     
     for i = 1:length(timePointMid)
         % Avoiding division by zero or extreme values with epsilon
@@ -52,18 +53,18 @@ for subj = 1:numSubjects
                 subplot(ceil(length(subjectsForPlot) / 2), 2, find(subjectsForPlot == subj)); % Adjust for 2 columns layout
                 set(gcf, 'Position', [200, 400, 800, 400]);
             end
-            % Plot individual SNR lines
             yyaxis left; % Left Y-axis for original SNR values
-            p1 = plot(timePointMid, rSNR_left(subj, :), 'DisplayName', 'rSNR Left', 'LineWidth', 1.5); % Plot left SNR in green
+            p1 = plot(timePointMid, rSNR_left(subj, :), 'DisplayName', 'rSNR Left', 'LineWidth', 1.5); % Plot left SNR in Deep Teal
             hold on
-            p2 = plot(timePointMid, rSNR_right(subj, :), 'DisplayName', 'rSNR Right', 'LineWidth', 1.5); % Plot right SNR in red
+            p2 = plot(timePointMid, rSNR_right(subj, :), 'color', 'r', 'DisplayName', 'rSNR Right', 'LineWidth', 1.5); % Plot right SNR in Warm Orange
             
             yyaxis right; % Right Y-axis for log scale values
+            set(gca, 'ycolor', 'k'); % Set y-axis color back to black for left axis
             %             val = log((rSNR_left(subj, :) + epsilon) ./ (rSNR_right(subj, :) + epsilon)).^2;
             %             val = ((rSNR_left(subj, :) + epsilon) ./ (rSNR_right(subj, :) + epsilon)).^2;
             val = abs((rSNR_left(subj, :)) - (rSNR_right(subj, :)));
             
-            p3 = plot(timePointMid, val, 'DisplayName', 'abs (Left - Right)', 'LineWidth', 1.0); % Plot difference as a blue line
+            p3 = plot(timePointMid, val, 'DisplayName', 'abs (Left - Right)', 'LineWidth', 1.5, 'color', 'k'); % Plot difference as a blue line
             
             % Highlight the optimal time point
             scatter(timePointMid(optimalTimePointIdx), val(optimalTimePointIdx), 'ko', 'MarkerFaceColor', 'k', 'DisplayName', 'Optimal Point'); % Mark optimal point as a black circle
@@ -71,9 +72,8 @@ for subj = 1:numSubjects
             % Plot vertical lines for the lower and upper bounds
             xline(lowerBound, '--k', 'DisplayName', 'Lower Bound');
             xline(upperBound, '--k', 'DisplayName', 'Upper Bound');
-            
+            xlim([timePointMid(1) timePointMid(end)])
             yyaxis left; % Switch back to left axis for common settings
-            set(gca, 'ycolor', 'k'); % Set y-axis color back to black for left axis
             title(sprintf('S%d|Max Mean:%.1f', subj, maxDiff_opt(subj)));
             box off;
             set(gca, 'color', 'none');

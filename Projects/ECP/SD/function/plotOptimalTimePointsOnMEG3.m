@@ -2,7 +2,8 @@ function plotOptimalTimePointsOnMEG3(rSNR_MEG, MEG_LI, fMRI_LI, wi, optimalIndic
 
 numSubjects = size(MEG_LI, 1);
 
-timePoints = mean(wi,2);
+% timePoints = mean(wi,2);
+timePoints = wi(:,1);
 
 % Create a figure to hold all subplots
 figure;
@@ -24,6 +25,7 @@ for subj = 1:numSubjects
     xline(lowerBound, 'Color', [0.5 0 0.5], 'LineStyle', '-'); % Grey line for upper boundary
     xline(upperBound, 'Color', [0.5 0 0.5], 'LineStyle', '-'); % Grey line for lower boundary
     
+    xlim([timePoints(1) timePoints(end)])
 %     % Check if the current subject is a discordant sample
 %     if ismember(subj, discordantSamples)
 %         % Highlight the optimal time point for discordant samples

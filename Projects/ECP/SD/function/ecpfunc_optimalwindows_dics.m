@@ -1,4 +1,4 @@
-function   MConcordance = func_run_optimalLIs_snr_dics(cfg_main)
+function   [MConcordance, BestLIMethod, MCor] = ecpfunc_optimalwindows_dics(cfg_main)
 
 %%
 fmri_LIs_val = cfg_main.fmri_LIs_val;
@@ -18,6 +18,13 @@ LI_method_labels = cfg_main.LI_method_labels;
 net_sel_mutiple_label = cfg_main.net_sel_mutiple_label;
 plot_indiv_LI = cfg_main.plot_indiv_LI;
 idcx = cfg_main.idcx;
+
+%% Check if bounds are valid
+if cfg_main.lowerBound >= cfg_main.upperBound
+    disp('Error: lowerBound must be less than upperBound.');
+    MConcordance = 0;  % Assign default or error value to output
+    return;  % Exit the function if bounds are not valid
+end
 
 %%
 % Initialize variables
@@ -74,6 +81,9 @@ for j = 1:length(idcx)
                 [optimalIndices, ~] = findIndividualOptimalTimePoints_interval(MEG_LI, fMRI_LI, wi, NaN, lowerBound, upperBound);
         end
         
+%         disp(optimalIndices)
+%         disp([lowerBound, upperBound])
+%         
         optimalInterval = wi(optimalIndices,:);
         meanOptimalTime = mean(optimalInterval);
         
@@ -105,21 +115,20 @@ summaryTableDynamic_save.Correlation = round(summaryTableDynamic_save.Correlatio
 summaryTableDynamic_save.Concordance = round(summaryTableDynamic_save.Concordance, 2);
 summaryTableDynamic_save.mean_Optimal_Time = round(summaryTableDynamic_save.mean_Optimal_Time, 2);
 
-% Save summary table
-% writetable(summaryTableDynamic_save, 'LI_Metrics_Summary_Dynamic.csv');
 
-% % Save dynamic summary table as text file
-% fid = fopen('LI_Metrics_Summary_Dynamic.txt', 'wt');
-% fprintf(fid, '%s\t%s\t%s\t%s\t%s\n', summaryTableDynamic_save.Properties.VariableNames{:});
+%% MAX conc
+% Determine the maximum concordance and the method that produced it
+[MConcordance, maxIdx] = max(summaryTableDynamic.Concordance);
+BestLIMethod = summaryTableDynamic.LI_Method{maxIdx};
+% MCor = summaryTableDynamic.Correlation(maxIdx);
+[MCor, ~] = max(summaryTableDynamic.Correlation);
+% MConcordance = max(summaryTableDynamic_save.Correlation);
 
-disp([lowerBound, upperBound])
 
-% fclose(fid);
-disp('Summary table for dynamic intervals.');
-% disp(summaryTableDynamic_save)
-
-MConcordance = mean(summaryTableDynamic_save.Concordance);
-% MConcordance = max(summaryTableDynamic_save.Concordance);
-
+%% MAX Corr
+% [MConcordance, maxIdx] = max(summaryTableDynamic.Correlation);
+% BestLIMethod = summaryTableDynamic.LI_Method{maxIdx};
+% % MCor = summaryTableDynamic.Correlation(maxIdx);
+% [MCor, ~] = max(summaryTableDynamic.Concordance);
 
 end

@@ -1,6 +1,4 @@
 
-%
-% pause, 
 close all,
 
 % Unique ROIs for iteration
@@ -73,8 +71,6 @@ disp('Dynamic interval analysis plotting completed.');
 
 
 % Plot difference between Constant and Dynamic Intervals
-% pause, 
-% close all,
 
 % Extract unique ROIs and methods
 uniqueROIs = unique(summaryTable.ROI);

@@ -24,7 +24,8 @@ end
 for subj = 1:numSubjects
     maxMEG_LI = -inf; % Initialize maximum MEG LI to negative infinity
     optimalTimePointIdx = NaN; % Initialize index of optimal time point
-    timePointMid = (timePoints(:,1) + timePoints(:,2)) / 2; % Midpoint of each time interval
+%     timePointMid = (timePoints(:,1) + timePoints(:,2)) / 2; % Midpoint of each time interval
+    timePointMid = (timePoints(:,1));
     
     for i = 1:length(timePointMid)
         % Compute the absolute MEG LI for the current time point
@@ -69,6 +70,8 @@ for subj = 1:numSubjects
             % Plot vertical lines for the lower and upper bounds
             xline(lowerBound, '--k');
             xline(upperBound, '--k');
+            
+            xlim([timePointMid(1) timePointMid(end)])
             
             hold off;
             set(gca, 'color', 'none');
