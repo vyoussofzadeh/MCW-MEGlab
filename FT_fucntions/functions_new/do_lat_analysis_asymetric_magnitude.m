@@ -36,7 +36,9 @@ for j=1:size(wi,1)
     cfg.Threshtype = cfg_main.Threshtype;
     cfg.thre = thre;
     cfg.globalmax = max(max(tmp.ImageGridAmp));
+    cfg.da_in = tmp.ImageGridAmp; % all data
     cfg.parcellaion = cfg_main.parcellaion;
+    cfg.applymean = doavg;
     [LI_clin, pow] = do_LI_magnitude(cfg);
     LI(j) = LI_clin;
     

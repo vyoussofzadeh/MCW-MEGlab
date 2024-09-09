@@ -35,7 +35,7 @@ switch cfg_main.math
     case 'rectif'
         Fdata = tmp.ImageGridAmp;
         Fdata(Fdata < 0) = 0;
-%         Fdata = Fdata + 0.1;
+        %         Fdata = Fdata + 0.1;
         tmp.ImageGridAmp = Fdata;
     case 'rectif_bslnormal'
         Fdata = tmp.ImageGridAmp(idx_LR,:);
@@ -43,6 +43,18 @@ switch cfg_main.math
         tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
         Fdata = Fdata./meanBaseline;
         tmp.ImageGridAmp(idx_LR,:) = Fdata;
+    case 'rectif_bslnormal_mean'
+        
+        Fdata_left  = mean(tmp.ImageGridAmp(idx_L,:),1);
+        Fdata_right = mean(tmp.ImageGridAmp(idx_R,:),1);
+        
+        tidx = tmp.Time < 0;
+        
+        mbsl_L = mean(Fdata_left(:,tidx),2); Fdata_left = Fdata_left./mbsl_L;
+        mbsl_R = mean(Fdata_right(:,tidx),2); Fdata_right = Fdata_right./mbsl_R;
+        
+        for j = 1:length(idx_L), tmp.ImageGridAmp(idx_L(j),:) = Fdata_left; end
+        for j = 1:length(idx_R), tmp.ImageGridAmp(idx_R(j),:) = Fdata_right; end
 end
 
 %%

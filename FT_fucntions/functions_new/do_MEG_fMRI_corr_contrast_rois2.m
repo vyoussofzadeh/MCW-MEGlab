@@ -25,9 +25,8 @@ for j=1:length(lang_id)
     crr = [];
     midx = [];
     for i=1:length(wi)
-        if length(net_sel) > 1
-            
-            mLI_sub1 = mean(LI_pt_new(net_sel,:,i));
+        if length(net_sel) > 1           
+            mLI_sub1 = nanmean(LI_pt_new(net_sel,:,i));
         else
             mLI_sub1 = (LI_pt_new(net_sel,:,i));
         end
@@ -42,7 +41,9 @@ for j=1:length(lang_id)
         tmp = fmri_LIs_val.val.(lang_id{j});
         fMRILI_sub_pt = tmp(cfg_main.idx);
         
-        crr(i,:) = corr2(megLI_sub_pt, fMRILI_sub_pt);
+        [groupCorrelation, pval] = corr(megLI_sub_pt, fMRILI_sub_pt, 'Rows', 'complete'); 
+        crr(i,:) = groupCorrelation;
+%         crr(i,:) = corr2(megLI_sub_pt, fMRILI_sub_pt);
     end
     crr_all(j,:) = crr;   
 end

@@ -13,7 +13,6 @@ tmp = load(fullfile(cfg_main.BS_data_dir, sinput)); tmp.ImageGridAmp = tmp.Value
 
 idx_LR = [idx_L,idx_R];
 
-
 switch cfg_main.math
     case 'db'
         Fdata = tmp.ImageGridAmp; tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
@@ -29,7 +28,19 @@ switch cfg_main.math
         Fdata(Fdata < 0) = 0;
         tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
         Fdata = Fdata./meanBaseline;
-        tmp.ImageGridAmp(idx_LR,:) = Fdata;
+        tmp.ImageGridAmp(idx_LR,:) = Fdata;       
+    case 'rectif_bslnormal_mean'
+        
+        Fdata_left  = mean(tmp.ImageGridAmp(idx_L,:),1);
+        Fdata_right = mean(tmp.ImageGridAmp(idx_R,:),1);
+        
+        tidx = tmp.Time < 0; 
+        
+        mbsl_L = mean(Fdata_left(:,tidx),2); Fdata_left = Fdata_left./mbsl_L;
+        mbsl_R = mean(Fdata_right(:,tidx),2); Fdata_right = Fdata_right./mbsl_R;
+        
+        for j = 1:length(idx_L), tmp.ImageGridAmp(idx_L(j),:) = Fdata_left; end
+        for j = 1:length(idx_R), tmp.ImageGridAmp(idx_R(j),:) = Fdata_right; end
 end
 
 LI = [];
@@ -55,6 +66,13 @@ for j=1:size(wi,1)
     cfg.thre = thre;
     cfg.parcellaion = cfg_main.parcellaion;
     cfg.globalmax = max(max(tmp.ImageGridAmp));
+    switch cfg_main.math
+        case 'rectif_bslnormal_mean'
+            cfg.applymean = 1;
+        otherwise
+            cfg.applymean = 0;    
+    end
+
     [LI_clin, pow] = do_LI_magnitude(cfg);
     LI(j) = LI_clin;
     
@@ -62,6 +80,9 @@ for j=1:size(wi,1)
     pow_values.left = [pow_values.left; pow.left];
     pow_values.right = [pow_values.right; pow.right];
 end
+
+% pow_values.left_org = mean(tmp.ImageGridAmp(idx_L,:),1)';
+% pow_values.right_org = mean(tmp.ImageGridAmp(idx_R,:),1)';
 
 if cfg_main.fplot ==1
     figure;
@@ -87,6 +108,13 @@ if cfg_main.fplot ==1
     xlabel('Mean Temporal Windows (sec)');
     title(['SMag']);
     set(gca, 'color', 'none'); % Transparent background
+    
+    
+    figure, plot(tmp.Time, tmp.ImageGridAmp(idx_L,:),'LineWidth',1.5); title('Left H');% Mean power for left activities
+    xlim([tmp.Time(1), tmp.Time(end)])
+    figure, plot(tmp.Time, tmp.ImageGridAmp(idx_R,:),'LineWidth',1.5); title('Right H');% Mean power for left activities
+    xlim([tmp.Time(1), tmp.Time(end)])
+
 end
 
 [~, idx_mx] = max(LI); LI_max = wi(idx_mx,:);

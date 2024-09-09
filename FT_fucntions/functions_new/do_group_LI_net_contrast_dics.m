@@ -57,7 +57,6 @@ else
             pause(0.1);
             cfg.sinput = sFiles_in{i};
             cfg.wi = wi;
-            %             [LI, wi_max, pow] = do_lat_analysis_asymetric(cfg);
             if contains(method, 'Magnitude')
                 [LI, ~, pow] = do_lat_analysis_asymetric_magnitude(cfg);
                 pow_sub(j,i,:) = pow;

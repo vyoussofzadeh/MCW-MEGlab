@@ -34,6 +34,7 @@ for j=1:size(wi,1)
     cfg.idx_R = idx_R;
     cfg.parcellaion = 0;
     cfg.Threshtype = cfg_main.Threshtype;
+    cfg.da_in = tmp.ImageGridAmp; % all data
     [LI_clin, roi_sum_cnt, roi_cnt] = do_LI_clincial(cfg);
     LI(j) = LI_clin;
     roi_count_sum(j) = roi_sum_cnt;

@@ -84,6 +84,7 @@ for j=1:size(wi,1)
 
     cfg.idx_L = idx_L;
     cfg.idx_R = idx_R;
+    cfg.applymean = 0;
     cfg.Threshtype = cfg_main.Threshtype;
     cfg.thre = thre;
     cfg.globalmax = max(max(tmp.ImageGridAmp));

@@ -36,11 +36,17 @@ ROIMax = max(LH_max, RH_max);
 % Set the threshold based on the chosen type
 switch cfg_main.Threshtype
     case 1
-        threshold = cfg_main.thre * max(ImageGridAmp(:)); % Global max threshold
+        threshold = cfg_main.thre * cfg_main.globalmax; % Global max threshold
     case 2
         threshold = cfg_main.thre * max(ImageGridAmp(:)); % Time max threshold
     case 3
         threshold = cfg_main.thre * ROIMax; % ROI max threshold
+    case 4
+        aImageGridAmp = cfg_main.da_in;
+        aLHvals = aImageGridAmp(LHscout,:); aRHvals = aImageGridAmp(RHscout,:);
+        aLH_max = max(aLHvals(:)); aRH_max = max(aRHvals(:));
+        aROIMax = max(aLH_max, aRH_max);
+        threshold = cfg_main.thre * aROIMax; % ROI max threshold, all time, ie no window
 end
 
 % Count the number of significant voxels in each hemisphere
