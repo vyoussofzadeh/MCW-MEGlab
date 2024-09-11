@@ -117,7 +117,7 @@ if plot_rSNR == 1
             rSNR_left = squeeze(rSNR_roi.left(idcx(j), :,:));
             rSNR_right = squeeze(rSNR_roi.right(idcx(j), :,:));
             if methodIdx == 1, rSNR_left = 20.*rSNR_left; rSNR_right = 20.*rSNR_right; end
-            [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_rSNR(rSNR_left, rSNR_right, wi, 1:length(rSNR_right), lowerBound, upperBound);
+            [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_rSNR2(rSNR_left, rSNR_right, fMRI_LI, wi, 1:length(rSNR_right), lowerBound, upperBound);
             sgtitle(LI_method_label(methodIdx))
             cfg = []; cfg.outdir = save_dir; filename = ['rSNR_individuals_',LI_method_label{methodIdx}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');            
         end

@@ -85,6 +85,10 @@ for j = 1:size(wi, 1)
     ImageGridAmp = downsample(ImageGridAmp',downsamplerate);
     ImageGridAmp = ImageGridAmp';
     
+    if size(ImageGridAmp,1) > 360
+        cfg_main.parcellaion = 0;
+    end
+    
     if cfg_main.parcellaion == 1
         % Extract amplitude values for left and right subregions
         LHvals = ImageGridAmp(idx_L,:);

@@ -10,8 +10,11 @@ sinput = cfg_main.sinput;
 doavg = cfg_main.doavg;
 
 %% Parcel_based (mean parcels) LI analysis
-tmp_1 = load(fullfile(cfg_main.BS_data_dir, sinput{1})); tmp_1.ImageGridAmp = tmp_1.Value;
-tmp_2 = load(fullfile(cfg_main.BS_data_dir, sinput{2})); tmp_2.ImageGridAmp = tmp_2.Value;
+tmp_1 = load(fullfile(cfg_main.BS_data_dir, sinput{1}));
+if  exist('tmp_1.Value','var'), tmp_1.ImageGridAmp = tmp_1.Value; end
+
+tmp_2 = load(fullfile(cfg_main.BS_data_dir, sinput{2})); 
+if  exist('tmp_1.Value','var'), tmp_2.ImageGridAmp = tmp_2.Value; end
 
 idx_LR = [idx_L,idx_R];
 

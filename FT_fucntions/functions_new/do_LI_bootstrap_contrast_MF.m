@@ -21,9 +21,11 @@ MIN_NUM_THRESH_VOXELS = round(5 / RESAMPLE_RATIO);
 
 %%
 
-tmp_1 = load(fullfile(cfg_main.BS_data_dir, sinput{1})); tmp_1.ImageGridAmp = tmp_1.Value;
-tmp_2 = load(fullfile(cfg_main.BS_data_dir, sinput{2})); tmp_2.ImageGridAmp = tmp_2.Value;
+tmp_1 = load(fullfile(cfg_main.BS_data_dir, sinput{1}));
+if  exist('tmp_1.Value','var'), tmp_1.ImageGridAmp = tmp_1.Value; end
 
+tmp_2 = load(fullfile(cfg_main.BS_data_dir, sinput{2})); 
+if  exist('tmp_1.Value','var'), tmp_2.ImageGridAmp = tmp_2.Value; end
 idx_LR = [idx_L,idx_R];
 
 
@@ -101,6 +103,10 @@ for j = 1:size(wi, 1)
     % downsample data
     ImageGridAmp = downsample(ImageGridAmp',downsamplerate);
     ImageGridAmp = ImageGridAmp';
+    
+    if size(ImageGridAmp,1) > 360
+        cfg_main.parcellaion = 0;
+    end
     
     if cfg_main.parcellaion == 1
         % Extract amplitude values for left and right subregions

@@ -6,12 +6,15 @@ ImageGridAmp = cfg_main.d_in;
 
 sScout = cfg_main.atlas;
 
+if size(ImageGridAmp,1) > 360
+    cfg_main.parcellaion = 0;
+end
+
 if cfg_main.parcellaion == 1
 
     % Extract amplitude values for left and right subregions
     LHvals = ImageGridAmp(cfg_main.idx_L,:);
-    RHvals = ImageGridAmp(cfg_main.idx_R,:);
-    
+    RHvals = ImageGridAmp(cfg_main.idx_R,:);    
 else
     % Get left and right subregions from scout data
     LHscout = [];
