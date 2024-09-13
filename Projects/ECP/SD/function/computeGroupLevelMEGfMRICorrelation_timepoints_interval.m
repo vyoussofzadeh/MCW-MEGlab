@@ -17,7 +17,7 @@ function [groupCorrelation, optimalInterval, optimalInterval_all, pval] = comput
 
     % Perform group-level correlation analysis
 %     validIndices = ~isnan(optimalMEG_LI) & ~isnan(fMRI_LI); % Exclude NaN values
-    [groupCorrelation, pval] = corr(optimalMEG_LI', fMRI_LI, 'Rows', 'complete');
+    [groupCorrelation, pval] = corr(optimalMEG_LI, fMRI_LI, 'Rows', 'complete');
     
     % Display or return the correlation result
     disp(['Group-level correlation between MEG LI at optimal time points and fMRI LI: ', num2str(groupCorrelation)]);

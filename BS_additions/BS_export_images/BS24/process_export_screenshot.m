@@ -22,7 +22,7 @@ function varargout = process_export_screenshot( varargin )
 % For more information type "brainstorm license" at command prompt.
 % =============================================================================@
 %
-% Authors: Francois Tadel, 2012-2022
+% Authors: Francois Tadel, 2012-2022; Vahab Youssof Zadeh, 2024
 
 eval(macro_method);
 end
@@ -55,7 +55,7 @@ sProcess.options.orientpreset.Value   = {1, {
 
 % === Custom Orientation
 % sProcess.options.customorient.Comment = 'Custom Orientation (e.g., {"left", "right", "top"}): ';
-sProcess.options.customorient.Comment = 'Custom Orientation (e.g., {left, right, top}): ';
+sProcess.options.customorient.Comment = 'Custom Orientation (e.g., left, right, top): ';
 sProcess.options.customorient.Type    = 'text';
 sProcess.options.customorient.Value   = '';
 
@@ -161,18 +161,17 @@ else
     set(hFig, 'color', 'w');
 end
 
-% set(hFig,'color','w');
 bst_colormaps('SetColorbarVisible', hFig, 0);
 axis equal
 pause,
 
-a = [];
+%% Export images: PNG
+b = []; a = [];
+img = [];
 for iOrient=1:length(Orient)
     figure_3d('SetStandardView', hFig, Orient{iOrient});
-    img = out_figure_image(hFig, '', '');
-    imgFile = fullfile(savedir, [svname,'.tif']);
-    out_image(imgFile, img);
-    b = imread(imgFile);
+    img{iOrient} = out_figure_image(hFig, '', '');
+    b=double(img{iOrient});
     if isa(b,'uint8'), b=double(b)/255; end
     if max(b(:))>1, b=double(b)/double(max(b(:))); end
     a{iOrient}=double(b);
@@ -198,10 +197,23 @@ else
     a=cat(2,a{:});
 end
 
+imgFile = fullfile(savedir, [svname,'.png']);
 imwrite(a,imgFile);
-disp('5: completed!, images were saved at,')
-disp(fullfile(savedir))
-disp('as,')
-disp([svname,'.tif'])
+
+% -PNG
+combined_path = fullfile(savedir,[svname, '.png']); 
+web(combined_path, '-new');
+
+%% -SVG (incomplete - adding extra white border)
+% Create a figure
+% fig = figure;
+% imshow(a);  % Display the image
+% set(gca, 'Position', [0 0 1 1]); % Optional: Remove any margins
+% set(gca, 'color', 'none');
+% combined_path = fullfile(savedir, [svname, '.svg']);
+% print(fig, '-dsvg', combined_path);  % Save the figure as SVG
+% 
+% % Close the figure
+% close(fig);
 
 end

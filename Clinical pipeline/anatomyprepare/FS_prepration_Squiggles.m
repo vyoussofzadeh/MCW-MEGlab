@@ -27,7 +27,7 @@ switch in_sel
     case 1
         indir = '/MEG_data/JEFF/GRID_Processing/';
     case 2
-        indir = '/group/jbinder/ECP/MEG/MEG_Work';
+        indir = '/data/MEG/Vahab/Data_clinical/CAT_analysis';
 end
 
 %%
@@ -86,11 +86,11 @@ ft_volumewrite(cfg, mri);
 
 %%
 cd(nii_savepath)
-set_spm
+set_spm_squiggles
 setorigin_center(nii_filename);
 
 %%
-set_ft
+set_ft_squiggles
 mri1 = ft_read_mri(nii_filename);
 ft_sourceplot([], mri1);
 

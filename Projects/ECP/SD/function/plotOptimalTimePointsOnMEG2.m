@@ -32,7 +32,7 @@ for subj = 1:numSubjects
     
     % Set the y-axis limits
     ylim([-100 100]);
-    
+    box off
     hold off;
     set(gca, 'color', 'none');
     title(sprintf('S%d|fMRI:%.1f|MEG:%.1f', subj, fMRI_LI(subj), MEG_LI(subj, optimalTimePointIdx)));

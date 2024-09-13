@@ -1,4 +1,4 @@
-function [LI, LI_max, roi_count] = do_lat_analysis_contrast_Counting(cfg_main)
+function [LI, LI_max, roi_count_sum, roi_count] = do_lat_analysis_contrast_Counting(cfg_main)
 
 wi = cfg_main.wi;
 atlas = cfg_main.atlas;
@@ -11,14 +11,10 @@ doavg =  cfg_main.doavg;
 % Parcel_based (mean parcels) LI analysis
 tmp = load(fullfile(cfg_main.BS_data_dir, sinput));
 
-% removing the negive effects
-% tmp.ImageGridAmp(tmp.ImageGridAmp<0) = 0;
-
 %%
-% figure, plot(tmp.ImageGridAmp(:,1))
 
 LI = [];
-roi_count = [];
+roi_count_sum = []; roi_count_L = []; roi_count_R = [];
 
 for j=1:size(wi,1)
     
@@ -36,23 +32,46 @@ for j=1:size(wi,1)
     
     cfg.idx_L = idx_L;
     cfg.idx_R = idx_R;
+    cfg.parcellaion = 0;
     cfg.Threshtype = cfg_main.Threshtype;
-    [LI_clin, roi_cnt] = do_LI_clincial(cfg);
+    cfg.da_in = tmp.ImageGridAmp; % all data
+    [LI_clin, roi_sum_cnt, roi_cnt] = do_LI_clincial(cfg);
     LI(j) = LI_clin;
-    roi_count(j) = roi_cnt;
+    roi_count_sum(j) = roi_sum_cnt;
+    roi_count_L(j) = roi_cnt.L;
+    roi_count_R(j) = roi_cnt.R;
 end
 
 if cfg_main.fplot ==1
-    figure,plot(LI),
+    figure;
+    yyaxis left; % Left y-axis for LI
+    plot(LI,'LineWidth',1.5);
+    ylabel('Lateralization Index (LI)');
+    
+    hold on;
+    
+    yyaxis right; % Right y-axis for Power
+    plot(roi_count_L,'LineWidth',1.5); % Mean power for left activities
+    plot(roi_count_R,'LineWidth',1.5); % Mean power for right activities
+    ylabel('Count');
+    
+    legend({'LI', 'Left Count', 'Right Count'}, 'Location', 'best');
+    
+    % Set x-axis ticks and labels
     val = round(mean(wi(:,1),2),2);
-    set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
-    set(gca,'FontSize',8,'XTickLabelRotation',90);
-    set(gcf, 'Position', [1000   400   1000   300]);
-%     title([cfg_main.tit, ' - ', tmp.Comment]),
-    xlabel('temporal windows (sec)')
-    ylabel('LI')
-    set(gca,'color','none');
+    set(gca, 'Xtick', 1:2:length(wi), 'XtickLabel', val(1:2:end));
+    set(gca, 'FontSize', 8, 'XTickLabelRotation', 90);
+    set(gcf, 'Position', [1000, 400, 1000, 300]);
+    
+    xlabel('Mean Temporal Windows (sec)');
+    title(['Counting']);
+    set(gca, 'color', 'none'); % Transparent background
+    
 end
 
 [~, idx_mx] = max(LI); LI_max = wi(idx_mx,:);
+
+roi_count = [];
+roi_count.left = roi_count_L;
+roi_count.right = roi_count_R;
 

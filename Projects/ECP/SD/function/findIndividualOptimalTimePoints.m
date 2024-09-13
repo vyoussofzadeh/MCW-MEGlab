@@ -1,4 +1,3 @@
-
 function [optimalTimePoints, LI_opt] = findIndividualOptimalTimePoints(MEG_LI, fMRI_LI, timePoints, subjectsForPlot, lowerBound, upperBound)
 numSubjects = size(MEG_LI, 1);
 optimalTimePoints = zeros(numSubjects, 1); % Initialize array for optimal time points
@@ -33,7 +32,13 @@ for subj = 1:numSubjects
     % Optional Plotting for selected subjects
     if ismember(subj, subjectsForPlot)
         % Create subplot for each selected subject
-        subplot(ceil(length(subjectsForPlot) / 2), 2, find(subjectsForPlot == subj)); % Adjust for 2 columns layout
+        
+        if length(subjectsForPlot) > 20
+            subplot(ceil(length(subjectsForPlot) / 6), 6, find(subjectsForPlot == subj)); % Adjust for 6 columns layout
+        else
+            subplot(ceil(length(subjectsForPlot) / 2), 2, find(subjectsForPlot == subj)); % Adjust for 2 columns layout
+        end
+        
         plot(timePoints, MEG_LI(subj, :), 'b'); % Plot MEG LI as a blue line
         hold on;
         
@@ -44,15 +49,20 @@ for subj = 1:numSubjects
         ylim([-100 100]);
         
         hold off;
-        title(sprintf('Subject %d | fMRI LI: %.2f | MEG LI: %.2f', subj, fMRI_LI(subj), MEG_LI(subj, optimalTimePointIdx)));
-        xlabel('Time Points');
-        ylabel('MEG LI');
-        set(gcf, 'Position', [200   400   800   400]);
-
+        title(sprintf('S %d | fMRI LI: %.2f | MEG LI: %.2f', subj, fMRI_LI(subj), MEG_LI(subj, optimalTimePointIdx)));
+%         xlabel('Time Points');
+%         ylabel('MEG LI');
+        %         set(gcf, 'Position', [200   400   800   400]);
         
         LI_opt(k) = MEG_LI(subj, optimalTimePointIdx);
         k = k+1;
     end
 end
+
+% Set common xlabel and ylabel for the entire figure
+han = gcf;
+han.Children(end).XLabel.String = 'Time Points';
+han.Children(end).YLabel.String = 'MEG LI';
+
 end
 

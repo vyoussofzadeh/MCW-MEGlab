@@ -40,7 +40,8 @@ for j=1:length(lang_id)
             cfg.LI = megLI_sub_pt; megLI_sub_pt = do_ternary_classification(cfg);
         end
         tmp = fmri_LIs_val.val.(lang_id{j});
-        crr(i,:) = corr2(megLI_sub_pt, tmp(cfg_main.idx));
+        fMRILI_sub_pt = tmp(cfg_main.idx);
+        crr(i,:) = corr2(megLI_sub_pt, fMRILI_sub_pt);
     end
     crr_all(j,:) = crr;   
 end

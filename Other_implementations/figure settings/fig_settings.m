@@ -23,6 +23,14 @@ axis tight
 %% Legend
 legend('hide')
 
+%% Legend position
+p1 = plot();
+lgd = legend([p1, p2, p3], 'Location', 'best','Orientation', 'horizontal'); % Add a legend
+lgdPos = lgd.Position; % Get current position
+lgdPos(2) = lgdPos(2) - 0.09; % Move legend down
+lgdPos(1) = lgdPos(1) - 0.05; % Move legend down
+lgd.Position = lgdPos;
+
 %% Change legend position
 lgd = legend(resultsTable.Method, 'Location', 'southoutside', 'NumColumns', 2, 'Orientation', 'horizontal');
 lgdPos = lgd.Position; % Get current position
@@ -140,7 +148,6 @@ lgd = legend(intervalTypes, 'Location', 'southoutside', 'Orientation', 'horizont
 lgdPos = lgd.Position; % Get current position
 lgdPos(2) = lgdPos(2) - 0.10; % Move legend down
 lgd.Position = lgdPos; % Set new position
-
 
 %% Adding panel labels
 text(-0.2, 1.3, '(b)', 'Units', 'normalized', 'FontSize', 14);

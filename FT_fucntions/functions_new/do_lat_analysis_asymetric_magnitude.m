@@ -14,7 +14,7 @@ tmp = load(fullfile(cfg_main.BS_data_dir, sinput));
 % removing the negive effects
 % tmp.ImageGridAmp(tmp.ImageGridAmp<0) = 0;
 
-LI = []; 
+LI = [];
 % Initialize an array to store pow values for all intervals
 pow_values = struct('left', [], 'right', []); % Create a struct to hold all pow values
 
@@ -30,13 +30,15 @@ for j=1:size(wi,1)
     else
         cfg.d_in = tmp.ImageGridAmp(:,timind1:timind2);
     end
-
+    
     cfg.idx_L = idx_L;
     cfg.idx_R = idx_R;
     cfg.Threshtype = cfg_main.Threshtype;
     cfg.thre = thre;
     cfg.globalmax = max(max(tmp.ImageGridAmp));
+    cfg.da_in = tmp.ImageGridAmp; % all data
     cfg.parcellaion = cfg_main.parcellaion;
+    cfg.applymean = doavg;
     [LI_clin, pow] = do_LI_magnitude(cfg);
     LI(j) = LI_clin;
     
@@ -46,14 +48,33 @@ for j=1:size(wi,1)
 end
 
 if cfg_main.fplot ==1
-    figure,plot(LI),
+    
+    
+    figure;
+    yyaxis left; % Left y-axis for LI
+    plot(LI,'LineWidth',1.5);
+    ylabel('Lateralization Index (LI)');
+    
+    hold on;
+    
+    yyaxis right; % Right y-axis for Power
+    plot(mean(pow_values.left,2),'LineWidth',1.5); % Mean power for left activities
+    plot(mean(pow_values.right,2),'LineWidth',1.5); % Mean power for right activities
+    ylabel('Power');
+    
+    legend({'LI', 'Left SMag', 'Right SMag'}, 'Location', 'best');
+    
+    % Set x-axis ticks and labels
     val = round(mean(wi(:,1),2),2);
-    set(gca,'Xtick', 1:2:length(wi),'XtickLabel',val(1:2:end));
-    set(gca,'FontSize',8,'XTickLabelRotation',90);
-    set(gcf, 'Position', [1000   400   1000   300]);
-    xlabel('temporal windows (sec)')
-    ylabel('LI')
-    set(gca,'color','none');
+    set(gca, 'Xtick', 1:2:length(wi), 'XtickLabel', val(1:2:end));
+    set(gca, 'FontSize', 8, 'XTickLabelRotation', 90);
+    set(gcf, 'Position', [1000, 400, 1000, 300]);
+    
+    xlabel('Mean Temporal Windows (sec)');
+    title(['SMag']);
+    set(gca, 'color', 'none'); % Transparent background
+    
+    
 end
 
 [~, idx_mx] = max(LI); LI_max = wi(idx_mx,:);

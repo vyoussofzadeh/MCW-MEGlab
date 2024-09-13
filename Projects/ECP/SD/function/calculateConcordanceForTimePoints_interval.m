@@ -1,4 +1,4 @@
-function [concordance, discordantSubs, groupCorrelation] = calculateConcordanceForTimePoints_interval(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalTimeInterval)
+function [concordance, discordantSubs, groupCorrelation, pval] = calculateConcordanceForTimePoints_interval(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, timePoints, optimalTimeInterval)
 
 numSubjects = size(MEG_LI, 1);
 concordantCount = 0;
@@ -10,7 +10,7 @@ discordantSubs = []; % Initialize an empty array to store indices of discordant 
 for subj = 1:numSubjects
     
     % Find the indices within the optimal time interval
-    intervalIndices = abs(timePoints(:,1) - optimalTimeInterval(subj,1)) < 0.01 & abs(timePoints(:,2) - optimalTimeInterval(subj,2)) < 0.01;
+    intervalIndices = abs(timePoints(:,1) - optimalTimeInterval(subj,1)) < 0.001 & abs(timePoints(:,2) - optimalTimeInterval(subj,2)) < 0.001;
     
     % Extract MEG LI within the optimal time interval and find the maximum absolute value
 %     [~, maxIdx] = max(abs(MEG_LI(subj, timePoints)));
@@ -49,8 +49,10 @@ end
 % Calculate Concordance Percentage
 concordance = (concordantCount / numSubjects) * 100;
 
-groupCorrelation = corr(optimalMEG_LI', fMRI_LI, 'Rows', 'complete');
+[groupCorrelation, pval] = corr(optimalMEG_LI', fMRI_LI, 'Rows', 'complete');
+%         groupCorrelation = corr2(optimalMEG_LI', fMRI_LI);
 
-disp(['Group-level concordance between MEG LI at optimal time points and fMRI LI: ', num2str(concordance), '%']);
+
+% disp(['Group-level concordance between MEG LI at optimal time points and fMRI LI: ', num2str(concordance), '%']);
 
 end
