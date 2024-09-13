@@ -1,6 +1,7 @@
 %% The xxx project
 
 % MEG phase amplitude coupling
-% Writtern by MCW group, Youssofzadeh, Vahab <vyoussofzadeh@mcw.edu>
-% xxx
-% Lastest update: 05/25/2022
+% Writtern by MCW group, Vahab Y
+% Created on: 06 Oct 2023
+% Lastest update: 06 Oct 2022
+% Email: vyoussofzadeh@mcw.edu

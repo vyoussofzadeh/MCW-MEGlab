@@ -26,12 +26,13 @@ cfg_init.path_tools = '/usr/local/MATLAB_Tools';
 allpath = do_init(cfg_init);
 
 %%
+disp('/MEG_data/epilepsy/xx/240612')
 cd(indir)
 [subjdir] = uigetdir;
 cd(subjdir)
 
 %%
-dataConditions = {'Spont- Raw', 'Spont- (t)SSS', 'SSEF', 'Other'};
+dataConditions = {'Spont- Raw', 'Spont- (t)SSS', 'Other sss', 'raw only'};
 for idx = 1:length(dataConditions)
     disp([num2str(idx), ': ', dataConditions{idx}]);
 end
@@ -45,10 +46,10 @@ switch dcon
         tag = 'spont';
         d = rdir([subjdir,['/**/','sss','/*',tag,'*/*.fif']]);
     case 3
-        tag = 'SSEF';
-        d = rdir([subjdir,['/**/','sss','/*',tag,'*/*raw*.fif']]);
+        tag = 'other';
+        d = rdir(fullfile(subjdir,'/sss/*/*raw.fif'));
     case 4
-        d = rdir([subjdir,'/*sss.fif']);
+        d = rdir([subjdir,'/*.fif']);
 end
 
 %%
@@ -87,10 +88,13 @@ cfg.datafile  = datafile;
 f_data  = ft_preprocessing(cfg);
 
 %% apply ICA with n components
+nIC = input('num of ICA (e.g., 10): ');
+
 cfg = []; cfg.savepath = []; cfg.savefile = []; cfg.saveflag = 2; cfg.overwrite = 2;
-cfg.lay = lay; cfg.n   = 10; cfg.subj = subj; cfg.allpath = allpath; cfg.select = 1;
+cfg.lay = lay; cfg.n   = nIC; cfg.subj = subj; cfg.allpath = allpath; cfg.select = 1;
 [cln_data, bic] = do_ica(cfg, f_data);
 
+%%
 if ~isempty(bic)
     
     % Export to fif format and Inspect it!
