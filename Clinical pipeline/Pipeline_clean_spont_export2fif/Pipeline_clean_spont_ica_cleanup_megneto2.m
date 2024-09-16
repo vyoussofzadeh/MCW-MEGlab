@@ -32,11 +32,11 @@ cd(indir)
 cd(subjdir)
 
 %%
-dataConditions = {'Spont- Raw', 'Spont- (t)SSS', 'Other sss', 'raw only'};
+dataConditions = {'Spont- Raw', 'Spont- (t)SSS', 'Other (sss)', 'raw only'};
 for idx = 1:length(dataConditions)
     disp([num2str(idx), ': ', dataConditions{idx}]);
 end
-dcon = input('Select data condition (e.g., 1 for Spont-Raw): ');
+dcon = input('Select data saved format (eg 1 for Spont-Raw): ');
 
 switch dcon
     case 1
