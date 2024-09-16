@@ -1,3 +1,7 @@
+% ICA cleanup
+% Writtern by MCW group, Youssofzadeh, Vahab <vyoussofzadeh@mcw.edu>
+% Lastest update: 09/16/2024
+
 %% Setup
 clear; clc; close all;
 warning('off');
@@ -18,7 +22,6 @@ cd(indir);
 cd(subjdir);
 
 %% Flag analysis
-
 flag = [];
 flag.mnebrowse = 0;
 flag.customfilename = 0;
@@ -37,7 +40,7 @@ switch dcon
     case 2
         d = rdir([subjdir,['/**/','sss','/**/*.fif']]);
     case 3
-        d = rdir([subjdir,['/**/*.fif']]);
+        d = rdir([subjdir,'/**/*.fif']);
 end
 
 % Filter out files ending with '-eve.fif' and '-proj.fif'
