@@ -191,8 +191,6 @@ end
 %% Preprocess raw data
 d = rdir(fullfile(BS_data_dir,'/mcw*/@raw*/*raw_ica_clean.mat'));
 
-% i = 19, 24 issue
-
 for i=1:length(d)
     
     [pathstr, name] = fileparts(d(i).name);
@@ -244,7 +242,7 @@ end
 disp('Preprocessing was completed.')
 
 %% Import epoched data
-% db_reload_database('current',1)
+db_reload_database('current',1)
 cd(BS_data_dir)
 d = rdir(fullfile(BS_data_dir,'/mcw*/@raw*/*band_clean.mat'));
 
@@ -279,7 +277,9 @@ for i=1:length(d)
         
         disp(sFiles)
         % Define epoching parameters
-        EpochTime = [-0.3, 0.6];  % Epoch from -100 ms to +300 ms around the event
+%         EpochTime = [-0.3, 0.6];  % Epoch from -100 ms to +300 ms around the event
+        EpochTime = [0, 1];  % Epoch from -100 ms to +300 ms around the event
+
         subjectName = runNumber;
         
         db_reload_database('current',1);
@@ -342,8 +342,7 @@ for ii=1:length(d)
     end
     disp(a)
 end
-% db_reload_database('current',1)
-
+db_reload_database('current',1)
 
 %% Source Analysis - LCMV
 d = rdir(fullfile(BS_data_dir,'/mcw*/mcwa*/channel_vectorview306_acc1.mat'));
