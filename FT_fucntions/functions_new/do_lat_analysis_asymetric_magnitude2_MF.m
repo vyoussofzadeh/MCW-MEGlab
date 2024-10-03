@@ -15,14 +15,29 @@ sinput = cfg_main.sinput;
 tmp_1 = load(fullfile(cfg_main.BS_data_dir, sinput{1}));
 if  exist('tmp_1.Value','var'), tmp_1.ImageGridAmp = tmp_1.Value; end
 
-tmp_2 = load(fullfile(cfg_main.BS_data_dir, sinput{2})); 
-if  exist('tmp_1.Value','var'), tmp_2.ImageGridAmp = tmp_2.Value; end
-
+tmp_2 = load(fullfile(cfg_main.BS_data_dir, sinput{2}));
+if  exist('tmp_2.Value','var'), tmp_2.ImageGridAmp = tmp_2.Value; end
 
 % disp({tmp_1.Comment; tmp_2.Comment})
 
-idx_LR = [idx_L,idx_R];
-
+% Look up indicies for verticies or (sub)ROIs from HCP atlas
+if size(tmp_1.ImageGridAmp,1) > 360
+    sScout = cfg_main.atlas;
+    
+    % Get left and right subregions from scout data
+    LHscout = [];
+    for i = 1:length(idx_L)
+        LHscout = [LHscout, sScout.Scouts(idx_L(i)).Vertices];
+    end
+    
+    RHscout = [];
+    for i = 1:length(idx_R)
+        RHscout = [RHscout, sScout.Scouts(idx_R(i)).Vertices];
+    end
+    idx_LR_updt = [LHscout,RHscout];
+else
+    idx_LR_updt = [idx_L,idx_R];
+end
 
 tmp = tmp_1;
 
@@ -46,33 +61,62 @@ switch cfg_main.math
     case 'rec_diff'
         tmp.ImageGridAmp = tmp_1.ImageGridAmp - tmp_2.ImageGridAmp;
         tmp.ImageGridAmp(tmp.ImageGridAmp < 0) = 0;
-%         tmp.ImageGridAmp = tmp.ImageGridAmp + 0.1;
         
     case 'rec_diff_mbsl'
-        tmp.ImageGridAmp(idx_LR,:) = tmp_1.ImageGridAmp(idx_LR,:) - tmp_2.ImageGridAmp(idx_LR,:);
-        Fdata = tmp.ImageGridAmp(idx_LR,:); Fdata(Fdata < 0) = 0;
-        tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
-        Fdata = Fdata./meanBaseline; tmp.ImageGridAmp(idx_LR,:) = Fdata;
+        tmp.ImageGridAmp(idx_LR_updt,:) = tmp_1.ImageGridAmp(idx_LR_updt,:) - tmp_2.ImageGridAmp(idx_LR_updt,:);
+        Fdata = tmp.ImageGridAmp(idx_LR_updt,:); Fdata(Fdata < 0) = 0;
+        tidx = tmp.Time < 0;
+        meanBaseline = mean(Fdata(:,tidx),2);
+        Fdata = Fdata./meanBaseline; tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
+        
+        %         figure, plot(tmp.Time, Fdata');
+        
+    case 'rec_diff_zbsl'
+        tmp.ImageGridAmp(idx_LR_updt,:) = tmp_1.ImageGridAmp(idx_LR_updt,:) - tmp_2.ImageGridAmp(idx_LR_updt,:);
+        Fdata = tmp.ImageGridAmp(idx_LR_updt,:); Fdata(Fdata < 0) = 0;
+        tidx = tmp.Time < 0;
+        meanBaseline = mean(Fdata(:,tidx),2);
+        stdBaseline = std(Fdata(:,tidx)')';
+        Fdata = (Fdata - meanBaseline)./stdBaseline; tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
         
     case 'bsl_diff_rec'
-        Fdata = tmp_1.ImageGridAmp(idx_LR,:);
+        Fdata = tmp_1.ImageGridAmp(idx_LR_updt,:);
         tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2); Fdata = Fdata./meanBaseline; % bsl norm
-        tmp_1.ImageGridAmp(idx_LR,:) = Fdata; 
+        tmp_1.ImageGridAmp(idx_LR_updt,:) = Fdata;
         
-        Fdata = tmp_2.ImageGridAmp(idx_LR,:);
+        Fdata = tmp_2.ImageGridAmp(idx_LR_updt,:);
         tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2); Fdata = Fdata./meanBaseline; % bsl norm
-        tmp_2.ImageGridAmp(idx_LR,:) = Fdata; 
+        tmp_2.ImageGridAmp(idx_LR_updt,:) = Fdata;
         
-        tmp.ImageGridAmp(idx_LR,:) = tmp_1.ImageGridAmp(idx_LR,:) - tmp_2.ImageGridAmp(idx_LR,:);
-        Fdata = tmp.ImageGridAmp(idx_LR,:);         
+        tmp.ImageGridAmp(idx_LR_updt,:) = tmp_1.ImageGridAmp(idx_LR_updt,:) - tmp_2.ImageGridAmp(idx_LR_updt,:);
+        Fdata = tmp.ImageGridAmp(idx_LR_updt,:);
         Fdata(Fdata < 0) = 0;
-        tmp.ImageGridAmp(idx_LR,:) = Fdata;
+        tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
+        
+    case 'rec_diff_mbsl_anim'
+        tmp.ImageGridAmp(idx_LR_updt,:) = tmp_1.ImageGridAmp(idx_LR_updt,:) - tmp_2.ImageGridAmp(idx_LR_updt,:);
+        Fdata = tmp.ImageGridAmp(idx_LR_updt,:); Fdata(Fdata < 0) = 0;
+        tidx = tmp.Time < 0;
+        meanBaseline = mean(tmp_1.ImageGridAmp(idx_LR_updt,tidx),2);
+        Fdata = Fdata./meanBaseline; tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
 end
 
 LI = [];
 % Initialize an array to store pow values for all intervals
-pow_values = struct('left', [], 'right', []); % Create a struct to hold all pow values
+pow_values = struct('left', [], 'right', [], 'left_raw', [], 'right_raw', []); % Create a struct to hold all pow values
 
+
+%% Global window threshold
+mdwin = [];
+for j=1:size(wi,1)
+    timind1 = nearest(tmp.Time, wi(j,1)); timind2 = nearest(tmp.Time, wi(j,2));
+    dwin = tmp.ImageGridAmp(:,timind1:timind2);
+    mdwin(j,:) = mean(dwin(idx_LR_updt,:),2);
+end
+globalwindowthresh = max(mdwin(:));
+% figure, plot(wi(:,1),mdwin);
+
+%%
 for j=1:size(wi,1)
     
     timind1 = nearest(tmp.Time, wi(j,1)); timind2 = nearest(tmp.Time, wi(j,2));
@@ -85,12 +129,13 @@ for j=1:size(wi,1)
     else
         cfg.d_in = tmp.ImageGridAmp(:,timind1:timind2);
     end
-
+    
     cfg.idx_L = idx_L;
     cfg.idx_R = idx_R;
     cfg.applymean = 0;
     cfg.Threshtype = cfg_main.Threshtype;
     cfg.thre = thre;
+    cfg.globalwindowthresh = globalwindowthresh;
     cfg.globalmax = max(max(tmp.ImageGridAmp));
     cfg.parcellaion = cfg_main.parcellaion;
     [LI_clin, pow] = do_LI_magnitude(cfg);
@@ -99,21 +144,22 @@ for j=1:size(wi,1)
     % Store each pow struct in the pow_values array
     pow_values.left = [pow_values.left; pow.left];
     pow_values.right = [pow_values.right; pow.right];
+    
+    pow_values.left_raw = [pow_values.left_raw; pow.left_raw];
+    pow_values.right_raw = [pow_values.right_raw; pow.right_raw];
 end
 
 if cfg_main.fplot ==1
+    
     figure;
     yyaxis left; % Left y-axis for LI
     plot(LI,'LineWidth',1.5);
     ylabel('Lateralization Index (LI)');
-    
     hold on;
-    
     yyaxis right; % Right y-axis for Power
-    plot(mean(pow_values.left,2),'LineWidth',1.5); % Mean power for left activities
-    plot(mean(pow_values.right,2),'LineWidth',1.5); % Mean power for right activities
+    plot(mean(pow_values.left_raw,2),'LineWidth',1.5); % Mean power for left activities
+    plot(mean(pow_values.right_raw,2),'LineWidth',1.5); % Mean power for right activities
     ylabel('Power');
-    
     legend({'LI', 'Left SMag', 'Right SMag'}, 'Location', 'best');
     
     % Set x-axis ticks and labels
@@ -123,7 +169,28 @@ if cfg_main.fplot ==1
     set(gcf, 'Position', [1000, 400, 1000, 300]);
     
     xlabel('Mean Temporal Windows (sec)');
-    title(['SMag']);
+    title(['SMag - Raw']);
+    set(gca, 'color', 'none'); % Transparent background
+    
+    figure;
+    yyaxis left; % Left y-axis for LI
+    plot(LI,'LineWidth',1.5);
+    ylabel('Lateralization Index (LI)');
+    hold on;
+    yyaxis right; % Right y-axis for Power
+    plot(mean(pow_values.left,2),'LineWidth',1.5); % Mean power for left activities
+    plot(mean(pow_values.right,2),'LineWidth',1.5); % Mean power for right activities
+    ylabel('Power');
+    legend({'LI', 'Left SMag', 'Right SMag'}, 'Location', 'best');
+    
+    % Set x-axis ticks and labels
+    val = round(mean(wi(:,1),2),2);
+    set(gca, 'Xtick', 1:2:length(wi), 'XtickLabel', val(1:2:end));
+    set(gca, 'FontSize', 8, 'XTickLabelRotation', 90);
+    set(gcf, 'Position', [1000, 400, 1000, 300]);
+    
+    xlabel('Mean Temporal Windows (sec)');
+    title(['SMag - thresholded']);
     set(gca, 'color', 'none'); % Transparent background
 end
 

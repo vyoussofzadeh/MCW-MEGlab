@@ -13,13 +13,28 @@ doavg = cfg_main.doavg;
 tmp_1 = load(fullfile(cfg_main.BS_data_dir, sinput{1}));
 if  exist('tmp_1.Value','var'), tmp_1.ImageGridAmp = tmp_1.Value; end
 
-tmp_2 = load(fullfile(cfg_main.BS_data_dir, sinput{2})); 
-if  exist('tmp_1.Value','var'), tmp_2.ImageGridAmp = tmp_2.Value; end
+tmp_2 = load(fullfile(cfg_main.BS_data_dir, sinput{2}));
+if  exist('tmp_2.Value','var'), tmp_2.ImageGridAmp = tmp_2.Value; end
 
-idx_LR = [idx_L,idx_R];
+% Look up indicies for verticies or (sub)ROIs from HCP atlas
+if size(tmp_1.ImageGridAmp,1) > 360
+    sScout = cfg_main.atlas;
+    
+    % Get left and right subregions from scout data
+    LHscout = [];
+    for i = 1:length(idx_L)
+        LHscout = [LHscout, sScout.Scouts(idx_L(i)).Vertices];
+    end
+    
+    RHscout = [];
+    for i = 1:length(idx_R)
+        RHscout = [RHscout, sScout.Scouts(idx_R(i)).Vertices];
+    end
+    idx_LR_updt = [LHscout,RHscout];
+else
+    idx_LR_updt = [idx_L,idx_R];
+end
 
-
-% disp({tmp_1.Comment; tmp_2.Comment})
 
 tmp = tmp_1;
 
@@ -43,31 +58,51 @@ switch cfg_main.math
     case 'rec_diff'
         tmp.ImageGridAmp = tmp_1.ImageGridAmp - tmp_2.ImageGridAmp;
         tmp.ImageGridAmp(tmp.ImageGridAmp < 0) = 0;
-        %         tmp.ImageGridAmp = tmp.ImageGridAmp + 0.1;
         
     case 'rec_diff_mbsl'
-        tmp.ImageGridAmp(idx_LR,:) = tmp_1.ImageGridAmp(idx_LR,:) - tmp_2.ImageGridAmp(idx_LR,:);
-        Fdata = tmp.ImageGridAmp(idx_LR,:); Fdata(Fdata < 0) = 0;
+        tmp.ImageGridAmp(idx_LR_updt,:) = tmp_1.ImageGridAmp(idx_LR_updt,:) - tmp_2.ImageGridAmp(idx_LR_updt,:);
+        Fdata = tmp.ImageGridAmp(idx_LR_updt,:); Fdata(Fdata < 0) = 0;
         tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
-        Fdata = Fdata./meanBaseline; tmp.ImageGridAmp(idx_LR,:) = Fdata;
+        Fdata = Fdata./meanBaseline; tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
+        
+    case 'rec_diff_zbsl'
+        tmp.ImageGridAmp(idx_LR_updt,:) = tmp_1.ImageGridAmp(idx_LR_updt,:) - tmp_2.ImageGridAmp(idx_LR_updt,:);
+        Fdata = tmp.ImageGridAmp(idx_LR_updt,:); Fdata(Fdata < 0) = 0;
+        tidx = tmp.Time < 0;
+        meanBaseline = mean(Fdata(:,tidx),2);
+        stdBaseline = std(Fdata(:,tidx)')';
+        Fdata = (Fdata - meanBaseline)./stdBaseline; tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
+        
     case 'bsl_diff_rec'
-        Fdata = tmp_1.ImageGridAmp(idx_LR,:);
+        Fdata = tmp_1.ImageGridAmp(idx_LR_updt,:);
         tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2); Fdata = Fdata./meanBaseline; % bsl norm
-        tmp_1.ImageGridAmp(idx_LR,:) = Fdata;
+        tmp_1.ImageGridAmp(idx_LR_updt,:) = Fdata;
         
-        Fdata = tmp_2.ImageGridAmp(idx_LR,:);
+        Fdata = tmp_2.ImageGridAmp(idx_LR_updt,:);
         tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2); Fdata = Fdata./meanBaseline; % bsl norm
-        tmp_2.ImageGridAmp(idx_LR,:) = Fdata;
+        tmp_2.ImageGridAmp(idx_LR_updt,:) = Fdata;
         
-        tmp.ImageGridAmp(idx_LR,:) = tmp_1.ImageGridAmp(idx_LR,:) - tmp_2.ImageGridAmp(idx_LR,:);
-        Fdata = tmp.ImageGridAmp(idx_LR,:);
+        tmp.ImageGridAmp(idx_LR_updt,:) = tmp_1.ImageGridAmp(idx_LR_updt,:) - tmp_2.ImageGridAmp(idx_LR_updt,:);
+        Fdata = tmp.ImageGridAmp(idx_LR_updt,:);
         Fdata(Fdata < 0) = 0;
-        tmp.ImageGridAmp(idx_LR,:) = Fdata;
+        tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
 end
 
+
+%% Global window threshold
+mdwin = [];
+for j=1:size(wi,1)
+    timind1 = nearest(tmp.Time, wi(j,1)); timind2 = nearest(tmp.Time, wi(j,2));
+    dwin = tmp.ImageGridAmp(:,timind1:timind2);
+    mdwin(j,:) = mean(dwin(idx_LR_updt,:),2);
+end
+globalwindowthresh = max(mdwin(:));
+% figure, plot(wi(:,1),mdwin);
+
+%%
 LI = [];
 roi_count_L = []; roi_count_R = [];
-
+roi_count_L_raw = []; roi_count_R_raw = [];
 
 for j=1:size(wi,1)
     
@@ -85,12 +120,17 @@ for j=1:size(wi,1)
     cfg.idx_R = idx_R;
     cfg.Threshtype = cfg_main.Threshtype;
     cfg.thre = thre;
+    cfg.globalwindowthresh = globalwindowthresh;
     cfg.parcellaion = cfg_main.parcellaion;
     [LI_clin, roi_sum_cnt, roi_cnt] = do_LI_clinical(cfg);
     LI(j) = LI_clin;
     roi_count_sum(j) = roi_sum_cnt;
+    
     roi_count_L(j) = roi_cnt.L;
     roi_count_R(j) = roi_cnt.R;
+    
+    %     roi_count_L_raw(j) = roi_cnt.L_raw;
+    %     roi_count_R_raw(j) = roi_cnt.R_raw;
 end
 
 if cfg_main.fplot ==1
@@ -124,4 +164,6 @@ end
 roi_count = [];
 roi_count.left = roi_count_L;
 roi_count.right = roi_count_R;
+roi_count.left_raw = roi_count_L_raw;
+roi_count.right_raw = roi_count_R_raw;
 

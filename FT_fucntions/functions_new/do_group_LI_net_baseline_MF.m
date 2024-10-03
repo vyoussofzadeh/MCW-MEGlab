@@ -36,13 +36,14 @@ cd(data_save_dir)
 %%
 savefilename = fullfile(data_save_dir,['LI_', S_data_sel{1}.subcon, '.mat']);
 
+sel_netrois = [1,2,6,11];
 if exist(savefilename,'file') == 2
     load(savefilename),
 else
     
     ft_progress('init', 'text',     'please wait ...');
     clear m_LI_max_sub LI_sub
-    for j=1:length(net_sel_mutiple_label)
+    for j = sel_netrois %1:length(net_sel_mutiple_label)
         
         ft_progress(j/length(net_sel_mutiple_label), 'Processing networks %d from %d', j, length(net_sel_mutiple_label));
         
@@ -58,7 +59,7 @@ else
         cfg.Threshtype = Threshtype;
         cfg.doavg = doavg;
         cfg.parcellaion = 1;
-        cfg.math = cfg_main.math; % 'db', ,'diff', 'rec_diff'
+        cfg.math = cfg_main.math; % 'db', ,'diff', 'rec_diff', 'rec_diff_mbsl', 'rec_diff_zbsl'
         
         for i=1:length(sFiles_in{1}.sFiles_in)
             pause(0.1);

@@ -4,12 +4,11 @@ function [detResp,detTrig] = do_readtriggers(cfg, datafile)
 hdr = ft_read_header(datafile); %read header information
 Fsample = hdr.Fs;
 
-
-Index = strfind(hdr.label,{'STI101'});
+Index = strfind(hdr.label,cfg.trigchan);
 Index = find(not(cellfun('isempty',Index)));
 
 if isempty(Index)
-    error('stimulus data, STI101, is missing from the data header, ');
+    error(['stimulus data,', cfg.trigchan, 'is missing from the data header, ']);
 end
 
 detTrig=ft_read_data(datafile,'chanindx',Index,'header',hdr,'eventformat','neuromag_fif','dataformat','neuromag_fif');
@@ -20,9 +19,9 @@ tt = linspace(1, length(detTrig)/Fsample, length(detTrig));
 
 if cfg.plot ==1
     figure,
-    subplot 211
-    plot(tt,detTrig)
-    title('detTrig')
+    subplot 311
+    plot(tt,detTrig);
+    title(['detTrig', cfg.trigchan]);
 end
 
 detResp = ft_read_data(datafile,'chanindx',Index,'header',hdr,'eventformat','digital trigger','dataformat','neuromag_fif');
@@ -32,18 +31,18 @@ resp = (detResp - mean(detResp))./max(detTrig);
 
 if cfg.plot ==1
     %     figure,
-    subplot 212
+    subplot 312
     plot(tt,detResp)
-    title('detResp')
+    title(['detResp-', cfg.trigchan])
     
-    figure,
+    subplot 313
     plot(tt,detTrig)
     hold on
     plot(tt,resp, 'r')
-    title('All triggers')
+    title(['All triggers-', cfg.trigchan])
 end
 
-unique(detResp)
-unique(detTrig)
+% unique(detResp)
+% unique(detTrig)
 
 end

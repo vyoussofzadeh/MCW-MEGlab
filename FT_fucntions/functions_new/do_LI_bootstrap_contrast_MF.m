@@ -13,7 +13,6 @@ doavg = cfg_main.doavg;
 downsamplerate = cfg_main.downsamplerate;
 atlas = cfg_main.atlas;
 
-
 sinput = cfg_main.sinput;
 
 RESAMPLE_RATIO = cfg_main.RESAMPLE_RATIO; % 0.75
@@ -25,11 +24,27 @@ tmp_1 = load(fullfile(cfg_main.BS_data_dir, sinput{1}));
 if  exist('tmp_1.Value','var'), tmp_1.ImageGridAmp = tmp_1.Value; end
 
 tmp_2 = load(fullfile(cfg_main.BS_data_dir, sinput{2})); 
-if  exist('tmp_1.Value','var'), tmp_2.ImageGridAmp = tmp_2.Value; end
-idx_LR = [idx_L,idx_R];
+if  exist('tmp_2.Value','var'), tmp_2.ImageGridAmp = tmp_2.Value; end
 
+% Look up indicies for verticies or (sub)ROIs from HCP atlas
+if size(tmp_1.ImageGridAmp,1) > 360
+    sScout = cfg_main.atlas;
+    
+    % Get left and right subregions from scout data
+    LHscout = [];
+    for i = 1:length(idx_L)
+        LHscout = [LHscout, sScout.Scouts(idx_L(i)).Vertices];
+    end
+    
+    RHscout = [];
+    for i = 1:length(idx_R)
+        RHscout = [RHscout, sScout.Scouts(idx_R(i)).Vertices];
+    end
+    idx_LR_updt = [LHscout,RHscout];
+else
+    idx_LR_updt = [idx_L,idx_R];
+end
 
-% disp([tmp_1.Comment; tmp_2.Comment ])
 
 tmp = tmp_1;
 
@@ -53,28 +68,47 @@ switch cfg_main.math
     case 'rec_diff'
         tmp.ImageGridAmp = tmp_1.ImageGridAmp - tmp_2.ImageGridAmp;
         tmp.ImageGridAmp(tmp.ImageGridAmp < 0) = 0;
-        %         tmp.ImageGridAmp = tmp.ImageGridAmp + 0.1;
         
     case 'rec_diff_mbsl'
-        tmp.ImageGridAmp(idx_LR,:) = tmp_1.ImageGridAmp(idx_LR,:) - tmp_2.ImageGridAmp(idx_LR,:);
-        Fdata = tmp.ImageGridAmp(idx_LR,:); Fdata(Fdata < 0) = 0;
+        tmp.ImageGridAmp(idx_LR_updt,:) = tmp_1.ImageGridAmp(idx_LR_updt,:) - tmp_2.ImageGridAmp(idx_LR_updt,:);
+        Fdata = tmp.ImageGridAmp(idx_LR_updt,:); Fdata(Fdata < 0) = 0;
         tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
-        Fdata = Fdata./meanBaseline; tmp.ImageGridAmp(idx_LR,:) = Fdata;
+        Fdata = Fdata./meanBaseline; tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
+%         figure, plot(tmp.Time, Fdata');
+
+    case 'rec_diff_zbsl'
+        tmp.ImageGridAmp(idx_LR_updt,:) = tmp_1.ImageGridAmp(idx_LR_updt,:) - tmp_2.ImageGridAmp(idx_LR_updt,:);
+        Fdata = tmp.ImageGridAmp(idx_LR_updt,:); Fdata(Fdata < 0) = 0;
+        tidx = tmp.Time < 0;
+        meanBaseline = mean(Fdata(:,tidx),2);
+        stdBaseline = std(Fdata(:,tidx)')';
+        Fdata = (Fdata - meanBaseline)./stdBaseline; tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
         
     case 'bsl_diff_rec'
-        Fdata = tmp_1.ImageGridAmp(idx_LR,:);
+        Fdata = tmp_1.ImageGridAmp(idx_LR_updt,:);
         tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2); Fdata = Fdata./meanBaseline; % bsl norm
-        tmp_1.ImageGridAmp(idx_LR,:) = Fdata;
+        tmp_1.ImageGridAmp(idx_LR_updt,:) = Fdata; 
         
-        Fdata = tmp_2.ImageGridAmp(idx_LR,:);
+        Fdata = tmp_2.ImageGridAmp(idx_LR_updt,:);
         tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2); Fdata = Fdata./meanBaseline; % bsl norm
-        tmp_2.ImageGridAmp(idx_LR,:) = Fdata;
+        tmp_2.ImageGridAmp(idx_LR_updt,:) = Fdata; 
         
-        tmp.ImageGridAmp(idx_LR,:) = tmp_1.ImageGridAmp(idx_LR,:) - tmp_2.ImageGridAmp(idx_LR,:);
-        Fdata = tmp.ImageGridAmp(idx_LR,:);
+        tmp.ImageGridAmp(idx_LR_updt,:) = tmp_1.ImageGridAmp(idx_LR_updt,:) - tmp_2.ImageGridAmp(idx_LR_updt,:);
+        Fdata = tmp.ImageGridAmp(idx_LR_updt,:);         
         Fdata(Fdata < 0) = 0;
-        tmp.ImageGridAmp(idx_LR,:) = Fdata;
+        tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
 end
+
+
+%% Global window threshold
+mdwin = [];
+for j=1:size(wi,1)
+    timind1 = nearest(tmp.Time, wi(j,1)); timind2 = nearest(tmp.Time, wi(j,2));
+    dwin = tmp.ImageGridAmp(:,timind1:timind2);
+    mdwin(j,:) = mean(dwin(idx_LR_updt,:),2);
+end
+globalwindowthresh = max(mdwin(:));
+% figure, plot(wi(:,1),mdwin);
 
 %%
 sScout = atlas;
@@ -133,9 +167,15 @@ for j = 1:size(wi, 1)
     % Calculate maximum values for left and right subregions
     LH_max = max(LHvals(:));
     RH_max = max(RHvals(:));
-    ROIMax = max(LH_max, RH_max);
     
-    threshvals = (0:(divs-1)) * (ROIMax / (divs - 1));
+    switch cfg_main.Threshtype
+        case 3
+            threshold = max(LH_max, RH_max);
+        case 4
+            threshold = globalwindowthresh;           
+    end
+    
+    threshvals = (0:(divs-1)) * (threshold / (divs - 1));
     l_threshvals_all = LHvals(LHvals(:) >= 0);
     r_threshvals_all = RHvals(RHvals(:) >= 0);
     
@@ -194,6 +234,8 @@ end
 roi_count = [];
 roi_count.left = left_activities;
 roi_count.right = right_activities;
+roi_count.left_raw = sum(LHvals(:));
+roi_count.right_raw = sum(RHvals(:));
 
 [~, idx_mx] = max(weighted_li); LI_max = wi(idx_mx,:);
 

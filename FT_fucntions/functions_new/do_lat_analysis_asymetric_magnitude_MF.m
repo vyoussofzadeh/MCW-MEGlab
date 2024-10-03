@@ -9,9 +9,29 @@ sinput = cfg_main.sinput;
 doavg = cfg_main.doavg;
 
 %- Parcel_based (mean parcels) LI analysis
-tmp = load(fullfile(cfg_main.BS_data_dir, sinput)); tmp.ImageGridAmp = tmp.Value;
+tmp = load(fullfile(cfg_main.BS_data_dir, sinput)); 
+if  exist('tmp.Value','var'), tmp.ImageGridAmp = tmp.Value; end
 
-idx_LR = [idx_L,idx_R];
+% disp({tmp_1.Comment; tmp_2.Comment})
+
+% Look up indicies for verticies or (sub)ROIs from HCP atlas
+if size(tmp.ImageGridAmp,1) > 360
+    sScout = cfg_main.atlas;
+    
+    % Get left and right subregions from scout data
+    LHscout = [];
+    for i = 1:length(idx_L)
+        LHscout = [LHscout, sScout.Scouts(idx_L(i)).Vertices];
+    end
+    
+    RHscout = [];
+    for i = 1:length(idx_R)
+        RHscout = [RHscout, sScout.Scouts(idx_R(i)).Vertices];
+    end
+    idx_LR_updt = [LHscout,RHscout];
+else
+    idx_LR_updt = [idx_L,idx_R];
+end
 
 switch cfg_main.math
     case 'db'
@@ -24,25 +44,33 @@ switch cfg_main.math
         Fdata(Fdata < 0) = 0;
         tmp.ImageGridAmp = Fdata;
     case 'rectif_bslnormal'
-        Fdata = tmp.ImageGridAmp(idx_LR,:);
+        Fdata = tmp.ImageGridAmp(idx_LR_updt,:);
         Fdata(Fdata < 0) = 0;
         tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
         Fdata = Fdata./meanBaseline;
-        tmp.ImageGridAmp(idx_LR,:) = Fdata;       
-    case 'rectif_bslnormal_mean'
-        
-        Fdata_left  = mean(tmp.ImageGridAmp(idx_L,:),1);
-        Fdata_right = mean(tmp.ImageGridAmp(idx_R,:),1);
-        
-        tidx = tmp.Time < 0; 
-        
-        mbsl_L = mean(Fdata_left(:,tidx),2); Fdata_left = Fdata_left./mbsl_L;
-        mbsl_R = mean(Fdata_right(:,tidx),2); Fdata_right = Fdata_right./mbsl_R;
-        
-        for j = 1:length(idx_L), tmp.ImageGridAmp(idx_L(j),:) = Fdata_left; end
-        for j = 1:length(idx_R), tmp.ImageGridAmp(idx_R(j),:) = Fdata_right; end
+        tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
+    case 'rectif_zbsl'
+        Fdata = tmp.ImageGridAmp(idx_LR_updt,:);
+        Fdata(Fdata < 0) = 0;
+        tidx = tmp.Time < 0;
+        meanBaseline = mean(Fdata(:,tidx),2);
+        stdBaseline = std(Fdata(:,tidx)')';
+        Fdata = (Fdata - meanBaseline)./stdBaseline;
+        tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
 end
 
+
+%% Global window threshold
+mdwin = [];
+for j=1:size(wi,1)
+    timind1 = nearest(tmp.Time, wi(j,1)); timind2 = nearest(tmp.Time, wi(j,2));
+    dwin = tmp.ImageGridAmp(:,timind1:timind2);
+    mdwin(j,:) = mean(dwin(idx_LR_updt,:),2);
+end
+globalwindowthresh = max(mdwin(:));
+% figure, plot(wi(:,1),mdwin);
+
+%%
 LI = [];
 % Initialize an array to store pow values for all intervals
 pow_values = struct('left', [], 'right', []); % Create a struct to hold all pow values
@@ -64,6 +92,7 @@ for j=1:size(wi,1)
     cfg.idx_R = idx_R;
     cfg.Threshtype = cfg_main.Threshtype;
     cfg.thre = thre;
+    cfg.globalwindowthresh = globalwindowthresh;
     cfg.parcellaion = cfg_main.parcellaion;
     cfg.globalmax = max(max(tmp.ImageGridAmp));
     switch cfg_main.math

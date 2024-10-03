@@ -1,8 +1,8 @@
-function [net_sel_mutiple_label, LI_sub] = do_group_LI_net_contrast_MF(cfg_main)
+function [net_sel_mutiple_label, LI_sub] = do_group_LI_net_direct_MF(cfg_main)
 
 % m_LI_max_sub, pow_sub
 
-sFiles_in = cfg_main.S_data_sel.sFiles_in;
+sFiles_in = cfg_main.S_data_sel;
 BS_data_dir = cfg_main.BS_data_dir;
 S_data_sel = cfg_main.S_data_sel;
 Data_hcp_atlas = cfg_main.Data_hcp_atlas;
@@ -21,6 +21,9 @@ net_sel_mutiple_label = Data_hcp_atlas.groups_labels';
 % net_sel_mutiple_label = {'Angular'; 'Frontal'; 'Occipital'; 'Other'; 'PCingPrecun';'Temporal'; 'Whole'};
 % idx_L{end+1} = idx_L_whole;idx_R{end+1} = idx_R_whole;
 
+% S_data_sel{1}.subcon
+% S_data_sel{2}.subcon
+
 %% Create a folder
 if ~exist(data_save_dir, 'dir')
     mkdir(data_save_dir);
@@ -29,10 +32,8 @@ else
     disp('Folder already exists.');
 end
 cd(data_save_dir)
+
 %%
-
-sel_netrois = [1,2,6,11];
-
 savefilename = fullfile(data_save_dir,['LI_', S_data_sel.subcon, '.mat']);
 
 if exist(savefilename,'file') == 2
@@ -40,48 +41,47 @@ if exist(savefilename,'file') == 2
 else
     
     ft_progress('init', 'text',     'please wait ...');
-    clear m_LI_max_sub LI_sub pow_sub
-    %     for j=1:length(net_sel_mutiple_label)
-    for j= sel_netrois
+    clear m_LI_max_sub LI_sub
+    for j=1:length(net_sel_mutiple_label)
+        
         ft_progress(j/length(net_sel_mutiple_label), 'Processing networks %d from %d', j, length(net_sel_mutiple_label));
         
         %- Li Calc.
         cfg = [];
-        cfg.sinput = S_data_sel.sFiles_in; %sFiles_anim_hc;
+        cfg.sinput = S_data_sel; %sFiles_anim_hc;
         cfg.BS_data_dir = BS_data_dir;
-        cfg.atlas = Data_hcp_atlas.atlas; 
-        cfg.thre = thre; 
+        cfg.atlas = Data_hcp_atlas.atlas;
+        cfg.thre = thre;
         cfg.fplot = 0; % cfg.fplot = 1;
         cfg.index_L = idx_L{j};
         cfg.index_R = idx_R{j};
         cfg.Threshtype = Threshtype;
         cfg.doavg = doavg;
         cfg.parcellaion = 1;
-        cfg.math = cfg_main.math; %'raw'; % 'db', 'rectif', 'rectif_bslnormal';
+        cfg.math = cfg_main.math; % 'db', ,'diff', 'rec_diff'
         
-        for i=1:length(sFiles_in)
+        for i=1:length(sFiles_in.sFiles_in)
             pause(0.1);
-            cfg.sinput = sFiles_in{i};
+            
+            s_in = [sFiles_in.sFiles_in(i)];
+            cfg.sinput = s_in;
             cfg.wi = wi;
-            %             [LI, wi_max, pow] = do_lat_analysis_asymetric(cfg);
-            if contains(method, 'Magnitude')
-                [LI, ~, pow] = do_lat_analysis_asymetric_magnitude_MF(cfg);
+            if contains(method, 'Magnitude')                
+                [LI, ~, pow] = do_lat_analysis_asymetric_magnitude_direct_MF(cfg);
                 pow_sub(j,i,:) = pow;
-%                 max(pow.left(1))
-%                 max(pow.right(1))
             elseif contains(method, 'Counting')
-                [LI, ~, roi_count] = do_lat_analysis_contrast_Counting_MF(cfg);
+                [LI, ~, roi_count] = do_lat_analysis_baseline_Counting_direct_MF(cfg);
                 count_sub(j,i,:) = roi_count;
             elseif contains (method, 'Bootstrapping')
                 cfg.divs = 25;
-                cfg.n_resampling = 25;
+                cfg.n_resampling = 50;
                 cfg.RESAMPLE_RATIO = 0.75;
-                cfg.dvd = 5;
+                cfg.dvd = 5; % 5
                 cfg.downsamplerate = 5; % 2 times down-sampling - has to be fixed!
-                [LI, ~, ~, roi_count] = do_LI_bootstrap_MF(cfg);
-                %                 [LI, ~, ~] = do_LI_bootstrap_MF_org(cfg);
+                [LI, ~, ~, roi_count] = do_LI_bootstrap_contrast_direct_MF(cfg);
                 count_sub(j,i,:) = roi_count;
             end
+            
             LI_sub(j,i,:) = LI;
             m_LI_max_sub(i) = nanmean(LI);
         end

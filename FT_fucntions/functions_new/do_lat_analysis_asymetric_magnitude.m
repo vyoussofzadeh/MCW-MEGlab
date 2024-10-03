@@ -14,9 +14,42 @@ tmp = load(fullfile(cfg_main.BS_data_dir, sinput));
 % removing the negive effects
 % tmp.ImageGridAmp(tmp.ImageGridAmp<0) = 0;
 
+
+%% Global window threshold
+% Look up indicies for verticies or (sub)ROIs from HCP atlas
+if size(tmp.ImageGridAmp,1) > 360
+    sScout = cfg_main.atlas;
+    
+    % Get left and right subregions from scout data
+    LHscout = [];
+    for i = 1:length(idx_L)
+        LHscout = [LHscout, sScout.Scouts(idx_L(i)).Vertices];
+    end
+    
+    RHscout = [];
+    for i = 1:length(idx_R)
+        RHscout = [RHscout, sScout.Scouts(idx_R(i)).Vertices];
+    end
+    idx_LR_updt = [LHscout,RHscout];
+else
+    idx_LR_updt = [idx_L,idx_R];
+end
+
+
+mdwin = [];
+for j=1:size(wi,1)
+    timind1 = nearest(tmp.Time, wi(j,1)); timind2 = nearest(tmp.Time, wi(j,2));
+    dwin = tmp.ImageGridAmp(:,timind1:timind2);
+    mdwin(j,:) = mean(dwin(idx_LR_updt,:),2);
+end
+globalwindowthresh = max(mdwin(:));
+% figure, plot(wi(:,1),mdwin);
+
+%%
+
 LI = [];
 % Initialize an array to store pow values for all intervals
-pow_values = struct('left', [], 'right', []); % Create a struct to hold all pow values
+pow_values = struct('left', [], 'right', [], 'left_raw', [], 'right_raw', []); % Create a struct to hold all pow values
 
 for j=1:size(wi,1)
     
@@ -39,12 +72,17 @@ for j=1:size(wi,1)
     cfg.da_in = tmp.ImageGridAmp; % all data
     cfg.parcellaion = cfg_main.parcellaion;
     cfg.applymean = doavg;
+    cfg.globalwindowthresh = globalwindowthresh;
     [LI_clin, pow] = do_LI_magnitude(cfg);
     LI(j) = LI_clin;
     
     % Store each pow struct in the pow_values array
-    pow_values.left = [pow_values.left; pow.left];
+    pow_values.left = [pow_values.left; pow.left]; 
     pow_values.right = [pow_values.right; pow.right];
+    
+    pow_values.left_raw = [pow_values.left_raw; pow.left_raw]; 
+    pow_values.right_raw = [pow_values.right_raw; pow.right_raw];
+
 end
 
 if cfg_main.fplot ==1
@@ -71,7 +109,32 @@ if cfg_main.fplot ==1
     set(gcf, 'Position', [1000, 400, 1000, 300]);
     
     xlabel('Mean Temporal Windows (sec)');
-    title(['SMag']);
+    title(['SMag - thresholded']);
+    set(gca, 'color', 'none'); % Transparent background
+    
+    
+    figure;
+    yyaxis left; % Left y-axis for LI
+    plot(LI,'LineWidth',1.5);
+    ylabel('Lateralization Index (LI)');
+    
+    hold on;
+    
+    yyaxis right; % Right y-axis for Power
+    plot(mean(pow_values.left_raw,2),'LineWidth',1.5); % Mean power for left activities
+    plot(mean(pow_values.right_raw,2),'LineWidth',1.5); % Mean power for right activities
+    ylabel('Power');
+    
+    legend({'LI', 'Left SMag', 'Right SMag'}, 'Location', 'best');
+    
+    % Set x-axis ticks and labels
+    val = round(mean(wi(:,1),2),2);
+    set(gca, 'Xtick', 1:2:length(wi), 'XtickLabel', val(1:2:end));
+    set(gca, 'FontSize', 8, 'XTickLabelRotation', 90);
+    set(gcf, 'Position', [1000, 400, 1000, 300]);
+    
+    xlabel('Mean Temporal Windows (sec)');
+    title(['SMag - raw']);
     set(gca, 'color', 'none'); % Transparent background
     
     
