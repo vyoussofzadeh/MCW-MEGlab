@@ -26,7 +26,7 @@ glass_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for B
 
 glass_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/Glasser';
 
-cfg = struct('src_fname', src_fname, 'glass_dir', glass_dir, 'glass_atlas', glass_atlas, 'plotflag', 1);
+cfg = struct('src_fname', src_fname, 'glass_dir', glass_dir, 'glass_atlas', glass_atlas, 'plotflag', 0);
 Data_hcp_atlas = ecpfunc_hcp_atlas3(cfg);
 
 %% SAVE ATLAS NETWORKS
@@ -101,6 +101,7 @@ disp('choose DB from BS, then enter!');
 pause
 
 BS_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/';
+BS_data_dir = fullfile(BS_dir,'data_full');
 protocol = fullfile(BS_dir, 'data_full/protocol.mat');
 
 %%
@@ -109,6 +110,7 @@ Run_load_surface_template
 %%
 % LI_analysis_label = {'DICS_baseline','DICS_contrast','LCMV_baseline','LCMV_contrast','DICS_anim', 'DICS_contrast_prestim', 'dSPM_contrast'};
 LI_analysis_label = {'DICS_indirect','DICS_directcontrast','LCMV_anim_vs_Symb','-','DICS_anim', 'DICS_contrast_prestim', 'dSPM_contrast'};
+
 
 for i = 1:length(LI_analysis_label)
     disp([num2str(i) ') ' LI_analysis_label{i}]);
@@ -126,8 +128,7 @@ LI_method = input(':');
 
 %%
 datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data';
-% BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data_full';
-BS_data_dir = fullfile(BS_dir,'data_full');
+BS_data_dir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data_full';
 
 cfg = [];
 cfg.protocol = protocol;
@@ -135,7 +136,7 @@ cfg.datadir = datadir;
 cfg.BS_data_dir = BS_data_dir;
 
 switch LI_analysis
-    case 1
+    case {1,5}
         cfg.datatag = 'wDICS_baseline_18_4_50ms';
         S_data = ecpfunc_read_sourcemaps_dics(cfg);
     case 2
@@ -144,16 +145,9 @@ switch LI_analysis
     case 3
         cfg.datamask = fullfile('./Group_analysis/LCMV/results_average*.mat');
         S_data = ecpfunc_read_sourcemaps(cfg);
-        %     case 4
-        %         cfg.datamask = fullfile('./Group_analysis/LCMV/results_abs*.mat');
-        %         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
-    case 5
-        protocol = fullfile(BS_dir, 'data/protocol.mat');
-        BS_data_dir = fullfile(BS_dir,'data');
-        cfg.protocol = protocol;
-        cfg.BS_data_dir = BS_data_dir;
-        cfg.datatag = 'wDICS_baseline_18_4';
-        S_data = ecpfunc_read_sourcemaps_dics_anim(cfg);
+%     case 4
+%         cfg.datamask = fullfile('./Group_analysis/LCMV/results_abs*.mat');
+%         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
     case 6
         cfg.datatag = 'wDICS_contrast_18_4_50ms';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
@@ -264,15 +258,15 @@ switch LI_analysis
             cfg.wi = wi;
             cfg.data_save_dir = save_dir;
             cfg.method = mlabel;
-            cfg.Threshtype = 4;
-            cfg.doavg = 0;
+            cfg.Threshtype = 3;
+            cfg.doavg = 1;
             [label_8net, LI_sub] = do_group_LI_net_contrast_dics(cfg);
         end
     case 5
         dtag = {'Anim, Ctrl';'Anim, Patn'};
         dtag_val = 1:2;
    
-        for select_data = 1:length(dtag_val)
+        for select_data = 1:length(dtag_val)s
             
             disp(['Running ', mlabel, ' ', dtag{dtag_val(select_data)}, '...'])
             
@@ -292,8 +286,7 @@ switch LI_analysis
             cfg.data_save_dir = save_dir;
             cfg.method = mlabel;
             cfg.Threshtype = 3;
-            cfg.doavg = 0;
-            cfg.parcellaion = 0;
+            cfg.doavg = 1;
             [label_8net, LI_sub] = do_group_LI_net_contrast(cfg); % Anim vs. Baseline vs. Symb vs. Baseline
         end    
 end

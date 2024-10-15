@@ -1,4 +1,3 @@
-
 close all,
 
 % Unique ROIs for iteration
@@ -35,7 +34,6 @@ end
 
 cfg = []; cfg.outdir = save_dir; filename = 'Corr_dynamic'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
 close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
-
 
 figure;
 sgtitle('Conc Max, Optimal'); % Super title for the figure
