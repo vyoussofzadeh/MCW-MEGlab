@@ -32,7 +32,7 @@ summaryTable.Max_Value = round(summaryTable.Max_Value, 2);
 % end
 
 % Save to CSV
-writetable(summaryTable, 'LI_Metrics_Summary_fixed.csv');
+writetable(summaryTable, fullfile(save_dir,'LI_Metrics_Summary_fixed.csv'));
 
 
 % writetable(summaryTable, 'LI_Metrics_Summary.csv');

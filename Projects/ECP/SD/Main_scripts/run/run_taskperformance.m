@@ -1,0 +1,16 @@
+taskperf_datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/';
+sub_MF_pt_num = cellfun(@(x) str2double(x(3:end)), sub_MF_pt);
+taskPerformanceDataPath = fullfile(taskperf_datadir, 'TaskPerformanceSD.mat');
+load(taskPerformanceDataPath); 
+[~,~,IB_taskperformance] = intersect(sub_MF_pt_num, accuracyResults.Subject);
+accuracyResults_updt = accuracyResults(IB_taskperformance,:);
+meanAccBySubject_Animal = groupsummary(accuracyResults_updt, 'Subject', 'mean', 'Animal_ACC');
+meanAccBySubject_Falsefont = groupsummary(accuracyResults_updt, 'Subject', 'mean', 'Falsefont_ACC');
+totalmean = mean(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
+disp(['The total mean of mean_Falsefont_ACC is: ', num2str(totalmean)]);
+totalstd = std(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
+disp(['The total std of mean_Falsefont_ACC is: ', num2str(totalstd)]);
+totalmean = mean(meanAccBySubject_Animal.mean_Animal_ACC);
+disp(['The total mean of mean_Anim_ACC is: ', num2str(totalmean)]);
+totalstd = std(meanAccBySubject_Animal.mean_Animal_ACC);
+disp(['The total std of mean_Anim_ACC is: ', num2str(totalstd)]);
