@@ -14,6 +14,7 @@ data_save_dir = cfg_main.data_save_dir;
 method = cfg_main.method;
 Threshtype = cfg_main.Threshtype;
 doavg = cfg_main.doavg;
+parcellaion = cfg_main.parcellaion;
 
 %%
 % net_sel_mutiple_label = {'Angular'; 'Frontal'; 'Occipital'; 'Other'; 'PCingPrecun';'Temporal'; 'BTLA'; 'VWFA'};
@@ -51,6 +52,8 @@ else
         cfg.index_R = idx_R{j};
         cfg.Threshtype = Threshtype;
         cfg.doavg = doavg;
+        cfg.parcellaion = parcellaion;
+        cfg.math = 'default';
         
         for i=1:length(sFiles_in)
             pause(0.1);
@@ -62,7 +65,7 @@ else
                 pow_sub(j,i,:) = pow;
             elseif contains(method, 'Counting')
                 [LI, ~, ~, roi_count] = do_lat_analysis_contrast_Counting(cfg);
-                roi_count_sub(j,i,:) = roi_count;
+                count_sub(j,i,:) = roi_count;
             elseif contains (method, 'Bootstrapping')
                 cfg.divs = 25;
                 cfg.n_resampling = 25;
@@ -89,10 +92,10 @@ else
     
     if contains(method,'Magnitude')
         save(savefilename,'LI_sub','m_LI_max_sub','pow_sub', 'setup'),
-    elseif contains(method,'Counting')
-        save(savefilename,'LI_sub','m_LI_max_sub', 'roi_count_sub', 'setup'),
+%     elseif contains(method,'Counting')
+%         save(savefilename,'LI_sub','m_LI_max_sub', 'roi_count_sub', 'setup'),
     else
-        save(savefilename,'LI_sub','m_LI_max_sub', 'setup'),
+        save(savefilename,'LI_sub','m_LI_max_sub', 'setup', 'count_sub'),
     end
 end
 end

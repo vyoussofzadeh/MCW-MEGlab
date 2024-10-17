@@ -35,7 +35,6 @@ else
     idx_LR_updt = [idx_L,idx_R];
 end
 
-
 tmp = tmp_1;
 
 switch cfg_main.math

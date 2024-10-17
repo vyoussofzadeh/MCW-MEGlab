@@ -55,7 +55,7 @@ sProcess.options.orientpreset.Value   = {1, {
 
 % === Custom Orientation
 % sProcess.options.customorient.Comment = 'Custom Orientation (e.g., {"left", "right", "top"}): ';
-sProcess.options.customorient.Comment = 'Custom Orientation (e.g., {left, right, top}): ';
+sProcess.options.customorient.Comment = 'Custom Orientation (e.g., left, right, top): ';
 sProcess.options.customorient.Type    = 'text';
 sProcess.options.customorient.Value   = '';
 
@@ -107,8 +107,10 @@ end
 
 %% ===== RUN =====
 function OutputFiles = Run(sProcess, sInputs) %#ok<DEFNU>
-% Returned files: same as input
-OutputFiles = {sInputs.FileName};
+
+L = length(sInputs);
+
+
 % Get options
 
 % Get Orientation Selection
@@ -138,70 +140,96 @@ switch orientPreset
 end
 
 %%
-% Get Background Color Selection
-backgroundSelection = sProcess.options.background.Value{1};
-
-fname = OutputFiles{1};
-
-% Obtain saving directory
-savedir = sProcess.options.savedir.Value;
-svname = sProcess.options.sname.Value;
-
-close all
-hFig = view_surface_data([], fname, [], 'NewFigure');
-
-% Set background color based on user selection
-if backgroundSelection == 1
-    set(hFig, 'color', 'w');
-elseif backgroundSelection == 2
-    set(hFig, 'color', 'k');
-else
-    % Default or error handling
-    disp('Invalid background selection. Using default white background.');
-    set(hFig, 'color', 'w');
-end
-
-% set(hFig,'color','w');
-bst_colormaps('SetColorbarVisible', hFig, 0);
-axis equal
-pause,
-
-a = [];
-for iOrient=1:length(Orient)
-    figure_3d('SetStandardView', hFig, Orient{iOrient});
-    img = out_figure_image(hFig, '', '');
-    imgFile = fullfile(savedir, [svname,'.tif']);
-    out_image(imgFile, img);
-    b = imread(imgFile);
-    if isa(b,'uint8'), b=double(b)/255; end
-    if max(b(:))>1, b=double(b)/double(max(b(:))); end
-    a{iOrient}=double(b);
-    pause(1)
-end
-
-ncut = 16;
-domosaiccrop = 1;
-if domosaiccrop
-    cropt_idx={};
-    for n=1:numel(a)
-        cropt=any(any(diff(a{n},1,2),2),3);
-        cropt_idx{n,1}=max(1,sum(~cumsum(cropt))-ncut):size(a{n},1)-max(0,sum(~cumsum(flipud(cropt)))-ncut);
-        cropt=any(any(diff(a{n},1,1),1),3);
-        cropt_idx{n,2}=max(1,sum(~cumsum(cropt))-ncut):size(a{n},2)-max(0,sum(~cumsum(flipud(cropt)))-ncut);
+for iInput = 1:L
+    
+    % Returned files: same as input
+    OutputFiles = {sInputs(iInput).FileName};
+    
+    %%
+    % Get Background Color Selection
+    backgroundSelection = sProcess.options.background.Value{1};
+    
+    fname = OutputFiles{1};
+    
+    % Obtain saving directory
+    savedir = sProcess.options.savedir.Value;
+    
+    if L > 1
+        tmp = in_bst_data(fname);
+        disp(tmp.Comment)
+        svname = input(['enter name for ' num2str(iInput), ' input:'], 's');
+    else
+        svname = sProcess.options.sname.Value;
     end
+    
+    close all
+    hFig = view_surface_data([], fname, [], 'NewFigure');
+    
+    % Set background color based on user selection
+    if backgroundSelection == 1
+        set(hFig, 'color', 'w');
+    elseif backgroundSelection == 2
+        set(hFig, 'color', 'k');
+    else
+        % Default or error handling
+        disp('Invalid background selection. Using default white background.');
+        set(hFig, 'color', 'w');
+    end
+    
+    bst_colormaps('SetColorbarVisible', hFig, 0);
+    axis equal
+    pause,
+    
+    %% Export images: PNG
+    b = []; a = []; img = [];
+    
+    for iOrient=1:length(Orient)
+        figure_3d('SetStandardView', hFig, Orient{iOrient});
+        img{iOrient} = out_figure_image(hFig, '', '');
+        b=double(img{iOrient});
+        if isa(b,'uint8'), b=double(b)/255; end
+        if max(b(:))>1, b=double(b)/double(max(b(:))); end
+        a{iOrient}=double(b);
+        pause(1)
+    end
+    
+    ncut = 16;
+    domosaiccrop = 1;
+    if domosaiccrop
+        cropt_idx={};
+        for n=1:numel(a)
+            cropt=any(any(diff(a{n},1,2),2),3);
+            cropt_idx{n,1}=max(1,sum(~cumsum(cropt))-ncut):size(a{n},1)-max(0,sum(~cumsum(flipud(cropt)))-ncut);
+            cropt=any(any(diff(a{n},1,1),1),3);
+            cropt_idx{n,2}=max(1,sum(~cumsum(cropt))-ncut):size(a{n},2)-max(0,sum(~cumsum(flipud(cropt)))-ncut);
+        end
+    end
+    
+    if domosaiccrop
+        cropt_idx1234=cropt_idx{1,1}; for n=2:numel(a), cropt_idx1234=union(cropt_idx1234,cropt_idx{n,1}); end
+        ta=[]; for n=1:numel(a), ta=cat(2,ta,a{n}(cropt_idx1234,cropt_idx{n,2},:)); end; a=ta;
+    else
+        a=cat(2,a{:});
+    end
+    
+    imgFile = fullfile(savedir, [svname,'.png']);
+    imwrite(a,imgFile);
+    
+    % -PNG
+    combined_path = fullfile(savedir,[svname, '.png']);
+    web(combined_path, '-new');
+    
+    %% -SVG (incomplete - adding extra white border)
+    % Create a figure
+    % fig = figure;
+    % imshow(a);  % Display the image
+    % set(gca, 'Position', [0 0 1 1]); % Optional: Remove any margins
+    % set(gca, 'color', 'none');
+    % combined_path = fullfile(savedir, [svname, '.svg']);
+    % print(fig, '-dsvg', combined_path);  % Save the figure as SVG
+    %
+    % % Close the figure
+    % close(fig);
 end
-
-if domosaiccrop
-    cropt_idx1234=cropt_idx{1,1}; for n=2:numel(a), cropt_idx1234=union(cropt_idx1234,cropt_idx{n,1}); end
-    ta=[]; for n=1:numel(a), ta=cat(2,ta,a{n}(cropt_idx1234,cropt_idx{n,2},:)); end; a=ta;
-else
-    a=cat(2,a{:});
-end
-
-imwrite(a,imgFile);
-disp('5: completed!, images were saved at,')
-disp(fullfile(savedir))
-disp('as,')
-disp([svname,'.tif'])
 
 end

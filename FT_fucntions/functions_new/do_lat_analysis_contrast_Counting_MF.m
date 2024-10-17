@@ -71,7 +71,8 @@ globalwindowthresh = max(mdwin(:));
 % figure, plot(tmp.ImageGridAmp(:,1))
 
 LI = [];
-roi_count = [];
+roi_count_L = []; roi_count_R = [];
+roi_count_L_raw = []; roi_count_R_raw = [];
 
 for j=1:size(wi,1)
     
@@ -130,4 +131,7 @@ end
 roi_count = [];
 roi_count.left = roi_count_L;
 roi_count.right = roi_count_R;
+roi_count.left_raw = roi_count_L_raw;
+roi_count.right_raw = roi_count_R_raw;
+
 

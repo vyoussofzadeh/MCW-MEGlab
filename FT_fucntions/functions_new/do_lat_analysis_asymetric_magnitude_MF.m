@@ -9,7 +9,7 @@ sinput = cfg_main.sinput;
 doavg = cfg_main.doavg;
 
 %- Parcel_based (mean parcels) LI analysis
-tmp = load(fullfile(cfg_main.BS_data_dir, sinput)); 
+tmp = load(fullfile(cfg_main.BS_data_dir, sinput));
 if  exist('tmp.Value','var'), tmp.ImageGridAmp = tmp.Value; end
 
 % disp({tmp_1.Comment; tmp_2.Comment})
@@ -73,7 +73,7 @@ globalwindowthresh = max(mdwin(:));
 %%
 LI = [];
 % Initialize an array to store pow values for all intervals
-pow_values = struct('left', [], 'right', []); % Create a struct to hold all pow values
+pow_values = struct('left', [], 'right', [], 'left_raw', [], 'right_raw', []); % Create a struct to hold all pow values
 
 for j=1:size(wi,1)
     
@@ -99,15 +99,18 @@ for j=1:size(wi,1)
         case 'rectif_bslnormal_mean'
             cfg.applymean = 1;
         otherwise
-            cfg.applymean = 0;    
+            cfg.applymean = 0;
     end
-
+    
     [LI_clin, pow] = do_LI_magnitude(cfg);
     LI(j) = LI_clin;
     
     % Store each pow struct in the pow_values array
     pow_values.left = [pow_values.left; pow.left];
     pow_values.right = [pow_values.right; pow.right];
+    
+    pow_values.left_raw = [pow_values.left_raw; pow.left_raw];
+    pow_values.right_raw = [pow_values.right_raw; pow.right_raw];
 end
 
 % pow_values.left_org = mean(tmp.ImageGridAmp(idx_L,:),1)';
@@ -143,7 +146,7 @@ if cfg_main.fplot ==1
     xlim([tmp.Time(1), tmp.Time(end)])
     figure, plot(tmp.Time, tmp.ImageGridAmp(idx_R,:),'LineWidth',1.5); title('Right H');% Mean power for left activities
     xlim([tmp.Time(1), tmp.Time(end)])
-
+    
 end
 
 [~, idx_mx] = max(LI); LI_max = wi(idx_mx,:);

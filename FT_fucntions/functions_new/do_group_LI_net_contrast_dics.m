@@ -52,6 +52,7 @@ else
         cfg.Threshtype = Threshtype;
         cfg.doavg = doavg;
         cfg.parcellaion = 0;
+        cfg.math = 'rectif';
         
         for i=1:length(sFiles_in)
             pause(0.1);

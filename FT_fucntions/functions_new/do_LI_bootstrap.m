@@ -19,6 +19,51 @@ MIN_NUM_THRESH_VOXELS = round(5 / RESAMPLE_RATIO);
 
 tmp = load(fullfile(cfg_main.BS_data_dir, sinput));
 
+% % Look up indicies for verticies or (sub)ROIs from HCP atlas
+% if size(tmp.ImageGridAmp,1) > 360
+%     sScout = cfg_main.atlas;
+%     
+%     % Get left and right subregions from scout data
+%     LHscout = [];
+%     for i = 1:length(idx_L)
+%         LHscout = [LHscout, sScout.Scouts(idx_L(i)).Vertices];
+%     end
+%     
+%     RHscout = [];
+%     for i = 1:length(idx_R)
+%         RHscout = [RHscout, sScout.Scouts(idx_R(i)).Vertices];
+%     end
+%     idx_LR_updt = [LHscout,RHscout];
+% else
+%     idx_LR_updt = [idx_L,idx_R];
+% end
+% 
+% switch cfg_main.math
+%     case 'db'
+%         Fdata = tmp.ImageGridAmp; tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
+%         Fdata = 10 .* log10(abs(bst_bsxfun(@rdivide, Fdata, meanBaseline)));
+%         tmp.ImageGridAmp = Fdata;
+%         tmp.ImageGridAmp(tmp.ImageGridAmp < 0) = 0;
+%     case 'rectif'
+%         Fdata = tmp.ImageGridAmp;
+%         Fdata(Fdata < 0) = 0;
+%         tmp.ImageGridAmp = Fdata;
+%     case 'rectif_bslnormal'
+%         Fdata = tmp.ImageGridAmp(idx_LR_updt,:);
+%         Fdata(Fdata < 0) = 0;
+%         tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
+%         Fdata = Fdata./meanBaseline;
+%         tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
+%     case 'rectif_zbsl'
+%         Fdata = tmp.ImageGridAmp(idx_LR_updt,:);
+%         Fdata(Fdata < 0) = 0;
+%         tidx = tmp.Time < 0;
+%         meanBaseline = mean(Fdata(:,tidx),2);
+%         stdBaseline = std(Fdata(:,tidx)')';
+%         Fdata = (Fdata - meanBaseline)./stdBaseline;
+%         tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
+% end
+
 sScout = atlas;
 
 weighted_li = [];
@@ -26,6 +71,9 @@ weighted_li = [];
 % Predefine the arrays with max size, will truncate later
 left_activities = zeros(size(wi, 1), divs);
 right_activities = zeros(size(wi, 1), divs);
+
+% global peak
+globalwindowthresh = do_calculateGlobalWindowThreshold(tmp, wi, idx_L, idx_R, cfg_main);
 
 for j = 1:size(wi, 1)
     
@@ -64,18 +112,19 @@ for j = 1:size(wi, 1)
     
     %%
     if cfg_main.Threshtype == 4 % all time, ie no window
-        aImageGridAmp = cfg_main.da_in;
-        aLHvals = aImageGridAmp(LHscout,:); aRHvals = aImageGridAmp(RHscout,:);
-        aLH_max = max(aLHvals(:)); aRH_max = max(aRHvals(:));
-        ROIMax = max(aLH_max, aRH_max);
-    else  % window-based
+%         aImageGridAmp = cfg_main.da_in;
+%         aLHvals = aImageGridAmp(LHscout,:); aRHvals = aImageGridAmp(RHscout,:);
+%         aLH_max = max(aLHvals(:)); aRH_max = max(aRHvals(:));
+%         ROIMax = max(aLH_max, aRH_max);
+    threshvals = (0:(divs-1)) * (globalwindowthresh / (divs - 1));
+    elseif cfg_main.Threshtype == 3 % all time, ie no window
         % Calculate maximum values for left and right subregions
         LH_max = max(LHvals(:));
         RH_max = max(RHvals(:));
-        ROIMax = max(LH_max, RH_max);       
+        ROIMax = max(LH_max, RH_max);
+        threshvals = (0:(divs-1)) * (ROIMax / (divs - 1));
     end
     
-    threshvals = (0:(divs-1)) * (ROIMax / (divs - 1));
     l_threshvals_all = LHvals(LHvals(:) >= 0);
     r_threshvals_all = RHvals(RHvals(:) >= 0);
     

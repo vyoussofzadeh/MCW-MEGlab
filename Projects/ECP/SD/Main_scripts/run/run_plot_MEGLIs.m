@@ -18,7 +18,7 @@ for net_idx = 1:length(network_sel)
     % Calculate mean across methods
     meanLI = nanmean(LI_values, 1);
     % Plot the averaged LI values for the current network
-    plotHandles(net_idx) = plot(mean(wi'), meanLI, 'LineWidth', 2, 'Color', colors(net_idx,:));
+    plotHandles(net_idx) = plot(wi(:,1)', meanLI, 'LineWidth', 2, 'Color', colors(net_idx,:));
     
     % Find the maximum LI value and its corresponding time
     [maxLI, idx] = max(meanLI);
@@ -53,9 +53,9 @@ hold off; % Release the plot hold
 cfg = [];
 cfg.outdir = save_dir; % Ensure save_dir is defined and points to a valid directory path
 cfg.filename = 'MEG_Laterality_Index_Selected_Networks_Over_Time'; % Filename without the extension
-cfg.type = 'svg'; % Specify the type as 'fig'
+cfg.type = figtype; % Specify the type as 'fig'
 do_export_fig(cfg); % Call the export function
 
 cd(save_dir); % Change back to the save directory
 
-close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+close all, combined_path = fullfile(save_dir,[cfg.filename, ['.',figtype]]); web(combined_path, '-new');

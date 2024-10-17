@@ -264,7 +264,7 @@ switch LI_analysis
             cfg.wi = wi;
             cfg.data_save_dir = save_dir;
             cfg.method = mlabel;
-            cfg.Threshtype = 4;
+            cfg.Threshtype = 3;
             cfg.doavg = 0;
             [label_8net, LI_sub] = do_group_LI_net_contrast_dics(cfg);
         end

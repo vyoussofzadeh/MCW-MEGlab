@@ -2,7 +2,8 @@ function plotOptimalTimePointsOnMEG3_selective(rSNR_MEG, MEG_LI, fMRI_LI, wi, op
 
 numSubjects = length(discordantSamples);
 
-timePoints = mean(wi,2);
+% timePoints = mean(wi,2);
+timePoints = wi(:,1);
 
 % Create a figure to hold all subplots
 figure;
@@ -44,7 +45,7 @@ for subj = 1:length(discordantSamples)
     title(sprintf('S%d|fMRI:%.1f|MEG:%.1f', subj_sel, fMRI_LI(subj_sel), MEG_LI(subj_sel, optimalTimePointIdx)));
     
     
-    currentDiff = abs((rSNR_MEG.rSNR_left(subj_sel, :)) - (rSNR_MEG.rSNR_right(subj_sel, :)));
+    currentDiff = rSNR_MEG.rSNR_left(subj_sel, :) - rSNR_MEG.rSNR_right(subj_sel, :);
     yyaxis right; % Left Y-axis for original SNR values
     p2 = plot(timePoints, currentDiff, 'DisplayName', 'rSNR diff', 'LineWidth', 1.5, 'LineStyle', '--'); % Plot left SNR in green
     
@@ -63,7 +64,7 @@ xlabel('Time Points');
 ylabel('MEG LI');
 
 yyaxis right; % Switch back to left axis for common settings
-ylabel('rSNR abs (L - R)');
+ylabel('rSNR (L - R)');
 % set(gcf, 'Position', [100 300 1200 1000]);
 
 % hold off

@@ -92,10 +92,10 @@ summaryTableDynamic_save.Concordance = round(summaryTableDynamic_save.Concordanc
 summaryTableDynamic_save.mean_Optimal_Time = round(summaryTableDynamic_save.mean_Optimal_Time, 2);
 
 % Save summary table
-writetable(summaryTableDynamic_save, 'LI_Metrics_Summary_Dynamic.csv');
+writetable(summaryTableDynamic_save, fullfile(save_dir,'LI_Metrics_Summary_Dynamic.csv'));
 
 % % Save dynamic summary table as text file
-fid = fopen('LI_Metrics_Summary_Dynamic.txt', 'wt');
+fid = fopen(fullfile(save_dir,'LI_Metrics_Summary_Dynamic.txt'), 'wt');
 fprintf(fid, '%s\t%s\t%s\t%s\t%s\n', summaryTableDynamic_save.Properties.VariableNames{:});
 
 for i = 1:height(summaryTableDynamic_save)
@@ -123,7 +123,6 @@ if plot_rSNR == 1
         end
     end
 end
-
 
 %% Plot rSNR+LI
 if plot_rSNR_LI == 1

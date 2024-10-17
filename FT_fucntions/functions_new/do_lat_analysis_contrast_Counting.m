@@ -11,7 +11,6 @@ doavg =  cfg_main.doavg;
 % Parcel_based (mean parcels) LI analysis
 tmp = load(fullfile(cfg_main.BS_data_dir, sinput));
 
-%% Global window threshold
 % Look up indicies for verticies or (sub)ROIs from HCP atlas
 if size(tmp.ImageGridAmp,1) > 360
     sScout = cfg_main.atlas;
@@ -31,15 +30,34 @@ else
     idx_LR_updt = [idx_L,idx_R];
 end
 
-
-mdwin = [];
-for j=1:size(wi,1)
-    timind1 = nearest(tmp.Time, wi(j,1)); timind2 = nearest(tmp.Time, wi(j,2));
-    dwin = tmp.ImageGridAmp(:,timind1:timind2);
-    mdwin(j,:) = mean(dwin(idx_LR_updt,:),2);
+switch cfg_main.math
+    case 'db'
+        Fdata = tmp.ImageGridAmp; tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
+        Fdata = 10 .* log10(abs(bst_bsxfun(@rdivide, Fdata, meanBaseline)));
+        tmp.ImageGridAmp = Fdata;
+        tmp.ImageGridAmp(tmp.ImageGridAmp < 0) = 0;
+    case 'rectif'
+        Fdata = tmp.ImageGridAmp;
+        Fdata(Fdata < 0) = 0;
+        tmp.ImageGridAmp = Fdata;
+    case 'rectif_bslnormal'
+        Fdata = tmp.ImageGridAmp(idx_LR_updt,:);
+        Fdata(Fdata < 0) = 0;
+        tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
+        Fdata = Fdata./meanBaseline;
+        tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
+    case 'rectif_zbsl'
+        Fdata = tmp.ImageGridAmp(idx_LR_updt,:);
+        Fdata(Fdata < 0) = 0;
+        tidx = tmp.Time < 0;
+        meanBaseline = mean(Fdata(:,tidx),2);
+        stdBaseline = std(Fdata(:,tidx)')';
+        Fdata = (Fdata - meanBaseline)./stdBaseline;
+        tmp.ImageGridAmp(idx_LR_updt,:) = Fdata;
 end
-globalwindowthresh = max(mdwin(:));
-% figure, plot(wi(:,1),mdwin);
+
+%% Global window threshold
+globalwindowthresh = do_calculateGlobalWindowThreshold(tmp, wi, idx_L, idx_R, cfg_main);
 
 %%
 
@@ -65,6 +83,7 @@ for j=1:size(wi,1)
     cfg.parcellaion = 0;
     cfg.Threshtype = cfg_main.Threshtype;
     cfg.da_in = tmp.ImageGridAmp; % all data
+    cfg.globalwindowthresh = globalwindowthresh;
     [LI_clin, roi_sum_cnt, roi_cnt] = do_LI_clincial(cfg);
     LI(j) = LI_clin;
     roi_count_sum(j) = roi_sum_cnt;

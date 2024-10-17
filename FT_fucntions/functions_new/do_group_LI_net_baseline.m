@@ -57,6 +57,7 @@ else
         cfg.index_R = idx_R{j};
         cfg.Threshtype = Threshtype;
         cfg.doavg = doavg;
+        cfg.parcellaion = 0;
         for i=1:length(sFiles_in{1}.sFiles_in)
             pause(0.1);
             

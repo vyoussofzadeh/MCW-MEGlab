@@ -1,10 +1,7 @@
-% close all,
 
 % Initialize variables
 fMRI_LI = fmri_LIs_val;
-timePoints = mean(wi, 2);
 timePoints = wi(:,1);
-
 
 sub_IDs = sub_MF_pt;
 nsub_IDs = cellfun(@(x) [num2str(find(strcmp(sub_IDs, x))), ':', x], sub_IDs, 'UniformOutput', false);
@@ -39,7 +36,6 @@ for j = 1:length(network_sel)
         
         roiName = net_sel_mutiple_label{network_sel(j)};
         
-        
         switch opt_method
             case 'rsnr'
                 lowerBound = best_bounds.(roiName).LowerBound; upperBound = best_bounds.(roiName).UpperBound;
@@ -56,7 +52,7 @@ for j = 1:length(network_sel)
             case 'wrsnr'
                 [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_WrSNR(rSNR_left, rSNR_right, wi, NaN, lowerBound, upperBound);
             case 'rsnr_optbound'
-                [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_rSNR_optbound(rSNR_left, rSNR_right, wi, NaN, minlowerband, maxUpperband);
+                [optimalIndices, maxDiff_opt, bounds] = findIndividualOptimalTimePoints_interval_rSNR_optbound(rSNR_left, rSNR_right, wi, NaN, minlowerband, maxUpperband);
         end
         
         optimalInterval = wi(optimalIndices,:);
@@ -94,7 +90,7 @@ summaryTableDynamic_save.mean_Optimal_Time = round(summaryTableDynamic_save.mean
 writetable(summaryTableDynamic_save, fullfile(save_dir,'LI_Metrics_Summary_Dynamic.csv'));
 
 % % Save dynamic summary table as text file
-fid = fopen('LI_Metrics_Summary_Dynamic.txt', 'wt');
+fid = fopen(fullfile(save_dir,'LI_Metrics_Summary_Dynamic.txt'), 'wt');
 fprintf(fid, '%s\t%s\t%s\t%s\t%s\n', summaryTableDynamic_save.Properties.VariableNames{:});
 
 for i = 1:height(summaryTableDynamic_save)
@@ -117,9 +113,18 @@ if plot_rSNR == 1
             rSNR_right = squeeze(rSNR_roi.right(network_sel(j), :,:));
             if methodIdx == 1, rSNR_left = 20.*rSNR_left; rSNR_right = 20.*rSNR_right; end
             
-            roiName = net_sel_mutiple_label{network_sel(j)};lowerBound = best_bounds.(roiName).LowerBound;upperBound = best_bounds.(roiName).UpperBound;
-            %             [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_rSNR(rSNR_left, rSNR_right, wi, 1:length(rSNR_right), lowerBound, upperBound);
-            [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_rSNR3(rSNR_left, rSNR_right, fMRI_LI, wi, 1:length(rSNR_right), lowerBound, upperBound);
+            roiName = net_sel_mutiple_label{network_sel(j)};
+            
+            
+            switch opt_method
+                case {'rsnr', 'LI'}
+                    lowerBound = best_bounds.(roiName).LowerBound;upperBound = best_bounds.(roiName).UpperBound;
+                    lowerBound = best_bounds.(roiName).LowerBound; upperBound = best_bounds.(roiName).UpperBound;
+                    [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_rSNR3(rSNR_left, rSNR_right, fMRI_LI, wi, 1:length(rSNR_right), lowerBound, upperBound);
+                case 'rsnr_optbound'
+                    [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_rSNR4(rSNR_left, rSNR_right, fMRI_LI, wi, 1:length(rSNR_right), bounds);
+            end
+            
             sgtitle(LI_method_label(methodIdx))
             cfg = []; cfg.outdir = save_dir; filename = ['rSNR_individuals_',LI_method_label{methodIdx}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
         end
@@ -139,27 +144,27 @@ if plot_rSNR_LI == 1
             rSNR_right = squeeze(rSNR_roi.right(network_sel(j), :,:));
             if methodIdx == 1, rSNR_left = 20.*rSNR_left; rSNR_right = 20.*rSNR_right; end
             
-            % for i=1:size(MEG_LI,1),
-            %     krst(i) = kurtosis(MEG_LI(i,:));
-            % end
-            roiName = net_sel_mutiple_label{network_sel(j)};lowerBound = best_bounds.(roiName).LowerBound;upperBound = best_bounds.(roiName).UpperBound;
+            roiName = net_sel_mutiple_label{network_sel(j)};
+            
             switch opt_method
-                case 'rsnr'
+                case {'rsnr','LI'}
+                    lowerBound = best_bounds.(roiName).LowerBound; upperBound = best_bounds.(roiName).UpperBound;
                     [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_rSNR(rSNR_left, rSNR_right, wi, NaN, lowerBound, upperBound);
-                case 'LI'
-                    [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval(MEG_LI, fMRI_LI, wi, NaN, lowerBound, upperBound);
+                case 'rsnr_optbound'
+                    [optimalIndices, maxDiff_opt, bounds] = findIndividualOptimalTimePoints_interval_rSNR_optbound(rSNR_left, rSNR_right, wi, NaN, minlowerband, maxUpperband);
             end
-                    
+            
             optimalInterval = wi(optimalIndices,:);
             
             [concordance, discordantSubs, groupCorrelation, pval] = calculateConcordanceForTimePoints_interval(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, wi, optimalInterval);
             
             rSNR_MEG = []; rSNR_MEG.rSNR_left = rSNR_left; rSNR_MEG.rSNR_right = rSNR_right;
             
-            plotOptimalTimePointsOnMEG3(rSNR_MEG, MEG_LI, fMRI_LI, wi, optimalIndices, discordantSubs, MEG_thre, lowerBound, upperBound); sgtitle(LI_method_label(methodIdx))
+            plotOptimalTimePointsOnMEG4(rSNR_MEG, MEG_LI, fMRI_LI, wi, optimalIndices, discordantSubs, MEG_thre, bounds); sgtitle(LI_method_label(methodIdx))
             cfg = []; cfg.outdir = save_dir; filename = ['LI_rSNR_individuals_',LI_method_label{methodIdx}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
             
-            plotOptimalTimePointsOnMEG3_selective(rSNR_MEG, MEG_LI, fMRI_LI, wi, optimalIndices, discordantSubs, MEG_thre, lowerBound, upperBound); sgtitle(LI_method_label(methodIdx))
+            plotOptimalTimePointsOnMEG4_selective(rSNR_MEG, MEG_LI, fMRI_LI, wi, optimalIndices, discordantSubs, MEG_thre, bounds);
+            sgtitle(LI_method_label(methodIdx))
             cfg = []; cfg.outdir = save_dir; filename = ['LI_rSNR_discordance_',LI_method_label{methodIdx}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
             
         end

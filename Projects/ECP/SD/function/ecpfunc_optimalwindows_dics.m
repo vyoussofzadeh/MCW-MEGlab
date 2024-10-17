@@ -16,7 +16,8 @@ MEG_thre = cfg_main.MEG_thre;
 fMRI_thre = cfg_main.fMRI_thre;
 LI_method_labels = cfg_main.LI_method_labels;
 net_sel_mutiple_label = cfg_main.net_sel_mutiple_label;
-plot_indiv_LI = cfg_main.plot_indiv_LI;
+snr_option = cfg_main.snr_option;
+% plot_indiv_LI = cfg_main.plot_indiv_LI;
 idcx = cfg_main.idcx;
 
 %% Check if bounds are valid
@@ -67,10 +68,24 @@ for j = 1:length(idcx)
     for methodIdx = 1:length(LI_method_label)
         
         MEG_LI = squeeze(LI_pt_val_new.(LI_method_label{methodIdx})(idcx(j), :, :));
+%         
+%         rSNR_roi = transformPowSubTo3DArrays(rSNR_new.(LI_method_label{methodIdx}));
+%         rSNR_left = squeeze(rSNR_roi.left(idcx(j), :,:));
+%         rSNR_right = squeeze(rSNR_roi.right(idcx(j), :,:));
         
-        rSNR_roi = transformPowSubTo3DArrays(rSNR_new.(LI_method_label{methodIdx}));
-        rSNR_left = squeeze(rSNR_roi.left(idcx(j), :,:));
-        rSNR_right = squeeze(rSNR_roi.right(idcx(j), :,:));
+        switch snr_option
+            case 'thresh'
+                rSNR_roi = transformPowSubTo3DArrays(rSNR_new.(LI_method_label{methodIdx})(idcx,:));
+                rSNR_left = squeeze(rSNR_roi.left(j, :,:)); rSNR_right = squeeze(rSNR_roi.right(j, :,:));
+            case 'raw'
+                if methodIdx == 1
+                    rSNR_roi = transformPowSubTo3DArrays_raw(rSNR_new.(LI_method_label{methodIdx})(idcx,:));
+                    rSNR_left = squeeze(rSNR_roi.left(j, :,:)); rSNR_right = squeeze(rSNR_roi.right(j, :,:));
+                else
+                    rSNR_roi = transformPowSubTo3DArrays(rSNR_new.(LI_method_label{methodIdx})(idcx,:));
+                    rSNR_left = squeeze(rSNR_roi.left(j, :,:)); rSNR_right = squeeze(rSNR_roi.right(j, :,:));
+                end
+        end
         
         if methodIdx == 1, rSNR_left = 20.*rSNR_left; rSNR_right = 20.*rSNR_right; end
         
@@ -94,12 +109,12 @@ for j = 1:length(idcx)
         newRow = {LI_method_labels{methodIdx}, net_sel_mutiple_label{idcx(j)}, groupCorrelation, concordance, meanOptimalTime, discordantSubs', MEG_LI, fMRI_LI};
         summaryTableDynamic = [summaryTableDynamic; newRow];
         
-        if idcx(j) == 11 && plot_indiv_LI == 1 % lateral network (11)
-            plotOptimalTimePointsOnMEG2(MEG_LI, fMRI_LI, timePoints,  mean(optimalInterval,2), discordantSubs, MEG_thre, lowerBound, upperBound);
-            suptitle(LI_method_label(methodIdx));
-            set(gcf, 'Position', [100, 100, 1600, 1300]);
-            cfg = []; cfg.outdir = save_dir; filename = ['LI_individuals_',LI_method_label{methodIdx}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
-        end
+%         if idcx(j) == 11 && plot_indiv_LI == 1 % lateral network (11)
+%             plotOptimalTimePointsOnMEG2(MEG_LI, fMRI_LI, timePoints,  mean(optimalInterval,2), discordantSubs, MEG_thre, lowerBound, upperBound);
+%             suptitle(LI_method_label(methodIdx));
+%             set(gcf, 'Position', [100, 100, 1600, 1300]);
+%             cfg = []; cfg.outdir = save_dir; filename = ['LI_individuals_',LI_method_label{methodIdx}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+%         end
     end
 end
 

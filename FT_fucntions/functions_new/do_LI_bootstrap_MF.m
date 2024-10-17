@@ -204,6 +204,8 @@ end
 roi_count = [];
 roi_count.left = left_activities;
 roi_count.right = right_activities;
+roi_count.left_raw = sum(LHvals(:));
+roi_count.right_raw = sum(RHvals(:));
 
 [~, idx_mx] = max(weighted_li); LI_max = wi(idx_mx,:);
 
@@ -230,7 +232,7 @@ if cfg_main.fplot ==1
     set(gcf, 'Position', [1000, 400, 1000, 300]);
     
     xlabel('Mean Temporal Windows (sec)');
-    title(['Bootstrap']);
+    title('Bootstrap');
     set(gca, 'color', 'none'); % Transparent background
     
 end

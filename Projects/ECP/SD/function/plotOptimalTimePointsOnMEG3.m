@@ -43,7 +43,7 @@ for subj = 1:numSubjects
     title(sprintf('S%d|fMRI:%.1f|MEG:%.1f', subj, fMRI_LI(subj), MEG_LI(subj, optimalTimePointIdx)));
     
     
-    currentDiff = abs((rSNR_MEG.rSNR_left(subj, :)) - (rSNR_MEG.rSNR_right(subj, :)));
+    currentDiff = (rSNR_MEG.rSNR_left(subj, :)) - (rSNR_MEG.rSNR_right(subj, :));
     yyaxis right; % Left Y-axis for original SNR values
     p2 = plot(timePoints, currentDiff, 'DisplayName', 'rSNR diff', 'LineWidth', 1.0, 'LineStyle', '--'); % Plot left SNR in green
     
@@ -64,7 +64,7 @@ xlabel('Time Points');
 ylabel('MEG LI');
 
 yyaxis right; % Switch back to left axis for common settings
-ylabel('rSNR abs(L-R)');
+ylabel('rSNR (L-R)');
 
 set(gcf, 'Position', [100, 100, 1600, 1300]);
 

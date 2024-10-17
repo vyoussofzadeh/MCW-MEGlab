@@ -22,6 +22,8 @@ addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/
 MEG_thre = 10; % MEG threshold
 fMRI_thre = 10; % fMRI threshold
 
+figtype = 'svg';
+
 %%
 LI_analysis_label = {'DICS_indirect','DICS_directcontrast','LCMV_anim_vs_Symb','-','DICS_anim', 'DICS_contrast_prestim', 'dSPM_contrast','DICS_directcontrast_localthresh'};
 
@@ -231,6 +233,8 @@ cfg.thre = fMRI_thre; cfg.LI = fmri_LIs_val;
 fmri_LIs_trn = do_ternary_classification2(cfg);
 size(fmri_LIs_trn);
 
+Pt_ID  = LI_pt.Magnitude.setup.S_data.sFiles_subid(IA)';
+
 %%
 % Loop through each element in the struct arrays
 for i = 1:size(rSNR_new.Magnitude, 1)
@@ -290,234 +294,25 @@ run_table_fixedinterval
 %- plot_fixedinterval
 run_plot_fixedinterval
 
-%%
-plot_indiv_LI = 0; plot_rSNR = 0; plot_rSNR_LI = 0;
-idcx = [1,2,6,11];
-
-opt_method = 'rsnr_optbound';
-run_optimalLIs_snr_dics_rois
-
 %% Dynamic interval analysis
-plot_indiv_LI = 0; plot_rSNR = 0; plot_rSNR_LI = 0;
+plot_indiv_LI = 0; plot_rSNR = 1; plot_rSNR_LI = 0;
 
-% % lowerBound = 0.3; upperBound = 1.3;
-% lowerBound = 0.45; upperBound = 1.2;
-% lowerBound = 0.5; upperBound = 1.5;
-% lowerBound = 0.54; upperBound = 1.79;
-lowerBound = 0.5; upperBound = 1.4;
-lowerBound = 0.3; upperBound = 0.8;
-lowerBound = 0.3; upperBound = 1.1;
-lowerBound = 0.45; upperBound = 0.75;
+disp('1) res-snr and optimal bound selection')
+disp('2) res-snr with fixed lower and upper bounds')
+disp('3) res-snr with optimzation against fMRI LIs - only for inspection!')
+opt_sel = input('optimal method: ');
 
-
-% opt_method = 'LI'; %'rsnr'
-opt_method = 'rsnr';
-
-% run_optimalLIs_snr_dics
-
-%%
-clc
-options = optimset('Display', 'iter', 'TolX', 1e-4);
-
-best_bounds = struct();
-
-ROIs = [1, 2, 6, 11];  % Specifying which ROIs to optimize for
-% ROIs = [11];  % Specifying which ROIs to optimize for
-windowAdjustments = [0.1:0.01:1.4];  % Example factors to adjust window sizes
-
-% Initialize configuration for each ROI
-cfg = struct();
-cfg.fmri_LIs_val = fmri_LIs_val;
-cfg.wi = wi;
-cfg.sub_MF_pt = sub_MF_pt;
-cfg.LI_method_label = LI_method_label;
-cfg.LI_pt_val_new = LI_pt_val_new;
-cfg.fmri_LIs = fmri_LIs;
-cfg.IB_megfmri = IB_megfmri;
-cfg.rSNR_new = rSNR_new;
-cfg.opt_method = opt_method;
-cfg.MEG_thre = MEG_thre;
-cfg.fMRI_thre = fMRI_thre;
-cfg.LI_method_labels = LI_method_labels;
-cfg.net_sel_mutiple_label = net_sel_mutiple_label;
-cfg.snr_option = 'thresh'; % 'raw'
-
-% Loop through each ROI
-for i = 1:length(ROIs)
-    roi = net_sel_mutiple_label{ROIs(i)};  % Extracting the ROI name for indexing
-    
-    % Initialize best metrics
-    bestConcordance = -inf;
-    bestBounds = [];
-    
-    for adjustment = windowAdjustments
-        
-        cfg.idcx = ROIs(i);
-        fun = @(x) - ecpfunc_optimalwindows_dics(setfield(setfield(cfg, 'lowerBound', x(1)), 'upperBound', x(2)));
-        
-        % Initial guesses and bounds adjusted by current factor
-        x0 = [0.4, 1.4] * adjustment;
-        lb = [0.2, 0.2] * adjustment;
-        ub = [1.8, 1.8] * adjustment;
-        
-        % Run the optimizer
-        [bounds, fval] = fmincon(fun, x0, [], [], [], [], lb, ub, [], options);
-        
-        cfg_new = cfg; cfg_new.lowerBound = bounds(1); cfg_new.upperBound = bounds(2);
-        [MConcordance, bestLIMethod, MCor] = ecpfunc_optimalwindows_dics(cfg_new);
-        
-        if -fval > bestConcordance
-            bestConcordance = -fval;
-            bestBounds = bounds;
-        end
-    end
-    
-    % Store the best results for current ROI
-    best_bounds.(roi) = struct('LowerBound', bestBounds(1), 'UpperBound', bestBounds(2), 'MaxConcordance', bestConcordance, 'BestLIMethod', bestLIMethod, 'BestCorr', MCor);
+switch opt_sel
+    case 1
+        minlowerband = 0.35; maxUpperband = 1.5;
+        opt_method = 'rsnr_optbound'; run_optimalLIs_snr_dics_rois
+        disp(['mean_conc:', num2str(mean(summaryTableDynamic_save.Concordance))])
+    case 2
+        lowerBound = 0.35; upperBound = 1.5;
+        opt_method = 'rsnr'; run_optimalLIs_snr_dics
+    case 3
+        opt_method = 'rsnr'; run_optimalLIs_usingfMRI
 end
-
-fieldNames = fieldnames(best_bounds);
-for i = 1:length(fieldNames)
-    roi = fieldNames{i};
-    fprintf('ROI: %s\n', roi);
-    fprintf('  Lower Bound: %.3f\n', best_bounds.(roi).LowerBound);
-    fprintf('  Upper Bound: %.3f\n', best_bounds.(roi).UpperBound);
-    fprintf('  Max Concordance: %.3f%%\n', best_bounds.(roi).MaxConcordance);
-    fprintf('  Best LI Method: %s\n', best_bounds.(roi).BestLIMethod);
-    fprintf('  Best Corr: %.3f\n\n', best_bounds.(roi).BestCorr);
-end
-
-fieldNames = fieldnames(best_bounds);  % Get all ROI names
-maxConcordances = zeros(length(fieldNames), 1);  % Preallocate array for max concordance values
-
-for i = 1:length(fieldNames)
-    roi = fieldNames{i};
-    maxConcordances(i) = best_bounds.(roi).MaxConcordance;  % Extract max concordance for each ROI
-end
-
-%%
-% Plotting
-figure;
-barHandles = bar(maxConcordances);
-title('Maximum Concordance by ROI');
-xlabel('ROI');
-ylabel('Max Concordance (%)');
-set(gca, 'XTickLabel', fieldNames);
-xtickangle(45);
-
-% Annotations
-xCoords = barHandles(1).XData;
-for i = 1:length(maxConcordances)
-    text(xCoords(i), maxConcordances(i) + 0.5, sprintf('%.2f%%', maxConcordances(i)), ...
-         'HorizontalAlignment', 'center', ...
-         'VerticalAlignment', 'bottom', ...
-         'FontSize', 10, ...
-         'Color', 'blue');
-    text(xCoords(i), maxConcordances(i) / 2, sprintf('[%.2f, %.2f]', best_bounds.(fieldNames{i}).LowerBound, best_bounds.(fieldNames{i}).UpperBound), ...
-         'Rotation', 90, ...
-         'HorizontalAlignment', 'right', ...
-         'FontSize', 8, ...
-         'Color', 'white');
-    text(xCoords(i), maxConcordances(i) / 2, sprintf('%s', best_bounds.(fieldNames{i}).BestLIMethod), ...
-         'Rotation', 90, ...
-         'HorizontalAlignment', 'left', ...
-         'FontSize', 8, ...
-         'Color', 'green');
-end
-cfg = []; cfg.outdir = save_dir; filename = 'ConcorMaxOpt'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
-
-
-%%
-clc, close all
-for methodIdx = 1:length(LI_method_label)
-    rSNR_roi = transformPowSubTo3DArrays(rSNR_new.(LI_method_label{methodIdx}));
-
-% Initialize a new matrix to store the absolute differences
-abs_LR = zeros(size(rSNR_roi.left));
-
-% Calculate the absolute difference for each ROI
-for i = 1:size(rSNR_roi.left, 1)  % Iterating over each ROI
-    abs_LR(i, :, :) = abs(rSNR_roi.left(i, :, :) - rSNR_roi.right(i, :, :));
-%         abs_LR(i, :, :) = (rSNR_roi.left(i, :, :) );
-
-%     abs_LR(i, :, :) = (rSNR_roi.left(i, :, :) + rSNR_roi.right(i, :, :));
-end
-
-% Assuming abs_LR contains the absolute differences computed as before
-numROIs = size(rSNR_roi.left, 1);
-ROIs = [1,2, 6, 11];
-numSubjects = size(rSNR_roi.left, 2);
-numWindows = size(rSNR_roi.left, 3);
-
-% Matrix to store the 95th percentile for each window in each ROI
-percentile95 = zeros(numROIs, numWindows);
-
-% Calculate the 95th percentile for each window for each ROI
-for i = ROIs
-    for j = 1:numWindows
-        data_window = squeeze(abs_LR(i, :, j));  % Extract data for all subjects at the current window
-        percentile95(i, j) = prctile(data_window, 95);  % Compute the 95th percentile
-    end
-end
-
-% Define the threshold as the 95th percentile
-thresholds = 0.2 * max(percentile95, [], 2);  % Calculate max along windows for each ROI
-
-% Finding windows where the mean or median is below the 95th percentile threshold
-best_windows = zeros(numROIs, numWindows);
-for i = ROIs
-    for j = 1:numWindows
-        % Assuming you are comparing to the mean or median of the absolute differences
-        mean_abs_diff = mean(squeeze(abs_LR(i, :, j)));
-        if mean_abs_diff > thresholds(i)
-            best_windows(i, j) = 1;  % Mark window as "best" if the mean is less than the 95th percentile
-        end
-    end
-end
-
-% Example: Plotting the 95th percentiles and highlighting the best windows
-best_indices_roi = [];
-
-
-best_bounds  = [];
-
-% close all
-figure;
-j=1;
-for i = ROIs
-
-    subplot(2,2,j), j=j+1;
-    roi = net_sel_mutiple_label{i};  % Extracting the ROI name for indexing
-    plot(wi(:,1)',percentile95(i, :), 'LineWidth', 2);  % Plot 95th percentile for each ROI
-    hold on;
-    % Highlight best windows
-    best_indices = find(best_windows(i, :) == 1);
-    best_indices = [best_indices(1), best_indices(end)];
-%     plot(wi(best_indices,1)', percentile95(i, best_indices), 'ro');
-    best_bounds.(roi) = struct('LowerBound', wi(best_indices(1),1), 'UpperBound', wi(best_indices(2),1));
-        % Drawing vertical lines for lower and upper bounds
-    xline(wi(bound_indices(1), 1), 'g', 'LineWidth', 2);  % Green line for lower bound
-    xline(wi(bound_indices(2), 1), 'b', 'LineWidth', 2);  % Blue line for upper bound
-end
-
-xlabel('Window');
-ylabel('95th Percentile Value');
-title('95th Percentile and Best Windows by ROI');
-legend('95th Percentile', 'Best Windows');
-title(sprintf('Percentile and Bounds for ROI: %s', roi));
-disp(LI_method_label{methodIdx})
-plot_indiv_LI = 0; plot_rSNR = 0; plot_rSNR_LI = 0;
-idcx = [1,2,6,11];
-opt_method = 'rsnr';
-run_optimalLIs_snr_dics_rois
-
-% end
-end
-
-%%
-plot_indiv_LI = 0; plot_rSNR = 0; plot_rSNR_LI = 0;
-idcx = [1,2,6,11];
-run_optimalLIs_snr_dics_rois
 
 %%
 %- plot_compare_fixed_opt_methods
@@ -537,40 +332,10 @@ run_plot_compare_fixed_opt_gsum
 run_table_bestLIs
 
 %% Response (Reaction) Time Data
-load('/data/MEG/Research/aizadi/process/RT_summary/ResponseTime.mat')
-[~,~,IB_reactiontime] = intersect(sub_MF_pt, T.Sub_ID);
-T_patn_MEGfMRI = T(IB_reactiontime,:);
-meanAnimal = mean(T_patn_MEGfMRI.Animal, 'omitnan');
-stdAnimal = std(T_patn_MEGfMRI.Animal, 'omitnan');
-meanSymbol = mean(T_patn_MEGfMRI.Symbol, 'omitnan');
-stdSymbol = std(T_patn_MEGfMRI.Symbol, 'omitnan');
-disp(['Mean of Animal reaction times: ', num2str(meanAnimal)]);
-disp(['Standard Deviation of Animal reaction times: ', num2str(stdAnimal)]);
-disp(['Mean of Symbol reaction times: ', num2str(meanSymbol)]);
-disp(['Standard Deviation of Symbol reaction times: ', num2str(stdSymbol)]);
-[correlationCoefficient, p] = corr(T_patn_MEGfMRI.Animal, T_patn_MEGfMRI.Symbol, 'Rows', 'complete');
-validPairs = sum(~isnan(T_patn_MEGfMRI.Animal) & ~isnan(T_patn_MEGfMRI.Symbol));
-df = validPairs - 2;
-disp(['Correlation coefficient: ', num2str(correlationCoefficient)]);
-disp(['Degrees of freedom: ', num2str(df)]);
+run_responsereaction
 
 %% Task Performance
-taskperf_datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/';
-sub_MF_pt_num = cellfun(@(x) str2double(x(3:end)), sub_MF_pt);
-taskPerformanceDataPath = fullfile(taskperf_datadir, 'TaskPerformanceSD.mat');
-load(taskPerformanceDataPath); 
-[~,~,IB_taskperformance] = intersect(sub_MF_pt_num, accuracyResults.Subject);
-accuracyResults_updt = accuracyResults(IB_taskperformance,:);
-meanAccBySubject_Animal = groupsummary(accuracyResults_updt, 'Subject', 'mean', 'Animal_ACC');
-meanAccBySubject_Falsefont = groupsummary(accuracyResults_updt, 'Subject', 'mean', 'Falsefont_ACC');
-totalmean = mean(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
-disp(['The total mean of mean_Falsefont_ACC is: ', num2str(totalmean)]);
-totalstd = std(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
-disp(['The total std of mean_Falsefont_ACC is: ', num2str(totalstd)]);
-totalmean = mean(meanAccBySubject_Animal.mean_Animal_ACC);
-disp(['The total mean of mean_Anim_ACC is: ', num2str(totalmean)]);
-totalstd = std(meanAccBySubject_Animal.mean_Animal_ACC);
-disp(['The total std of mean_Anim_ACC is: ', num2str(totalstd)]);
+run_taskperformance
 
 %% Investigate Discordant Samples of Best Results and Obtain Corresponding MEG_LI and fMRI_LI
 run_plot_bestLIs
