@@ -51,7 +51,7 @@ for j = 1:length(network_sel)
                 [optimalIndices, maxAUC_opt] = findIndividualOptimalTimePoints_interval_rSNR_MaxInd(rSNR_left, rSNR_right, wi, NaN, lowerBound, upperBound);
             case 'wrsnr'
                 [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_WrSNR(rSNR_left, rSNR_right, wi, NaN, lowerBound, upperBound);
-            case 'rsnr_optbound'
+            case {'rsnr_optbound', 'rsnr_optbound_mean'}
                 [optimalIndices, maxDiff_opt, bounds] = findIndividualOptimalTimePoints_interval_rSNR_optbound(rSNR_left, rSNR_right, wi, NaN, minlowerband, maxUpperband);
         end
         
@@ -60,6 +60,13 @@ for j = 1:length(network_sel)
         
         [concordance, discordantSubs, groupCorrelation, pval] = ...
             calculateConcordanceForTimePoints_interval(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, wi, optimalInterval);
+        
+        switch opt_method
+            case 'rsnr_optbound_mean'
+                optimalInterval = wi(bounds,:);
+                [concordance, discordantSubs, groupCorrelation, pval] = ...
+                    calculateConcordanceForTimePoints_interval(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, wi, optimalInterval);
+        end
         
         % Store results in the summary table
         newRow = {LI_method_labels{methodIdx}, net_sel_mutiple_label{network_sel(j)}, groupCorrelation, concordance, meanOptimalTime, discordantSubs', MEG_LI, fMRI_LI};
@@ -118,7 +125,6 @@ if plot_rSNR == 1
             
             switch opt_method
                 case {'rsnr', 'LI'}
-                    lowerBound = best_bounds.(roiName).LowerBound;upperBound = best_bounds.(roiName).UpperBound;
                     lowerBound = best_bounds.(roiName).LowerBound; upperBound = best_bounds.(roiName).UpperBound;
                     [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval_rSNR3(rSNR_left, rSNR_right, fMRI_LI, wi, 1:length(rSNR_right), lowerBound, upperBound);
                 case 'rsnr_optbound'
