@@ -23,7 +23,7 @@ for group_idx = 1:length(Data_hcp_atlas.groups_labels)
     % Find indices of matching scouts
     idx = zeros(1, length(all_subregions)); % Pre-allocate for performance
     for j = 1:length(all_subregions)
-        match = find(strcmp(rois, all_subregions{j}), 1);
+        match = find(contains(rois, all_subregions{j}), 1);
         if ~isempty(match)
             idx(j) = match;
         else
@@ -55,6 +55,7 @@ for i = 1:length(Data_hcp_atlas.groups_labels)
     % Update the atlas with new scouts for the current group
     atlas.Scouts = new_scouts_all{i}; % Update the Scouts field
     atlas.Name = Data_hcp_atlas.groups_labels{i};
+    cd(glass_dir)
     
     % Save the modified atlas
     save(new_atlas_filename, '-struct','atlas'); % Removed '-struct' for correct saving of the full struct

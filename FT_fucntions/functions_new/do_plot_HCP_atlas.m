@@ -62,7 +62,6 @@ switch cfg_main.sel
         end
         
     case 'roi'
-        % % close all
         % % left_sel ROIs
         sel = cfg_main.rois_sel; %input('enter rois (1-180):');
         idx_L_Sel = idx_L(sel);

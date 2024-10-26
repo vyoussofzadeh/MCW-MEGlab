@@ -96,6 +96,15 @@ sProcess.options.sname.Comment = 'Saving filename:';
 sProcess.options.sname.Type    = 'text';
 sProcess.options.sname.Value   = ''; % Default value can be empty or a specific name
 
+% Add more options here
+sProcess.options.autoSave.Comment = 'Enable automatic saving:';
+sProcess.options.autoSave.Type    = 'checkbox';
+sProcess.options.autoSave.Value   = 0;  % Default value: unchecked
+
+sProcess.options.noThreshold.Comment = 'Disable threshold plotting:';
+sProcess.options.noThreshold.Type    = 'checkbox';
+sProcess.options.noThreshold.Value   = 0;  % Default value: unchecked
+
 end
 
 
@@ -112,6 +121,11 @@ L = length(sInputs);
 
 
 % Get options
+
+% Check if automatic saving is enabled
+autoSaveEnabled = sProcess.options.autoSave.Value;
+% Check if threshold plotting is disabled
+noThreshold = sProcess.options.noThreshold.Value;
 
 % Get Orientation Selection
 orientPreset = sProcess.options.orientpreset.Value{1};
@@ -154,10 +168,17 @@ for iInput = 1:L
     % Obtain saving directory
     savedir = sProcess.options.savedir.Value;
     
-    if L > 1
+    if L > 1 && autoSaveEnabled == 0
         tmp = in_bst_data(fname);
         disp(tmp.Comment)
         svname = input(['enter name for ' num2str(iInput), ' input:'], 's');
+    elseif L > 1 && autoSaveEnabled == 1
+        tmp = in_bst_data(fname);
+        svname = sanitizeFilename(tmp.Comment);
+        if isempty(svname)
+            svname = ['DefaultName_', datestr(now, 'yyyymmdd_HHMMSS')];
+        end
+        disp(svname)
     else
         svname = sProcess.options.sname.Value;
     end
@@ -178,7 +199,10 @@ for iInput = 1:L
     
     bst_colormaps('SetColorbarVisible', hFig, 0);
     axis equal
-    pause,
+    
+    if noThreshold == 0
+        pause,
+    end
     
     %% Export images: PNG
     b = []; a = []; img = [];
@@ -230,6 +254,14 @@ for iInput = 1:L
     %
     % % Close the figure
     % close(fig);
+    
+    % Utility function to sanitize filenames
+    
+end
 end
 
+function cleanName = sanitizeFilename(name)
+% Replace spaces and remove non-alphanumeric characters except underscores
+cleanName = regexprep(name, '\s+', '_');
+cleanName = regexprep(cleanName, '[^\w-]', '');
 end
