@@ -1,3 +1,4 @@
+
 function varargout = process_ft_sourceanalysis_conn_wPLI(varargin )
 % process_ft_sourceanalysis_conn Call FieldTrip function ft_sourceanalysis (LCMV)
 
@@ -24,6 +25,7 @@ function varargout = process_ft_sourceanalysis_conn_wPLI(varargin )
 eval(macro_method);
 end
 
+
 %% ===== GET DESCRIPTION =====
 function sProcess = GetDescription() %#ok<DEFNU>
 % Description the process
@@ -39,12 +41,12 @@ sProcess.nInputs     = 1;
 sProcess.nMinFiles   = 1;
 
 % Label: Time
-sProcess.options.label1.Comment = '<BR><B>Time of interest:</B>';
-sProcess.options.label1.Type    = 'label';
-% Active time window
-sProcess.options.poststim.Comment = 'Time interval:';
-sProcess.options.poststim.Type    = 'poststim';
-sProcess.options.poststim.Value   = [];
+% sProcess.options.label1.Comment = '<BR><B>Time of interest:</B>';
+% sProcess.options.label1.Type    = 'label';
+% % Active time window
+% sProcess.options.poststim.Comment = 'Time interval:';
+% sProcess.options.poststim.Type    = 'poststim';
+% sProcess.options.poststim.Value   = [];
 
 % Option: Sensors selection
 sProcess.options.sensortype.Comment = 'Sensor type:';
@@ -53,10 +55,22 @@ sProcess.options.sensortype.Value   = {'MEG', {'MEG', 'MEG GRAD', 'MEG MAG', 'EE
     'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'}};
 
 % Label: Frequency
-sProcess.options.label2.Comment = '<BR><B>Conn resolution:</B>';
+sProcess.options.label2.Comment = '<BR><B>Freq of interset:</B>';
 sProcess.options.label2.Type    = 'label';
-% Enter the FOI in the data in Hz, eg, 22:
-sProcess.options.conn.Comment = 'Conn res:';
+sProcess.options.Lfoi.Comment = 'Lower freq:';
+sProcess.options.Lfoi.Type    = 'value';
+sProcess.options.Lfoi.Value   = {1, 'Hz', 0};
+sProcess.options.Ufoi.Comment = 'Upper freq:';
+sProcess.options.Ufoi.Type    = 'value';
+sProcess.options.Ufoi.Value   = {55, 'Hz', 0};
+
+% Label: Frequency
+sProcess.options.dsample.Comment = 'Downsample data:';
+sProcess.options.dsample.Type    = 'value';
+sProcess.options.dsample.Value   = {500, 'Hz', 0};
+
+% Label: Frequency
+sProcess.options.conn.Comment = 'Conn resolution:';
 sProcess.options.conn.Type    = 'value';
 sProcess.options.conn.Value   = {1500, 'voxels (surf points)', 0};
 
@@ -64,6 +78,11 @@ sProcess.options.conn.Value   = {1500, 'voxels (surf points)', 0};
 sProcess.options.fconn.Comment = 'full resolution';
 sProcess.options.fconn.Type    = 'checkbox';
 sProcess.options.fconn.Value   = 1;
+
+% New option for saving frequency results
+sProcess.options.saveMode.Comment = 'Save results as:';
+sProcess.options.saveMode.Type    = 'combobox';
+sProcess.options.saveMode.Value   = {1, {'All frequencies', 'Average (across freq)'}, 'All frequencies'};
 
 end
 
@@ -84,10 +103,13 @@ end
 
 % ===== GET OPTIONS =====
 % Inverse options
-PostStim = sProcess.options.poststim.Value{1};
+% PostStim = sProcess.options.poststim.Value{1};
 Modality = sProcess.options.sensortype.Value{1};
 Connres = sProcess.options.conn.Value{1};
-fconn = sProcess.options.fconn.Value;
+Lfoi = sProcess.options.Lfoi.Value{1};
+Ufoi = sProcess.options.Ufoi.Value{1};
+saveMode = sProcess.options.saveMode.Value{1};
+dsample = sProcess.options.dsample.Value{1};
 
 TmpDir = bst_get('BrainstormTmpDir');
 % Progress bar
@@ -177,16 +199,16 @@ ftData.grad.chanunit = unit';
 
 %%
 cfg = [];
-cfg.resamplefs = 500;
+cfg.resamplefs = dsample;
 ftData = ft_resampledata(cfg, ftData);
 
 %%
-cfg = [];
-cfg.toilim = PostStim;
-ep_data = ft_redefinetrial(cfg, ftData);
+% cfg = [];
+% cfg.toilim = PostStim;
+% ep_data = ft_redefinetrial(cfg, ftData);
 
 %%
-cov_matrix = do_timelock(ep_data);
+cov_matrix = do_timelock(ftData);
 
 %%
 idx = round(linspace(1,length(ftLeadfield.leadfield),Connres));
@@ -219,7 +241,7 @@ cfg.rawtrial = 'yes';
 cfg.keeptrials = 'yes';
 cfg.lcmv.projectmom = 'yes';
 cfg.lcmv.fixedori = 'yes';
-source = ft_sourceanalysis(cfg, ep_data);
+source = ft_sourceanalysis(cfg, ftData);
 
 %%
 active_nodes = find(source.inside==1);
@@ -244,7 +266,7 @@ for i = 1:length(source.trial)
     vs.time{1, i} = source.time;
 end
 
-%%
+%% Optional
 cfg = [];
 cfg.savefile = [];
 cfg.saveflag = 2;
@@ -255,7 +277,7 @@ cfg.taper    = 'hanning';
 do_fft(cfg, vs);
 
 %%
-foi = input('frequncy range: ');
+foi = [Lfoi, Ufoi]; %input('frequncy range: ');
 
 cfg            = [];
 cfg.output     = 'fourier';
@@ -293,90 +315,179 @@ source_conn.(par) = conn_app;
 source_conn.freq = freq.freq;
 
 %%
-aedge =  mean(source_conn.(par),3);
-aedge(isnan(aedge)) = 0;
-v = eigenvector_centrality_und(aedge);
-
-ImageGridAmp = zeros(size(v,1),1);
-for i=1:length(idx)-1
-    ImageGridAmp(idx(i):idx(i+1)) = v(i);    
+switch saveMode
+    case 1
+        for jj = 1:size(source_conn.(par),3)
+            
+            aedge =  squeeze(conn_app(:,:,jj)); aedge(isnan(aedge)) = 0;
+            v = eigenvector_centrality_und(aedge);
+            
+            ImageGridAmp = zeros(size(v,1),1);
+            for i=1:length(idx)-1, ImageGridAmp(idx(i):idx(i+1)) = v(i); end
+            
+            % === CREATE OUTPUT STRUCTURE ===
+            bst_progress('text', 'Saving source file...');
+            bst_progress('inc', 1);
+            % Output study
+            if (length(sInputs) == 1)
+                iStudyOut = sInputs(1).iStudy;
+                RefDataFile = sInputs(iChanInputs(iInput)).FileName;
+            else
+                [~, iStudyOut] = bst_process('GetOutputStudy', sProcess, sInputs);
+                RefDataFile = [];
+            end
+            % Create structure
+            ResultsMat = db_template('resultsmat');
+            ResultsMat.ImagingKernel = [];
+            
+            Method = 'conn';
+            ResultsMat.ImageGridAmp  = ImageGridAmp;
+            ResultsMat.nComponents   = 1;
+            ResultsMat.Function      = Method;
+            ResultsMat.Time          = 1;
+            ResultsMat.DataFile      = RefDataFile;
+            ResultsMat.HeadModelFile = HeadModelFile;
+            ResultsMat.HeadModelType = HeadModelMat.HeadModelType;
+            ResultsMat.ChannelFlag   = DataMat.ChannelFlag;
+            ResultsMat.GoodChannel   = iChannelsData;
+            ResultsMat.SurfaceFile   = HeadModelMat.SurfaceFile;
+            ResultsMat.nAvg          = DataMat.nAvg;
+            ResultsMat.Leff          = DataMat.Leff;
+            % ResultsMat.Comment       = 'Conn_PLV';
+            ResultsMat.Comment       = [par, ', freq:', num2str(f_sel(jj)), 'Hz, ', datestr(now, 'dd/mm/yy-HH:MM')];
+            %     ResultsMat.Comment       = [par, ', egienvectorcent, freq:', num2str(foi(1)), '-', num2str(foi(2)), ', ', datestr(now, 'dd/mm/yy-HH:MM')];
+            switch lower(ResultsMat.HeadModelType)
+                case 'volume'
+                    ResultsMat.GridLoc    = HeadModelMat.GridLoc;
+                case 'surface'
+                    ResultsMat.GridLoc    = [];
+                case 'mixed'
+                    ResultsMat.GridLoc    = HeadModelMat.GridLoc;
+                    ResultsMat.GridOrient = HeadModelMat.GridOrient;
+            end
+            ResultsMat = bst_history('add', ResultsMat, 'compute', ['ft_connanalysis: ' Method ' ' Modality ' ']);
+            
+            % === SAVE OUTPUT FILE ===
+            % Output filename
+            OutputDir = bst_fileparts(file_fullpath(DataFile));
+            ResultFile = bst_process('GetNewFilename', OutputDir, ['results_', Method, '_', Modality]);
+            % Save new file structure
+            bst_save(ResultFile, ResultsMat, 'v6');
+            
+            % ===== REGISTER NEW FILE =====
+            % Create new results structure
+            newResult = db_template('results');
+            newResult.Comment       = ResultsMat.Comment;
+            newResult.FileName      = file_short(ResultFile);
+            newResult.DataFile      = ResultsMat.DataFile;
+            newResult.isLink        = 0;
+            newResult.HeadModelType = ResultsMat.HeadModelType;
+            % Get output study
+            sStudyOut = bst_get('Study', iStudyOut);
+            % Add new entry to the database
+            iResult = length(sStudyOut.Result) + 1;
+            sStudyOut.Result(iResult) = newResult;
+            % Update Brainstorm database
+            bst_set('Study', iStudyOut, sStudyOut);
+            % Store output filename
+            OutputFiles{end+1} = newResult.FileName;
+            % Expand data node
+            panel_protocols('SelectNode', [], newResult.FileName);
+            
+            % Save database
+            db_save();
+        end
+        
+    case 2
+        %%
+        aedge =  mean(source_conn.(par),3);
+        aedge(isnan(aedge)) = 0;
+        v = eigenvector_centrality_und(aedge);
+        
+        ImageGridAmp = zeros(size(v,1),1);
+        for i=1:length(idx)-1
+            ImageGridAmp(idx(i):idx(i+1)) = v(i);
+        end
+        
+        %%
+        % ===== SAVE RESULTS =====
+        % === CREATE OUTPUT STRUCTURE ===
+        bst_progress('text', 'Saving source file...');
+        bst_progress('inc', 1);
+        % Output study
+        if (length(sInputs) == 1)
+            iStudyOut = sInputs(1).iStudy;
+            RefDataFile = sInputs(iChanInputs(iInput)).FileName;
+        else
+            [~, iStudyOut] = bst_process('GetOutputStudy', sProcess, sInputs);
+            RefDataFile = [];
+        end
+        % Create structure
+        ResultsMat = db_template('resultsmat');
+        ResultsMat.ImagingKernel = [];
+        
+        Method = 'conn';
+        ResultsMat.ImageGridAmp  = ImageGridAmp;
+        ResultsMat.nComponents   = 1;
+        ResultsMat.Function      = Method;
+        ResultsMat.Time          = 1;
+        ResultsMat.DataFile      = RefDataFile;
+        ResultsMat.HeadModelFile = HeadModelFile;
+        ResultsMat.HeadModelType = HeadModelMat.HeadModelType;
+        ResultsMat.ChannelFlag   = DataMat.ChannelFlag;
+        ResultsMat.GoodChannel   = iChannelsData;
+        ResultsMat.SurfaceFile   = HeadModelMat.SurfaceFile;
+        ResultsMat.nAvg          = DataMat.nAvg;
+        ResultsMat.Leff          = DataMat.Leff;
+        % ResultsMat.Comment       = 'Conn_PLV';
+        ResultsMat.Comment       = [par, ', egienvectorcent, freq:', num2str(foi(1)), '-', num2str(foi(2)), ', ', datestr(now, 'dd/mm/yy-HH:MM')];
+        switch lower(ResultsMat.HeadModelType)
+            case 'volume'
+                ResultsMat.GridLoc    = HeadModelMat.GridLoc;
+            case 'surface'
+                ResultsMat.GridLoc    = [];
+            case 'mixed'
+                ResultsMat.GridLoc    = HeadModelMat.GridLoc;
+                ResultsMat.GridOrient = HeadModelMat.GridOrient;
+        end
+        ResultsMat = bst_history('add', ResultsMat, 'compute', ['ft_connanalysis: ' Method ' ' Modality ' ']);
+        
+        % === SAVE OUTPUT FILE ===
+        % Output filename
+        OutputDir = bst_fileparts(file_fullpath(DataFile));
+        ResultFile = bst_process('GetNewFilename', OutputDir, ['results_', Method, '_', Modality]);
+        % Save new file structure
+        bst_save(ResultFile, ResultsMat, 'v6');
+        
+        % ===== REGISTER NEW FILE =====
+        % Create new results structure
+        newResult = db_template('results');
+        newResult.Comment       = ResultsMat.Comment;
+        newResult.FileName      = file_short(ResultFile);
+        newResult.DataFile      = ResultsMat.DataFile;
+        newResult.isLink        = 0;
+        newResult.HeadModelType = ResultsMat.HeadModelType;
+        % Get output study
+        sStudyOut = bst_get('Study', iStudyOut);
+        % Add new entry to the database
+        iResult = length(sStudyOut.Result) + 1;
+        sStudyOut.Result(iResult) = newResult;
+        % Update Brainstorm database
+        bst_set('Study', iStudyOut, sStudyOut);
+        % Store output filename
+        OutputFiles{end+1} = newResult.FileName;
+        % Expand data node
+        panel_protocols('SelectNode', [], newResult.FileName);
+        
+        % Save database
+        db_save();
+        
 end
 
-%%
-% ===== SAVE RESULTS =====
-% === CREATE OUTPUT STRUCTURE ===
-bst_progress('text', 'Saving source file...');
-bst_progress('inc', 1);
-% Output study
-if (length(sInputs) == 1)
-    iStudyOut = sInputs(1).iStudy;
-    RefDataFile = sInputs(iChanInputs(iInput)).FileName;
-else
-    [~, iStudyOut] = bst_process('GetOutputStudy', sProcess, sInputs);
-    RefDataFile = [];
-end
-% Create structure
-ResultsMat = db_template('resultsmat');
-ResultsMat.ImagingKernel = [];
-
-Method = 'conn';
-ResultsMat.ImageGridAmp  = ImageGridAmp;
-ResultsMat.nComponents   = 1;
-ResultsMat.Function      = Method;
-ResultsMat.Time          = 1;
-ResultsMat.DataFile      = RefDataFile;
-ResultsMat.HeadModelFile = HeadModelFile;
-ResultsMat.HeadModelType = HeadModelMat.HeadModelType;
-ResultsMat.ChannelFlag   = DataMat.ChannelFlag;
-ResultsMat.GoodChannel   = iChannelsData;
-ResultsMat.SurfaceFile   = HeadModelMat.SurfaceFile;
-ResultsMat.nAvg          = DataMat.nAvg;
-ResultsMat.Leff          = DataMat.Leff;
-% ResultsMat.Comment       = 'Conn_PLV';
-ResultsMat.Comment       = [par, ', egienvectorcent, freq:', num2str(foi(1)), '-', num2str(foi(2)), ', ', datestr(now, 'dd/mm/yy-HH:MM')];
-switch lower(ResultsMat.HeadModelType)
-    case 'volume'
-        ResultsMat.GridLoc    = HeadModelMat.GridLoc;
-    case 'surface'
-        ResultsMat.GridLoc    = [];
-    case 'mixed'
-        ResultsMat.GridLoc    = HeadModelMat.GridLoc;
-        ResultsMat.GridOrient = HeadModelMat.GridOrient;
-end
-ResultsMat = bst_history('add', ResultsMat, 'compute', ['ft_connanalysis: ' Method ' ' Modality ' ']);
-
-% === SAVE OUTPUT FILE ===
-% Output filename
-OutputDir = bst_fileparts(file_fullpath(DataFile));
-ResultFile = bst_process('GetNewFilename', OutputDir, ['results_', Method, '_', Modality]);
-% Save new file structure
-bst_save(ResultFile, ResultsMat, 'v6');
-
-% ===== REGISTER NEW FILE =====
-% Create new results structure
-newResult = db_template('results');
-newResult.Comment       = ResultsMat.Comment;
-newResult.FileName      = file_short(ResultFile);
-newResult.DataFile      = ResultsMat.DataFile;
-newResult.isLink        = 0;
-newResult.HeadModelType = ResultsMat.HeadModelType;
-% Get output study
-sStudyOut = bst_get('Study', iStudyOut);
-% Add new entry to the database
-iResult = length(sStudyOut.Result) + 1;
-sStudyOut.Result(iResult) = newResult;
-% Update Brainstorm database
-bst_set('Study', iStudyOut, sStudyOut);
-% Store output filename
-OutputFiles{end+1} = newResult.FileName;
-% Expand data node
-panel_protocols('SelectNode', [], newResult.FileName);
-
-% Save database
-db_save();
 close all
 % Hide progress bar
 bst_progress('stop');
+
 end
 
 function t_data = do_timelock(data)
@@ -427,7 +538,7 @@ end
 
 function [ftHeadmodel, ftLeadfield, iChannels] = out_fieldtrip_headmodel_edt(HeadModelFile, ChannelFile, iChannels, isIncludeRef)
 % OUT_FIELDTRIP_HEADMODEL: Converts a head model file into a FieldTrip structure (see ft_datatype_headmodel).
-% 
+%
 % USAGE:  [ftHeadmodel, ftLeadfield, iChannels] = out_fieldtrip_headmodel(HeadModelFile, ChannelFile, isIncludeRef=1);
 %         [ftHeadmodel, ftLeadfield, iChannels] = out_fieldtrip_headmodel(HeadModelMat,  ChannelMat,  isIncludeRef=1);
 %
@@ -444,12 +555,12 @@ function [ftHeadmodel, ftLeadfield, iChannels] = out_fieldtrip_headmodel_edt(Hea
 % @=============================================================================
 % This function is part of the Brainstorm software:
 % https://neuroimage.usc.edu/brainstorm
-% 
+%
 % Copyright (c) University of Southern California & McGill University
 % This software is distributed under the terms of the GNU General Public License
 % as published by the Free Software Foundation. Further details on the GPLv3
 % license can be found at http://www.gnu.org/copyleft/gpl.html.
-% 
+%
 % FOR RESEARCH PURPOSES ONLY. THE SOFTWARE IS PROVIDED "AS IS," AND THE
 % UNIVERSITY OF SOUTHERN CALIFORNIA AND ITS COLLABORATORS DO NOT MAKE ANY
 % WARRANTY, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF
@@ -505,10 +616,10 @@ end
 if isIncludeRef && ismember(Modality, {'MEG','MEG MAG','MEG GRAD'})
     
     %% This section was diasbled, 05/11/22
-%     iRef = channel_find(ChannelMat.Channel, 'MEG REF');
-%     if ~isempty(iRef)
-%         iChannels = [iRef, iChannels];
-%     end
+    %     iRef = channel_find(ChannelMat.Channel, 'MEG REF');
+    %     if ~isempty(iRef)
+    %         iChannels = [iRef, iChannels];
+    %     end
 end
 
 
@@ -558,8 +669,8 @@ if isempty(ftHeadmodel)
             end
             % Load surfaces
             SurfaceFiles = {sSubject.Surface(sSubject.iScalp).FileName, ...
-                            sSubject.Surface(sSubject.iOuterSkull).FileName, ...
-                            sSubject.Surface(sSubject.iInnerSkull).FileName};
+                sSubject.Surface(sSubject.iOuterSkull).FileName, ...
+                sSubject.Surface(sSubject.iInnerSkull).FileName};
             ftHeadmodel.bnd = out_fieldtrip_tess(SurfaceFiles);
             % Default OpenMEEG options
             ftHeadmodel.cond         = [0.33, 0.004125, 0.33];
