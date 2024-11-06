@@ -32,8 +32,9 @@ close all
 cfg = [];
 cfg.src_fname = src_fname;
 cfg.network_sel = [1,2,6];
+cfg.network_sel = [4];
 cfg.Data_hcp_atlas = Data_hcp_atlas;
-cfg.plotflag = 0;
+cfg.plotflag = 1;
 cfg.fixedcolor = [0,0.7,0];
 [idx_L, idx_R, src]  = do_plot_hcp_network(cfg);
 net_rois = 'ftp';

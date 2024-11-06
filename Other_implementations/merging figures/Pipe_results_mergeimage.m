@@ -14,3 +14,13 @@ outputFile = 'merged_figs.png';
 
 do_combine_images(folderPath, outputFile)
 
+%%
+folderPath = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Main_scripts/HCP_MMP01/hcp atlas masks';
+outputFile = 'merged_figs.png';
+
+do_combine_images(folderPath, outputFile)
+
+
+%%
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/tools/helpful_tools/export_fig')
+

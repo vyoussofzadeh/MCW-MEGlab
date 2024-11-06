@@ -69,7 +69,7 @@ for j = 1:length(network_sel)
         end
         
         % Store results in the summary table
-        newRow = {LI_method_labels{methodIdx}, net_sel_mutiple_label{network_sel(j)}, groupCorrelation, concordance, meanOptimalTime, discordantSubs', MEG_LI, fMRI_LI};
+        newRow = {LI_method_labels{methodIdx}, net_sel_mutiple_label{network_sel(j)}, groupCorrelation, concordance, meanOptimalTime, discordantSubs', MEG_LI, fMRI_LI, rSNR_left, rSNR_right};
         summaryTableDynamic = [summaryTableDynamic; newRow];
         
         if network_sel(j) == 11 && plot_indiv_LI == 1 % lateral network (11)
@@ -82,10 +82,10 @@ for j = 1:length(network_sel)
 end
 
 % Set column names for the summary table
-summaryTableDynamic.Properties.VariableNames = {'LI_Method', 'ROI', 'Correlation', 'Concordance', 'mean_Optimal_Time', 'discord_Subs', 'MEG_LI', 'fMRI_LI'};
+summaryTableDynamic.Properties.VariableNames = {'LI_Method', 'ROI', 'Correlation', 'Concordance', 'mean_Optimal_Time', 'discord_Subs', 'MEG_LI', 'fMRI_LI', 'rSNR_left', 'rSNR_right'};
 
 summaryTableDynamic_save = summaryTableDynamic;
-summaryTableDynamic_save = summaryTableDynamic_save(:,1:end-3);
+summaryTableDynamic_save = summaryTableDynamic_save(:,1:end-5);
 
 
 % Format the numeric data to two decimal places before saving to CSV
@@ -167,7 +167,12 @@ if plot_rSNR_LI == 1
             rSNR_MEG = []; rSNR_MEG.rSNR_left = rSNR_left; rSNR_MEG.rSNR_right = rSNR_right;
             
             plotOptimalTimePointsOnMEG4(rSNR_MEG, MEG_LI, fMRI_LI, wi, optimalIndices, discordantSubs, MEG_thre, bounds); sgtitle(LI_method_label(methodIdx))
+%             plotOptimalTimePointsOnMEG4(rSNR_MEG, MEG_LI(72,:), fMRI_LI(72), wi, optimalIndices, discordantSubs, MEG_thre, bounds(72,:)); 
+%             sgtitle(LI_method_label(methodIdx))
+
+%             cfg = []; cfg.outdir = save_dir; filename = ['LI_rSNR_individuals_',LI_method_label{methodIdx}]; cfg.filename = filename; cfg.type = 'png'; do_export_fig(cfg); combined_path = fullfile(save_dir,[cfg.filename, '.png']); 
             cfg = []; cfg.outdir = save_dir; filename = ['LI_rSNR_individuals_',LI_method_label{methodIdx}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg); close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
+
             
             plotOptimalTimePointsOnMEG4_selective(rSNR_MEG, MEG_LI, fMRI_LI, wi, optimalIndices, discordantSubs, MEG_thre, bounds);
             sgtitle(LI_method_label(methodIdx))

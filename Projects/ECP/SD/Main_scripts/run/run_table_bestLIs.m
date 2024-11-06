@@ -27,16 +27,18 @@ for i = 1:length(uniqueROIs)
             bestDiscordSubs = methodData.discord_Subs;
             bestDiscordSubs_megli = methodData.MEG_LI;
             bestDiscordSubs_fmrili = methodData.fMRI_LI;
+            bestDiscordSubs_rSNR_L = methodData.rSNR_left;
+            bestDiscordSubs_rSNR_R = methodData.rSNR_right;            
         end
     end
     
     % Store the best results in the table
-    newRow = {bestMethod, roi, bestCorrelation, bestConcordance, bestTimeInterval, bestDiscordSubs, bestDiscordSubs_megli, bestDiscordSubs_fmrili};
+    newRow = {bestMethod, roi, bestCorrelation, bestConcordance, bestTimeInterval, bestDiscordSubs, bestDiscordSubs_megli, bestDiscordSubs_fmrili, bestDiscordSubs_rSNR_L, bestDiscordSubs_rSNR_R};
     bestResultsTable = [bestResultsTable; newRow];
 end
 
 % Set column names for the best results table
-bestResultsTable.Properties.VariableNames = {'Best_LI_Method', 'ROI', 'Best_Correlation', 'Best_Concordance', 'Best_Time_Interval', 'Best_Discord_Subs', 'MEG_LI', 'fMRI_LI'};
+bestResultsTable.Properties.VariableNames = {'Best_LI_Method', 'ROI', 'Best_Correlation', 'Best_Concordance', 'Best_Time_Interval', 'Best_Discord_Subs', 'MEG_LI', 'fMRI_LI', 'rSNR_L', 'rSNR_R'};
 
 bestResultsTable_save = bestResultsTable;
 bestResultsTable_save = bestResultsTable_save(:,1:end-3);
