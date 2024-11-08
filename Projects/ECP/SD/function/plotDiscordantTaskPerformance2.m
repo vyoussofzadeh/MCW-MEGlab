@@ -17,6 +17,8 @@ discordant_indices_symb = ismember(meanAccBySubject_Falsefont.Subject, discordan
 meanTP_anim = nanmean(meanAccBySubject_Animal.mean_Animal_ACC);
 meanTP_symb = nanmean(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
 
+meanAccBySubject_Anim_Falsefont = (meanAccBySubject_Animal.mean_Animal_ACC + meanAccBySubject_Falsefont.mean_Falsefont_ACC)./2;
+
 % % Plotting Animal Task Performance
 % figure;
 % subplot 121
@@ -60,47 +62,68 @@ meanTP_symb = nanmean(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
 %     do_export_fig(cfg);
 
 %%
-
 figure;
-subplot 121
-daboxplot(meanAccBySubject_Animal.mean_Animal_ACC, 'groups', ones(1, numel(meanAccBySubject_Animal.mean_Animal_ACC)), 'outsymbol', 'kx', 'xtlabels', 'test', 'fill', 0);
+daboxplot(meanAccBySubject_Anim_Falsefont, 'groups', ones(1, numel(meanAccBySubject_Anim_Falsefont)), 'outsymbol', 'kx', 'xtlabels', 'test', 'fill', 0);
 xlabel('All Subjects');
 ylabel('Accuracy (%)');
 set(gca, 'FontSize', 10);
-discordant_ACC_anim = meanAccBySubject_Animal.mean_Animal_ACC(discordant_indices_anim);
+discordant_ACC_anim = meanAccBySubject_Anim_Falsefont(discordant_indices_anim);
 hold on;
 hScatter = scatter(ones(size(discordant_ACC_anim)), discordant_ACC_anim, 'r', 'filled');
 hold off;
-title({'Animals'});
+title({'mean';'(Animals & Falsefont)'});
+set(gca, 'color', 'none');
 l = legend(hScatter, 'Discordant', 'Location', 'southout');
 % legendPos = l.Position;
 % legendPos(1) = legendPos(1) + 0.02;
 % l.Position = legendPos;
 set(gca, 'XTick', []);
 box off;
-% set(gcf, 'Position', [1000   100   300   300]);
+set(gcf, 'Position', [1000   100   300   300]);
 set(gca,'color','none');
 
-% cfg = []; cfg.outdir = save_dir; filename = ['2_TaskPerformace_anim_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+%%
 
 % figure;
-subplot 122
-daboxplot(meanAccBySubject_Falsefont.mean_Falsefont_ACC, 'groups', ones(1, numel(meanAccBySubject_Falsefont.mean_Falsefont_ACC)), 'outsymbol', 'kx', 'xtlabels', 'test', 'fill', 0);
-xlabel('All Subjects');
-ylabel('Accuracy (%)');
-set(gca, 'FontSize', 10);
-discordant_ACC_symb = meanAccBySubject_Falsefont.mean_Falsefont_ACC(discordant_indices_symb);
-hold on;
-hScatter = scatter(ones(size(discordant_ACC_symb)), discordant_ACC_symb, 'r', 'filled');
-hold off;
-title({'Sybmols'});
-l = legend(hScatter, 'Discordant', 'Location', 'southout');
-% legendPos = l.Position;
-% legendPos(1) = legendPos(1) + 0.02;
-% l.Position = legendPos;
-set(gca, 'XTick', []);
-box off;
-set(gcf, 'Position', [1000, 100, 600, 300]);
-set(gca,'color','none');
+% subplot 121
+% daboxplot(meanAccBySubject_Animal.mean_Animal_ACC, 'groups', ones(1, numel(meanAccBySubject_Animal.mean_Animal_ACC)), 'outsymbol', 'kx', 'xtlabels', 'test', 'fill', 0);
+% xlabel('All Subjects');
+% ylabel('Accuracy (%)');
+% set(gca, 'FontSize', 10);
+% discordant_ACC_anim = meanAccBySubject_Animal.mean_Animal_ACC(discordant_indices_anim);
+% hold on;
+% hScatter = scatter(ones(size(discordant_ACC_anim)), discordant_ACC_anim, 'r', 'filled');
+% hold off;
+% title({'Animals'});
+% l = legend(hScatter, 'Discordant', 'Location', 'southout');
+% % legendPos = l.Position;
+% % legendPos(1) = legendPos(1) + 0.02;
+% % l.Position = legendPos;
+% set(gca, 'XTick', []);
+% box off;
+% % set(gcf, 'Position', [1000   100   300   300]);
+% set(gca,'color','none');
+% 
+% % cfg = []; cfg.outdir = save_dir; filename = ['2_TaskPerformace_anim_Dicordant_LIs_', LI_method_label{LI_method}]; cfg.filename = filename; cfg.type = 'fig'; do_export_fig(cfg)
+% 
+% % figure;
+% subplot 122
+% daboxplot(meanAccBySubject_Falsefont.mean_Falsefont_ACC, 'groups', ones(1, numel(meanAccBySubject_Falsefont.mean_Falsefont_ACC)), 'outsymbol', 'kx', 'xtlabels', 'test', 'fill', 0);
+% xlabel('All Subjects');
+% ylabel('Accuracy (%)');
+% set(gca, 'FontSize', 10);
+% discordant_ACC_symb = meanAccBySubject_Falsefont.mean_Falsefont_ACC(discordant_indices_symb);
+% hold on;
+% hScatter = scatter(ones(size(discordant_ACC_symb)), discordant_ACC_symb, 'r', 'filled');
+% hold off;
+% title({'Sybmols'});
+% l = legend(hScatter, 'Discordant', 'Location', 'southout');
+% % legendPos = l.Position;
+% % legendPos(1) = legendPos(1) + 0.02;
+% % l.Position = legendPos;
+% set(gca, 'XTick', []);
+% box off;
+% set(gcf, 'Position', [1000, 100, 600, 300]);
+% set(gca,'color','none');
 
 end

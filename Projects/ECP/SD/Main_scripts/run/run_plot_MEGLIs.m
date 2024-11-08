@@ -11,7 +11,7 @@ for net_idx = 1:length(network_sel)
 
     % Prepare data to plot
     LI_values = []; % Initialize LI_values array
-    for i = 1:1%length(LI_method_label)
+    for i = 1:length(LI_method_label)
         LI_values(i, :) = squeeze(nanmean(LI_pt_val_new.(LI_method_label{i})(current_network, :, :), 2)); % Extract and average LI values for the current method and network
     end
 

@@ -82,7 +82,6 @@ ylim([0, 100]);
 box off;
 set(gca,'color','none');
 
-
 legend('Constant', 'Dynamic', 'Location', 'southoutside', 'Orientation', 'horizontal');
 set(gcf, 'Position', [100, 100, 700, 300]); % Adjust figure size
 

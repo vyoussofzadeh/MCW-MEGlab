@@ -4,9 +4,11 @@ clear; clc, close('all'); warning off,
 restoredefaultpath
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/run')
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/function')
-% Run_setpath
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/tools/helpful_tools/daviolinplot/daboxplot')
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Main_scripts/run')
+Run_setpath
+
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/other/')
-addpath('/data/MEG/Vahab/Github/MCW_MEGlab/tools/helpful_tools/daviolinplot/daboxplot');
 
 %%
 flags = [];
@@ -30,8 +32,9 @@ close all
 cfg = [];
 cfg.src_fname = src_fname;
 cfg.network_sel = [1,2,6];
+cfg.network_sel = [4];
 cfg.Data_hcp_atlas = Data_hcp_atlas;
-cfg.plotflag = 0;
+cfg.plotflag = 1;
 cfg.fixedcolor = [0,0.7,0];
 [idx_L, idx_R, src]  = do_plot_hcp_network(cfg);
 net_rois = 'ftp';
@@ -42,11 +45,15 @@ disp(Data_hcp_atlas.groups_labels)
 cfg = []; cfg.idx_L = idx_L; cfg.idx_R = idx_R; cfg.Data_hcp_atlas = Data_hcp_atlas;
 cfg.src_fname = src_fname;
 
+save_dir_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/atlas_roi';
+outdir = save_dir_atlas;
+
 cfg.export = 0; cfg.savedir = fullfile(outdir,'group');
 cfg.network_sel = [1,2,6]; do_map_HCP_net_sel(cfg);
 net_label = 'Fronto_tempro_pri';
+cfg.network_sel = [11]; do_map_HCP_net_sel(cfg);
 
-save_dir_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/results/atlas_roi';
+
 
 colorcode = {[0,114,189]; [217,83,25]; [237,177,32];[126,47,142]; [119,172,48]};
 network_sel = [1,2,5,6,11]; % LI networks compared between MEG and fMRI

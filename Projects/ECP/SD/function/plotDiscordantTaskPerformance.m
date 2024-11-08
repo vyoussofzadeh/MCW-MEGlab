@@ -17,29 +17,44 @@ discordant_indices_symb = find(ismember(meanAccBySubject_Falsefont.Subject, disc
 meanTP_anim = nanmean(meanAccBySubject_Animal.mean_Animal_ACC);
 meanTP_symb = nanmean(meanAccBySubject_Falsefont.mean_Falsefont_ACC);
 
+meanAccBySubject_Falsefont_Anim = (meanAccBySubject_Falsefont.mean_Falsefont_ACC + meanAccBySubject_Animal.mean_Animal_ACC)./2;
+
+
 % Plotting Animal Task Performance
 figure;
-subplot 121
-bar(meanAccBySubject_Animal.mean_Animal_ACC(discordant_indices_anim),0.2);
+bar(meanAccBySubject_Falsefont_Anim(discordant_indices_anim),0.2);
 xlabel('Subjects');
 set(gca, 'color', 'none');
 ylabel('Accuracy (%)');
-title({'Animals'});
+title({'mean';'(Animals & Falsefont)'});
 set(gca, 'XTick', 1:length(discordant_indices_anim), 'XTickLabel', xllabel, 'XTickLabelRotation', 45);
 hold on; hold off; box off
+set(gcf, 'Position', [1000, 100, 300, 300]);
 line(get(gca, 'xlim'), [meanTP_anim meanTP_anim], 'Color', 'red', 'LineStyle', '--');
 
-% Plotting Symbol Task Performance
-%     figure;
-subplot 122
-bar(meanAccBySubject_Falsefont.mean_Falsefont_ACC(discordant_indices_symb),0.2);
-xlabel('Subjects');
-set(gca, 'color', 'none');
-ylabel('Accuracy (%)');
-title({'Sybmols'});
-set(gca, 'XTick', 1:length(discordant_indices_symb), 'XTickLabel', xllabel, 'XTickLabelRotation', 45);
-set(gcf, 'Position', [1000, 100, 600, 300]);
-line(get(gca, 'xlim'), [meanTP_symb meanTP_symb], 'Color', 'red', 'LineStyle', '--');
-hold on; hold off; box off
+% Plotting Animal Task Performance
+% figure;
+% subplot 121
+% bar(meanAccBySubject_Animal.mean_Animal_ACC(discordant_indices_anim),0.2);
+% xlabel('Subjects');
+% set(gca, 'color', 'none');
+% ylabel('Accuracy (%)');
+% title({'Animals'});
+% set(gca, 'XTick', 1:length(discordant_indices_anim), 'XTickLabel', xllabel, 'XTickLabelRotation', 45);
+% hold on; hold off; box off
+% line(get(gca, 'xlim'), [meanTP_anim meanTP_anim], 'Color', 'red', 'LineStyle', '--');
+% 
+% % Plotting Symbol Task Performance
+% %     figure;
+% subplot 122
+% bar(meanAccBySubject_Falsefont.mean_Falsefont_ACC(discordant_indices_symb),0.2);
+% xlabel('Subjects');
+% set(gca, 'color', 'none');
+% ylabel('Accuracy (%)');
+% title({'Sybmols'});
+% set(gca, 'XTick', 1:length(discordant_indices_symb), 'XTickLabel', xllabel, 'XTickLabelRotation', 45);
+% set(gcf, 'Position', [1000, 100, 600, 300]);
+% line(get(gca, 'xlim'), [meanTP_symb meanTP_symb], 'Color', 'red', 'LineStyle', '--');
+% hold on; hold off; box off
 
 end

@@ -58,10 +58,7 @@ for i=1:length(LI_method_label)
     if i == 1
         rSNR.(LI_method_label{i}) = LI_pt.(LI_method_label{i}).pow_sub;
     else
-%         rSNR.(LI_method_label{i}) = LI_pt.(LI_method_label{1}).pow_sub;
         rSNR.(LI_method_label{i}) = LI_pt.(LI_method_label{i}).count_sub;
-%         rSNR.(LI_method_label{i}) = [];%LI_pt.(LI_method_label{i}).count_sub;
-
     end
 end
 
@@ -234,6 +231,8 @@ fmri_LIs_trn = do_ternary_classification2(cfg);
 size(fmri_LIs_trn);
 
 Pt_ID  = LI_pt.Magnitude.setup.S_data.sFiles_subid(IA)';
+Pt_sfiles  = LI_pt.Magnitude.setup.S_data.sFiles_in(IA)';
+
 
 %%
 % Loop through each element in the struct arrays
@@ -272,6 +271,11 @@ end
 %% Plot MEG LI for selected network ROIs
 run_plot_MEGLIs
 
+run_plot_MEGLIs_ver2
+
+%%
+run_plot_MEGsnr
+
 %% Fixed interval analysis
 %- Summerize LIs_fixedinterva
 run_sumLIs_fixedinterval
@@ -295,7 +299,7 @@ run_table_fixedinterval
 run_plot_fixedinterval
 
 %% Dynamic interval analysis
-plot_indiv_LI = 0; plot_rSNR = 1; plot_rSNR_LI = 0;
+plot_indiv_LI = 0; plot_rSNR = 0; plot_rSNR_LI = 0;
 
 disp('1) res-snr and optimal bound selection')
 disp('2) res-snr with fixed lower and upper bounds')
@@ -305,7 +309,8 @@ opt_sel = input('optimal method: ');
 switch opt_sel
     case 1
         minlowerband = 0.35; maxUpperband = 1.5;
-        opt_method = 'rsnr_optbound'; run_optimalLIs_snr_dics_rois
+        opt_method = 'rsnr_optbound'; %'rsnr_optbound_mean'; 
+        run_optimalLIs_snr_dics_rois
         disp(['mean_conc:', num2str(mean(summaryTableDynamic_save.Concordance))])
     case 2
         lowerBound = 0.35; upperBound = 1.5;
@@ -331,7 +336,7 @@ run_plot_compare_fixed_opt_gsum
 %% Pick the Best Results Out of 3 LI Methods for Discordant Analyses
 run_table_bestLIs
 
-%% Response (Reaction) Time Data
+%% Response (reaction) time
 run_responsereaction
 
 %% Task Performance

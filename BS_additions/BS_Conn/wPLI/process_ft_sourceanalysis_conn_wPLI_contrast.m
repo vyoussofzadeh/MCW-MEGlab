@@ -1,5 +1,5 @@
 
-function varargout = process_ft_sourceanalysis_conn_wPLI(varargin )
+function varargout = process_ft_sourceanalysis_conn_wPLI_contrast(varargin )
 % process_ft_sourceanalysis_conn Call FieldTrip function ft_sourceanalysis (LCMV)
 
 % @=============================================================================
@@ -29,7 +29,7 @@ end
 %% ===== GET DESCRIPTION =====
 function sProcess = GetDescription() %#ok<DEFNU>
 % Description the process
-sProcess.Comment     = 'FieldTrip: ft_connanalysis (wPLI)';
+sProcess.Comment     = 'FieldTrip: ft_connanalysis (wPLI), contrast';
 sProcess.Category    = 'Custom';
 sProcess.SubGroup    = 'Connectivity';
 sProcess.Index       = 690;
@@ -47,6 +47,17 @@ sProcess.nMinFiles   = 1;
 % sProcess.options.poststim.Comment = 'Time interval:';
 % sProcess.options.poststim.Type    = 'poststim';
 % sProcess.options.poststim.Value   = [];
+
+sProcess.options.label1.Comment = '<BR><B>Time of interest:</B>';
+sProcess.options.label1.Type    = 'label';
+% Active time window
+sProcess.options.poststim.Comment = 'Active (post-stim):';
+sProcess.options.poststim.Type    = 'poststim';
+sProcess.options.poststim.Value   = [];
+% Baseline time window
+sProcess.options.baseline.Comment = 'Baseline (pre-stim):';
+sProcess.options.baseline.Type    = 'baseline';
+sProcess.options.baseline.Value   = [];
 
 % Option: Sensors selection
 sProcess.options.sensortype.Comment = 'Sensor type:';

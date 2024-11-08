@@ -58,7 +58,7 @@ for i = 3:3%length(uniqueROIs)
     ylim([0, 1]);
     box off;
     hold off;
-    axis tight
+%     axis tight
 end
 
 set(gcf, 'Position', [100, 400, 300, 200]); % Adjust figure size
@@ -82,14 +82,13 @@ for i = 3:3%length(uniqueROIs)
     b(1).FaceColor = 'b';
     b(2).FaceColor = 'r';
     disp(barData)
-    
+    ylim([0, 100]);
     title(roi);
     ylabel('LI Concordance (%)');
     set(gca, 'color', 'none');
-    ylim([0, 100]);
     box off;
     hold off;
-    axis tight
+%     axis tight
 end
 lgd = legend(intervalTypes, 'Location', 'south', 'Orientation', 'horizontal', 'NumColumns', length(intervalTypes));
 set(gcf, 'Position', [400, 400, 300, 250]); % Adjust figure size
