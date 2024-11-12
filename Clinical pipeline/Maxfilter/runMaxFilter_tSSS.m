@@ -43,8 +43,7 @@ for j=1:length(files)
     baseFileName = files(j).name(1:end-4);
     
     %% Define base directory and base file name for artifact removal
-    FileNames = generateFileNames(ddir, files(j).name(1:end-8));
-    
+    FileNames = generateFileNames(ddir, files(j).name(1:end-8));    
     
     if ~contains(baseFileName, 'emptyroom') && ...
             ~exist(fullfile(FileNames.filelocation, FileNames.cleanFileName),'file')

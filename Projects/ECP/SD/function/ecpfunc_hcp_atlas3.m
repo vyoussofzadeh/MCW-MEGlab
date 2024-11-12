@@ -43,8 +43,8 @@ idx_sel_R = strcmp(region(all_idx_R), 'RF');
 load(fullfile(glass_dir, 'LI_glasser_manual_net_12.mat'), 'glass_net_L_label', 'glass_net_R_label');
 
 % Update frontal region labels
-glass_net_L_label{2} = [glass_net_L_label{2}; rois(all_idx_L(idx_sel_L))'];
-glass_net_R_label{2} = [glass_net_R_label{2}; rois(all_idx_R(idx_sel_R))'];
+glass_net_L_label{2} = unique([glass_net_L_label{2}; rois(all_idx_L(idx_sel_L))']);
+glass_net_R_label{2} = unique([glass_net_R_label{2}; rois(all_idx_R(idx_sel_R))']);
 
 %% Add BTLA labels
 btla = [2, 3, 5, 8, 9, 16, 17, 18, 21, 22]; net_sel = 6;
