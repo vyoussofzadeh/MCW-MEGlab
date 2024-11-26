@@ -6,12 +6,12 @@
 
 clear; clc, close('all'); warning off,
 
-addpath('/group/bgross/work/CIDMEG/analysis/Pipelines/functions/External')
+addpath('/group/bgross/work/CIDMEG/Analysis/CIDPipelines/functions/External')
 addpath('/opt/mne_matlab/matlab')
 datadir = '/group/bgross/work/CIDMEG/ECOG_MEG_data/MEG';
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/BS_additions/BS_event_read')
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/functions_new/')
-addpath('/group/bgross/work/CIDMEG/analysis/Pipelines/functions')
+addpath('/group/bgross/work/CIDMEG/Analysis/CIDPipelines/functions')
 
 ft_path = '/opt/matlab_toolboxes/ft_packages/fieldtrip_latest';
 addpath(ft_path);
@@ -122,7 +122,7 @@ brainstorm
 disp('choose DB from BS, then enter!');
 pause
 
-BS_dir = '/group/bgross/work/CIDMEG/analysis/process/Brainstorm_db/CID';
+BS_dir = '/group/bgross/work/CIDMEG/Analysis/BrainstormProcess/Brainstorm_db/CID';
 BS_data_dir = fullfile(BS_dir,'data');
 protocol = fullfile(BS_dir, 'data/protocol.mat');
 
@@ -172,16 +172,13 @@ for ii = 1:L_data
     [~, ~, ~, match] = regexp(pathname, runNumberPattern);
     runNumber = match{1}; % Convert the string to a numeric value
     
-    %     newFolderName = fullfile(pathstr2, ['@rawica_', runNumber, '_clean']);
-    %     if ~ exist(newFolderName, 'dir')
-    
     if  isempty(dir(fullfile(['./@rawica_',runNumber, '_clean'],'/channel_*.mat'))) && ...
             isempty(dir(fullfile(['./@raw',runNumber],'/channel_*.mat')))
         
         iSubject = find(contains(unq_bs_subj, sub_sel)==1);
         RawFiles = datafile_fif{ii};
         disp(RawFiles)
-%         pause,
+        %         pause,
         
         [fPath, ~] = bst_fileparts(RawFiles);[fPath, fBase] = bst_fileparts(fPath);
         cid_import_raw(RawFiles, iSubject, fBase); % no GUI
@@ -277,9 +274,9 @@ for i=1:length(d)
         
         disp(sFiles)
         % Define epoching parameters
-%         EpochTime = [-0.3, 0.6];  % Epoch from -100 ms to +300 ms around the event
+        %         EpochTime = [-0.3, 0.6];  % Epoch from -100 ms to +300 ms around the event
         EpochTime = [0, 1];  % Epoch from -100 ms to +300 ms around the event
-
+        
         subjectName = runNumber;
         
         db_reload_database('current',1);
@@ -401,8 +398,6 @@ subj = ProtocolSubjects;
 
 etag = 'mcwa';
 
-
-% datatag = {'3','2'};
 for ii = 1:length(subj)
     
     switch subj{ii}
@@ -423,7 +418,6 @@ for ii = 1:length(subj)
     for j=1:length(sFiles1)
         cd(BS_data_dir)
         tmp  = load(sFiles1{j}); disp(tmp.Comment(1))
-%         dtagsel = find(contains(datatag,tmp.Comment(1))==1);
         d = rdir(['./',fileparts(sFiles1{j}), '/data_', eventname, '*_average*.mat']);
         disp(sFiles1{j})
         if length(d) > 1
@@ -446,4 +440,164 @@ for ii = 1:length(subj)
     end
 end
 
-%%
+%% Extract ROI sources, Brainnetome
+disp('Processing source files from Group_analysis to derive time series...');
+
+% Define the Group_analysis directory
+group_analysis_dir = fullfile(BS_data_dir, 'Group_analysis');
+results_files = rdir(fullfile(group_analysis_dir, '**/results_PNAI_*.mat'));
+
+if isempty(results_files)
+    error('No results_PNAI_*.mat files found in Group_analysis directory.');
+end
+
+% Define the save directory and ensure it exists
+savedir = '/group/bgross/work/CIDMEG/Analysis/BrainstormProcess/ROI_timeseries';
+if ~exist(savedir, 'dir')
+    mkdir(savedir);
+    disp(['Created directory: ', savedir]);
+end
+
+% Loop through each results file
+for iFile = 1:length(results_files)
+    results_file = results_files(iFile).name;
+    
+    % Process: Scout time series: [72 scouts]
+    sFiles = bst_process('CallProcess', 'process_extract_scout', {results_file}, [], ...
+        'timewindow',     [0, 1], ...
+        'scouts',         {'Brainnetome_association', {'A20cl_L', 'A20cl_R', 'A20cv_L', 'A20cv_R', 'A20il_L', 'A20il_R', 'A20iv_L', 'A20iv_R', 'A20r_L', 'A20r_R', 'A20rv_L', 'A20rv_R', 'A21c_L', 'A21c_R', 'A21r_L', 'A21r_R', 'A22c_L', 'A22c_R', 'A22r_L', 'A22r_R', 'A37dl_L', 'A37dl_R', 'A37elv_L', 'A37elv_R', 'A37lv_L', 'A37lv_R', 'A37mv_L', 'A37mv_R', 'A37vl_L', 'A37vl_R', 'A38l_L', 'A38l_R', 'A38m_L', 'A38m_R', 'A41/42_L', 'A41/42_R', 'TE1.0/TE1.2_L', 'TE1.0/TE1.2_R', 'TI_L', 'TI_R', 'aSTS_L', 'aSTS_R', 'cpSTS_L', 'cpSTS_R', 'rpSTS_L', 'rpSTS_R', 'A7c_L', 'A7c_R', 'A7ip_L', 'A7ip_R', 'A7m_L', 'A7m_R', 'A7pc_L', 'A7pc_R', 'A7r_L', 'A7r_R', 'A39c_L', 'A39c_R', 'A39rd_L', 'A39rd_R', 'A39rv_L', 'A39rv_R', 'A40c_L', 'A40c_R', 'A40rd_L', 'A40rd_R', 'A40rv_L', 'A40rv_R', 'A5l_L', 'A5l_R', 'A5m_L', 'A5m_R'}}, ...
+        'flatten',        1, ...
+        'scoutfunc',      'mean', ...  % Mean
+        'pcaedit',        struct(...
+        'Method',         'pca', ...
+        'Baseline',       [-0.3, 2], ...
+        'DataTimeWindow', [-0.3, 2], ...
+        'RemoveDcOffset', 'file'), ...
+        'isflip',         1, ...
+        'isnorm',         0, ...
+        'concatenate',    0, ...
+        'save',           1, ...
+        'addrowcomment',  1, ...
+        'addfilecomment', []);
+    
+    
+    disp(['Processing file: ', results_file]);
+    
+    % Load the results file
+    sResults = in_bst_results(results_file, 1);
+    
+    % Check if source data exists in the results file
+    if ~isfield(sResults, 'ImageGridAmp') || isempty(sResults.ImageGridAmp)
+        disp(['No source data in file: ', results_file]);
+        continue;
+    end
+    
+    % Extract identifiers from HeadModelFile
+    headModelPath = sResults.HeadModelFile;  % e.g., 'mcwa065_v1/mcwa065_v1_Run_9/headmodel_surf_os_meg.mat'
+    tokens = regexp(headModelPath, '(?<subjID>[^/]+)/.*(?<runID>Run_\d+)', 'names');
+    
+    % Use tokens for naming
+    if ~isempty(tokens)
+        subjID = tokens.subjID;   % e.g., 'mcwa065_v1'
+        runID = tokens.runID;     % e.g., 'Run_9'
+    else
+        warning(['Unable to parse HeadModelFile: ', headModelPath]);
+        subjID = 'UnknownSubject';
+        runID = 'UnknownRun';
+    end
+    
+    % Load the Brainnetome atlas for scout mapping
+    [sScout, ProtocolInfo] = do_convertBrainnetomeScout(sResults);
+    if isempty(sScout)
+        disp(['No valid Brainnetome scouts found for file: ', results_file]);
+        continue;
+    end
+    
+    % Derive time series for all scouts
+    %     scout_time_series = cid_process_extract_scout_time_series(sResults, sScout, 'mean');
+    vs = load(fullfile(BS_data_dir, sFiles.FileName));
+    
+    % Define filename for the subject-run
+    output_filename = sprintf('%s_%s_ROI_timeseries.mat', subjID, runID);
+    output_filepath = fullfile(savedir, output_filename);
+    
+    % Save all ROIs for the current subject-run into one file
+    timepoints = sResults.Time;  % Add time vector
+    save(output_filepath, '-struct','vs');
+    disp(['Saved ROI time series for: ', subjID, ' ', runID, ' to ', output_filepath]);
+end
+
+disp('All ROI time series have been processed and saved.');
+
+cd(savedir)
+
+%% Process Source Files from Group_analysis - all verticies, optional
+if extractallverticies == 1
+    disp('Processing source files from Group_analysis to derive time series...');
+    
+    % Define the Group_analysis directory
+    group_analysis_dir = fullfile(BS_data_dir, 'Group_analysis');
+    results_files = rdir(fullfile(group_analysis_dir, '**/results_PNAI_*.mat'));
+    
+    if isempty(results_files)
+        error('No results_PNAI_*.mat files found in Group_analysis directory.');
+    end
+    
+    % Define the save directory and ensure it exists
+    savedir = '/group/bgross/work/CIDMEG/Analysis/BrainstormProcess/ROI_timeseries';
+    if ~exist(savedir, 'dir')
+        mkdir(savedir);
+        disp(['Created directory: ', savedir]);
+    end
+    
+    % Loop through each results file
+    for iFile = 1:length(results_files)
+        results_file = results_files(iFile).name;
+        disp(['Processing file: ', results_file]);
+        
+        % Load the results file
+        sResults = in_bst_results(results_file, 1);
+        
+        % Check if source data exists in the results file
+        if ~isfield(sResults, 'ImageGridAmp') || isempty(sResults.ImageGridAmp)
+            disp(['No source data in file: ', results_file]);
+            continue;
+        end
+        
+        % Extract identifiers from HeadModelFile
+        headModelPath = sResults.HeadModelFile;  % e.g., 'mcwa065_v1/mcwa065_v1_Run_9/headmodel_surf_os_meg.mat'
+        tokens = regexp(headModelPath, '(?<subjID>[^/]+)/.*(?<runID>Run_\d+)', 'names');
+        
+        % Use tokens for naming
+        if ~isempty(tokens)
+            subjID = tokens.subjID;   % e.g., 'mcwa065_v1'
+            runID = tokens.runID;     % e.g., 'Run_9'
+        else
+            warning(['Unable to parse HeadModelFile: ', headModelPath]);
+            subjID = 'UnknownSubject';
+            runID = 'UnknownRun';
+        end
+        
+        % Load the Brainnetome atlas for scout mapping
+        [sScout, ProtocolInfo] = do_convertBrainnetomeScout(sResults);
+        if isempty(sScout)
+            disp(['No valid Brainnetome scouts found for file: ', results_file]);
+            continue;
+        end
+        
+        % Derive time series for all scouts
+        scout_time_series = cid_process_extract_scout_time_series(sResults, sScout, 'all');
+        
+        % Define filename for the subject-run
+        output_filename = sprintf('%s_%s_ROI_timeseries.mat', subjID, runID);
+        output_filepath = fullfile(savedir, output_filename);
+        
+        % Save all ROIs for the current subject-run into one file
+        timepoints = sResults.Time;  % Add time vector
+        save(output_filepath, 'scout_time_series', 'timepoints');
+        disp(['Saved ROI time series for: ', subjID, ' ', runID, ' to ', output_filepath]);
+    end
+    
+    disp('All ROI time series have been processed and saved.');
+    
+end
