@@ -30,7 +30,7 @@ for i=1:length(LI_method_label)
     cfg.buffervalue = 2;
     cfg.fmri_LIs_val = fmri_LIs_trn;
 %     [~, ~, concordanceMetrics] = do_MEG_fMRI_concordance_contrast_rois(cfg);
-    [~, concordanceMetrics] = do_MEG_fMRI_concordance_contrast_rois_interval(cfg);
+    [~, concordanceMetrics, kappa] = do_MEG_fMRI_concordance_contrast_rois_interval(cfg);
     
     % Compile results
     metrics = struct('Correlation', correlationMetrics, 'Concordance', concordanceMetrics);

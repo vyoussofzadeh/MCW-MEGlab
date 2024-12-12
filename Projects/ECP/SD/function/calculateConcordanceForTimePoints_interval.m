@@ -53,7 +53,9 @@ end
 concordance = (concordantCount / numSubjects) * 100;
 
 % Calculate correlation between MEG LI and fMRI LI across subjects
-[groupCorrelation, pval] = corr(optimalMEG_LI, fMRI_LI, 'Rows', 'complete');
+% [groupCorrelation, pval] = corr(optimalMEG_LI, fMRI_LI, 'Rows', 'complete');
+[groupCorrelation, pval] = corr(optimalMEG_LI, fMRI_LI, 'Type', 'Spearman');
+
 
 end
 

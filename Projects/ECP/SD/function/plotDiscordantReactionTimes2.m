@@ -14,7 +14,10 @@ function plotDiscordantReactionTimes2(sub_MF_pt, discordantSubs, T_patn_MEGfMRI)
 discordant_subs = sub_MF_pt(discordantSubs);
 discordant_indices = ismember(T_patn_MEGfMRI.Sub_ID, discordant_subs);
 discordant_RT = T_patn_MEGfMRI.Avg(discordant_indices);
-meanRT = nanmean(discordant_RT);
+
+% meanRT = nanmean(discordant_RT);
+meanRT = nanmedian(discordant_RT);
+
 
 % Prepare x-axis labels for the bar plot
 xllabel = arrayfun(@(x) ['S', num2str(x)], discordantSubs, 'UniformOutput', false);

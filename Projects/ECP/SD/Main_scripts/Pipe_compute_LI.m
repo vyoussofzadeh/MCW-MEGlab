@@ -178,6 +178,7 @@ switch LI_analysis
 end
 
 %% Time intervals (window)
+cfg =[];
 cfg.strt = -0.5;
 cfg.spt = 2;
 cfg.overlap = 0.05;

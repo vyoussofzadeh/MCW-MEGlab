@@ -51,11 +51,11 @@ bestResultsTable_save.Best_Concordance = round(bestResultsTable_save.Best_Concor
 bestResultsTable_save.Best_Time_Interval = round(bestResultsTable_save.Best_Time_Interval, 2);
 
 % Save best results table
-writetable(bestResultsTable_save, 'Best_LI_Methods_Summary.csv');
+writetable(bestResultsTable_save, fullfile(save_dir,'Best_LI_Methods_Summary.csv'));
 
 
 % Save best results table as text file
-fid = fopen('Best_LI_Methods_Summary.txt', 'wt');
+fid = fopen(fullfile(save_dir,'Best_LI_Methods_Summary.txt'), 'wt');
 fprintf(fid, '%s\t%s\t%s\t%s\t%s\n', bestResultsTable.Properties.VariableNames{:});
 
 for i = 1:height(bestResultsTable)

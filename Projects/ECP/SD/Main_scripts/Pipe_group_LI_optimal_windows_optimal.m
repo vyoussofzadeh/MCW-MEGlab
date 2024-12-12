@@ -233,7 +233,6 @@ size(fmri_LIs_trn);
 Pt_ID  = LI_pt.Magnitude.setup.S_data.sFiles_subid(IA)';
 Pt_sfiles  = LI_pt.Magnitude.setup.S_data.sFiles_in(IA)';
 
-
 %%
 % Loop through each element in the struct arrays
 for i = 1:size(rSNR_new.Magnitude, 1)
@@ -344,3 +343,9 @@ run_taskperformance
 
 %% Investigate Discordant Samples of Best Results and Obtain Corresponding MEG_LI and fMRI_LI
 run_plot_bestLIs
+
+%%
+discordSubs = [4, 5, 10, 21, 28, 36, 56];
+discordantSubs = discordSubs;
+run_plot_bestLIs_seletive
+
