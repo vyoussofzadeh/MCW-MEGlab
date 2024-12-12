@@ -1,4 +1,4 @@
-function [fmri_LIs_val, conc] = do_MEG_fMRI_concordance_contrast_rois_interval(cfg_main)
+function [fmri_LIs_val, conc, kappa_time] = do_MEG_fMRI_concordance_contrast_rois_interval(cfg_main)
 
 
 lang_id = cfg_main.lang_id;
@@ -21,7 +21,7 @@ for j = 1:length(lang_id)
     midx = [];
     for i = 1:length(wi)
         if length(net_sel) > 1
-%             mLI_sub1 = mean(LI_pt_new(net_sel,:,i));
+            %             mLI_sub1 = mean(LI_pt_new(net_sel,:,i));
             mLI_sub1 = max(LI_pt_new(net_sel,:,i));
         else
             mLI_sub1 = (LI_pt_new(net_sel,:,i));
@@ -40,15 +40,52 @@ for j = 1:length(lang_id)
         else
             conc(j,i,:) = (megLI_sub_pt .* fmri_LIs_val);
         end
+        %     end
+        
+        % Find the interval with the best concordance
+        [mx, idx] = max(conc(j,:));
+        interval = wi(idx,:);
+        
+        % Use the new interval to calculate mLI_sub1
+        disp(['selected time for ', cfg_main.lang_id{j}, ':', num2str(interval(1)), '-', num2str(interval(end)), ' ms'])
+        
+        
+        
+        MEG_LI = mLI_sub_pt_trn;
+        fMRI_LI = fmri_LIs_val;
+        % Create a contingency table from the categorical data
+        confusion_matrix = crosstab(MEG_LI, fMRI_LI);
+        
+        % Calculate observed agreement P_o
+        total_agreements = sum(diag(confusion_matrix)); % sum of diagonal elements (where the ratings agree)
+        total_cases = sum(confusion_matrix, 'all');
+        P_o = total_agreements / total_cases;
+        
+        % Calculate expected agreement P_e
+        row_totals = sum(confusion_matrix, 2); % sums of each row
+        column_totals = sum(confusion_matrix, 1); % sums of each column
+        expected_agreements = sum((row_totals .* column_totals) / total_cases);
+        P_e = expected_agreements / total_cases;
+        
+        % Calculate Cohen's Kappa
+        kappa = (P_o - P_e) / (1 - P_e);
+        kappa_time(j,i) = kappa;
+        
+        % Display the result
+%         fprintf('Cohen''s Kappa: %f\n', kappa);
     end
-    
-    % Find the interval with the best concordance
-    [mx, idx] = max(conc(j,:));
-    interval = wi(idx,:);
-    
-    % Use the new interval to calculate mLI_sub1
-    disp(['selected time for ', cfg_main.lang_id{j}, ':', num2str(interval(1)), '-', num2str(interval(end)), ' ms'])
 end
+
+% figure,
+% plot(mean(wi'), kappa_time, 'LineWidth', 3),
+% set(gca, 'color', 'none');
+% ylabel('LIs concordance (MEG vs. fMRI)')
+% xlabel('Time (sec)')
+% legend(net_sel_mutiple_label(net_sel_id), 'Location', 'southoutside', 'NumColumns', 5)
+% box off
+% if isfield(cfg_main, 'title')
+%     title(cfg_main.title)
+% end
 
 figure,
 plot(mean(wi'), conc, 'LineWidth', 3),

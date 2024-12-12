@@ -38,7 +38,7 @@ switch cfg_main.math
         Fdata = tmp.ImageGridAmp; tidx = tmp.Time < 0; meanBaseline = mean(Fdata(:,tidx),2);
         Fdata = 10 .* log10(abs(bst_bsxfun(@rdivide, Fdata, meanBaseline)));
         tmp.ImageGridAmp = Fdata;
-        tmp.ImageGridAmp(tmp.ImageGridAmp < 0) = 0;
+        tmp.ImageGridAmp( tmp.ImageGridAmp < 0) = 0;
     case 'rectif'
         Fdata = tmp.ImageGridAmp;
         Fdata(Fdata < 0) = 0;
