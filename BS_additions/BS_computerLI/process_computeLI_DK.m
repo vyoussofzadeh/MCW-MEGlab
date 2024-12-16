@@ -1,6 +1,6 @@
-function varargout = process_computeLI_HCP(varargin )
+function varargout = process_computeLI_DK(varargin )
 
-% PROCESS_COMPUTELI_HCP: Compute the Lateralization Index (LI) using various methods (source magnitude, counting, bootstrapping)
+% PROCESS_COMPUTELI: Compute the LI (Lateralization Index) based on the DK (Desikan-Killiany) atlas.
 % on MEG source-level data projected onto the HCP atlas.
 %
 % This process integrates into Brainstorm's processing pipeline and allows selecting:
@@ -22,12 +22,13 @@ eval(macro_method);
 
 end
 
+
 function sProcess = GetDescription() %#ok<DEFNU>
 % PROCESS_COMPUTELI_HCP: Compute the Lateralization Index (LI) on HCP atlas-based source data.
 % Provides several methods (source magnitude, counting, bootstrapping) and time interval strategies (specific, averaged, window-based).
 % Supports thresholding and optional saving of results as .mat and plotting.
 
-sProcess.Comment     = 'Compute LI (HCP atlas, surface-based)';
+sProcess.Comment     = 'Compute LI (DK atlas, surface-based)';
 sProcess.Category    = 'Custom';
 sProcess.SubGroup    = 'Sources';
 sProcess.Index       = 337;
@@ -48,9 +49,9 @@ sProcess.options.timeParams.Comment = '';
 sProcess.options.timeParams.Type    = 'group';
 sProcess.options.timeParams.Value   = [];
 
-sProcess.options.twindow.Comment    = 'Window length (ms): For window-based methods, defines the length of each time window.';
-sProcess.options.twindow.Type       = 'value';
-sProcess.options.twindow.Value      = {300, 'ms', 100, 1000, 1};
+sProcess.options.tm_window.Comment    = 'Window length (ms): For window-based methods, defines the length of each time window.';
+sProcess.options.tm_window.Type       = 'value';
+sProcess.options.tm_window.Value = {300, 'ms', 1, 1000, 1};
 
 sProcess.options.toverlap.Comment   = 'Overlap between windows (%): For window-based analysis, the percentage overlap between consecutive windows.';
 sProcess.options.toverlap.Type      = 'value';
@@ -182,7 +183,6 @@ sProcess.options.noteApplicability.Value = {};
 end
 
 
-
 %% ===== FORMAT COMMENT =====
 function Comment = FormatComment(sProcess) %#ok<DEFNU>
 Comment = sProcess.Comment;
@@ -231,7 +231,8 @@ ImageGridAmp = processImageGridAmp(sResultP.ImageGridAmp, effect);
 % Determine max values for various time windows
 [AllMax, GlobalMax, t1, t2] = determineMaxValues(Tinterval, ImageGridAmp, sResultP, timerange);
 
-[sScout, ~] = convertHCPScout(sResultP);
+% [sScout, ~] = convertHCPScout(sResultP);
+[sScout, ~] = convertDesikanKillianyScout(sResultP);
 
 % If "Averaged Time Interval" is selected (value=2), and enough data points are available
 if sProcess.options.window.Value{1} == 2 && length(sResultP.Time) > 10
@@ -241,9 +242,10 @@ if sProcess.options.window.Value{1} == 2 && length(sResultP.Time) > 10
     ImageGridAmp = mean(ImageGridAmp(:, t1:t2), 2);
 end
 
+
 % If "Window based" method is selected (value=3), set up time windows
 if sProcess.options.window.Value{1} == 3
-    winLength = sProcess.options.twindow.Value{1};
+    winLength = sProcess.options.tm_window.Value{1};
     overlap   = sProcess.options.toverlap.Value{1};
     
     cfg = [];
@@ -259,14 +261,15 @@ end
 disp('Selected intervals:')
 if sProcess.options.window.Value{1} == 3
     disp(['Interval: [', num2str(timerange(1)), ', ', num2str(timerange(2)), '] sec, Window length: ', ...
-          num2str(winLength), ' ms, Overlap: ', num2str(overlap), '%']);
+        num2str(winLength), ' ms, Overlap: ', num2str(overlap), '%']);
     disp(wi);
 else
     disp(['Interval: [', num2str(timerange(1)), ', ', num2str(timerange(2)), '] sec']);
 end
 
 % ===== DEFINE ROIs =====
-[RoiLabels, RoiIndices] = defineROIs_HCP(sScout);
+% [RoiLabels, RoiIndices] = defineROIs_HCP(sScout);
+[RoiLabels, RoiIndices] = defineROIs();
 
 % ===== CONFIGURE LI COMPUTATION =====
 cfg_LI = [];
@@ -301,14 +304,14 @@ end
 if sProcess.options.methodSource.Value == 1
     disp('Computing LI using Source Magnitude Method...')
     cfg_LI.method = 1;
-    computeLI(cfg_LI); 
+    computeLI(cfg_LI);
     pause(0.2);
 end
 
 if sProcess.options.methodCounting.Value == 1
     disp('Computing LI using Counting Method...')
     cfg_LI.method = 2;
-    computeLI(cfg_LI); 
+    computeLI(cfg_LI);
     pause(0.2);
 end
 
@@ -318,7 +321,7 @@ if sProcess.options.methodBootstrap.Value == 1
     cfg_LI.divs           = sProcess.options.divs.Value{1};
     cfg_LI.n_resampling   = sProcess.options.n_resampling.Value{1};
     cfg_LI.RESAMPLE_RATIO = sProcess.options.RESAMPLE_RATIO.Value{1} / 100;
-    computeLI(cfg_LI);  
+    computeLI(cfg_LI);
     pause(0.2);
 end
 
@@ -1249,5 +1252,108 @@ for ii = 1:length(cfg_LI.RoiIndices)
     end
     globmax_rois(ii) = max(mdwin(:));
 end
+end
+
+
+function [sScout, ProtocolInfo] = convertDesikanKillianyScout(sResultP)
+% Convert the Desikan-Killiany scout to select scouts
+
+ProtocolInfo = bst_get('ProtocolInfo');
+SurfaceFile = load(fullfile(ProtocolInfo.SUBJECTS, sResultP.SurfaceFile));
+
+Scouts = [];
+sScout = [];
+for i = 1:length(SurfaceFile.Atlas)
+    if contains(SurfaceFile.Atlas(i).Name, {'Desikan-Killiany'})
+        Scouts = SurfaceFile.Atlas(i).Scouts;
+    end
+end
+sScout.Scouts = Scouts;
+
+expectedRegions = {...
+    'bankssts L', 'bankssts R', ...
+    'caudalanteriorcingulate L', 'caudalanteriorcingulate R', ...
+    'caudalmiddlefrontal L', 'caudalmiddlefrontal R', ...
+    'cuneus L', 'cuneus R', ...
+    'entorhinal L', 'entorhinal R', ...
+    'frontalpole L', 'frontalpole R', ...
+    'fusiform L', 'fusiform R', ...
+    'inferiorparietal L', 'inferiorparietal R', ...
+    'inferiortemporal L', 'inferiortemporal R', ...
+    'insula L', 'insula R', ...
+    'isthmuscingulate L', 'isthmuscingulate R', ...
+    'lateraloccipital L', 'lateraloccipital R', ...
+    'lateralorbitofrontal L', 'lateralorbitofrontal R', ...
+    'lingual L', 'lingual R', ...
+    'medialorbitofrontal L', 'medialorbitofrontal R', ...
+    'middletemporal L', 'middletemporal R', ...
+    'paracentral L', 'paracentral R', ...
+    'parahippocampal L', 'parahippocampal R', ...
+    'parsopercularis L', 'parsopercularis R', ...
+    'parsorbitalis L', 'parsorbitalis R', ...
+    'parstriangularis L', 'parstriangularis R', ...
+    'pericalcarine L', 'pericalcarine R', ...
+    'postcentral L', 'postcentral R', ...
+    'posteriorcingulate L', 'posteriorcingulate R', ...
+    'precentral L', 'precentral R', ...
+    'precuneus L', 'precuneus R', ...
+    'rostralanteriorcingulate L', 'rostralanteriorcingulate R', ...
+    'rostralmiddlefrontal L', 'rostralmiddlefrontal R', ...
+    'superiorfrontal L', 'superiorfrontal R', ...
+    'superiorparietal L', 'superiorparietal R', ...
+    'superiortemporal L', 'superiortemporal R', ...
+    'supramarginal L', 'supramarginal R', ...
+    'temporalpole L', 'temporalpole R', ...
+    'transversetemporal L', 'transversetemporal R'...
+    };
+
+% Handle case when number of anatomical regions are not identical to atlas regions
+actualRegions = {sScout.Scouts.Label};
+missingRegions = setdiff(expectedRegions, actualRegions);
+
+% Assuming sScout.Scouts is not empty and has at least one scout
+if ~isempty(sScout.Scouts)
+    % Identify all fields from the first scout as a template
+    fieldNames = fieldnames(sScout.Scouts(1));
+    % Prepare an empty scout template with all fields
+    emptyScout = cell2struct(cell(length(fieldNames), 1), fieldNames, 1);
+    
+    % Default empty values for known fields
+    emptyScout.Label = ''; % Update as necessary
+    emptyScout.Vertices = [];
+    emptyScout.Seed = 0; % Or any appropriate 'empty' value
+    
+    % For any other fields in your structure, set an appropriate 'empty' value
+    % For example, if there's a 'Color' field, you might do:
+    % emptyScout.Color = [0, 0, 0]; % Assuming color is RGB
+    % Adjust the above line for each additional field with a sensible 'empty' value
+    
+    % Now, handle missing regions with this updated emptyScout
+    for i = 1:length(missingRegions)
+        emptyScout.Label = missingRegions{i};
+        % Insert the empty scout at the correct position
+        idx = find(strcmp(expectedRegions, missingRegions{i}));
+        sScout.Scouts = [sScout.Scouts(1:idx-1), emptyScout, sScout.Scouts(idx:end)];
+    end
+else
+    warning('sScout.Scouts is empty, cannot determine structure fields.');
+end
+end
+
+function [RoiLabels, RoiIndices] = defineROIs()
+% Define regions of interest (ROIs)
+
+AngSmg   = [15,16,63,64];
+Front    = [3,4,5,6,11,12,25,26,29,30,33,34,37,38,39,40,41,42,49,50,53,54,55,56,57,58];
+LatFront = [5,6,11,12,37,38,39,40,41,42,55,56,57,58];
+LatTemp  = [1,2,17,18,31,32,61,62,65,66,67,68];
+PeriSyl  = [15,16,37,38,41,42,61,62,63,64];
+Tanaka   = [37,38,41,42,61,62,63,64];
+Temp     = [1,2,9,10,13,14,17,18,19,20,27,28,31,32,35,36,61,62,65,66,67,68];
+Whole    = 1:68;
+
+RoiLabels = {'AngSmg', 'Front','LatFront','LatTemp', 'PeriSyl', 'Tanaka','Temp','Whole'};
+RoiIndices = {AngSmg, Front, LatFront, LatTemp, PeriSyl, Tanaka, Temp, Whole};
+
 end
 
