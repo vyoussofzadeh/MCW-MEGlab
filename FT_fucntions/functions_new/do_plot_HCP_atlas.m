@@ -20,6 +20,11 @@ src = ft_read_headshape(src_fname);
 % surface_pial_both = load('surface_inflated_both.mat');
 % src1 = surface_pial_both.mesh;
 
+% BS_temp = load('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/tess_cortex_pial_low.mat');
+% src.pos = BS_temp.Vertices;
+% src.tri = BS_temp.Faces;
+% src.curv = BS_temp.Curvature;
+
 %- Whole atlas
 vertexcolor = zeros(size(src.pos,1), 3);
 for iScout=1:nScouts

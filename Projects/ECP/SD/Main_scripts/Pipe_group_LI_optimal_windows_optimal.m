@@ -16,7 +16,8 @@ addpath('/data/MEG/Vahab/Github/MCW_MEGlab/tools/helpful_tools/daviolinplot/dabo
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/Main_scripts/run')
 Run_setpath
 
-addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/other/')
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/other/');
+
 
 %%
 MEG_thre = 10; % MEG threshold
@@ -32,6 +33,10 @@ for i = 1:length(LI_analysis_label)
 end
 
 LI_analysis = input('');
+
+%% plotting option
+disp('1: plot in browser (and save in .svg), 2: plot in matlab figure (not saved)')
+plot_option = input('');
 
 %%
 LI_method_label = {'Magnitude', 'Counting','Bootstrapping'};
@@ -348,4 +353,6 @@ run_plot_bestLIs
 discordSubs = [4, 5, 10, 21, 28, 36, 56];
 discordantSubs = discordSubs;
 run_plot_bestLIs_seletive
+
+%%
 

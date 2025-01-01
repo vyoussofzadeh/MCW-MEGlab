@@ -36,6 +36,9 @@ comparisonTable.Properties.VariableNames = {'LI_Method', 'ROI', 'Interval_Type',
 figure;
 sgtitle('Correlation and Concordance: Constant vs. Dynamic Intervals');
 
+
+barlabel = categorical({'constant', 'dynamic'});
+
 for i = 1:length(uniqueROIs)
     roi = uniqueROIs{i};
     
@@ -51,17 +54,27 @@ for i = 1:length(uniqueROIs)
     % Create subplots for Correlation and Concordance
     subplot(2, length(uniqueROIs), i);
     barDataCorrelation = reshape(correlationValues, [], 3)';
-    bar([1,2], mean(barDataCorrelation), 'grouped');
+    D = mean(barDataCorrelation);
+    b = bar(barlabel, D, 'grouped', 'BarWidth', 0.5);
+    b.FaceColor = 'flat';    % Allows per-bar coloring
+    b.CData(1,:) = [0.6, 0.6, 0.6];            % First bar (gray)
+    b.CData(2,:) = [66, 165, 245] / 255;       % Second bar (blueish)
+    
     title(['Corr - ' roi]);
     ylabel('Correlation');
     ylim([0, 1]);
     box off
     set(gca, 'color', 'none');
-%     legend(intervalTypes(1:2), 'Location', 'northwest');
+    %     legend(intervalTypes(1:2), 'Location', 'northwest');
     
     subplot(2, length(uniqueROIs), i + length(uniqueROIs));
     barDataConcordance = reshape(concordanceValues, [], 3)';
-    bar(1:2, mean(barDataConcordance), 'grouped');
+    %     bar(1:2, mean(barDataConcordance), 'grouped');
+    D = mean(barDataConcordance);
+    b = bar(barlabel, D, 'grouped', 'BarWidth', 0.5);
+    b.FaceColor = 'flat';    % Allows per-bar coloring
+    b.CData(1,:) = [0.6, 0.6, 0.6];            % First bar (gray)
+    b.CData(2,:) = [66, 165, 245] / 255;       % Second bar (blueish)
     box off
     title(['Con - ' roi]);
     ylabel('Concordance');
@@ -75,11 +88,11 @@ end
 set(gcf, 'Position', [1000, 400, 600, 400]);
 
 % Save the figure
-cfg = []; 
-cfg.outdir = save_dir; 
-filename = 'Concordance_Comparison_lat1'; 
-cfg.filename = filename; 
-cfg.type = 'svg'; 
+cfg = [];
+cfg.outdir = save_dir;
+filename = 'Concordance_Comparison_lat1';
+cfg.filename = filename;
+cfg.type = 'svg';
 do_export_fig(cfg);
 
 close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');

@@ -47,9 +47,9 @@ for i = 3:3%length(uniqueROIs)
     
     % Create bar plot
     barData = reshape(correlationValues, [], 3)';
-    b = bar(categories(1:2:end), barData,'BarWidth', 0.2);
-    b(1).FaceColor = 'b';
-    b(2).FaceColor = 'r';
+    b = bar(categories(1:2:end), barData,'BarWidth', 0.5);
+    b(1).FaceColor = [.6 .6 .6];%'b';
+    b(2).FaceColor = rgb(66, 165, 245) ; %'r';
     disp(barData)
     
     title(roi);
@@ -58,8 +58,11 @@ for i = 3:3%length(uniqueROIs)
     ylim([0, 1]);
     box off;
     hold off;
-%     axis tight
+    %     axis tight
 end
+
+lgd = legend(intervalTypes, 'Location', 'bestoutside', 'Orientation', 'horizontal', 'NumColumns', length(intervalTypes));
+lgd.Visible = 'off';   % Hides the legend but does not delete it
 
 set(gcf, 'Position', [100, 400, 300, 200]); % Adjust figure size
 
@@ -78,9 +81,9 @@ for i = 3:3%length(uniqueROIs)
     
     % Create bar plot
     barData = reshape(concordanceValues, [], 3)';
-    b = bar(categories(1:2:end), barData, 'BarWidth', 0.2);
-    b(1).FaceColor = 'b';
-    b(2).FaceColor = 'r';
+    b = bar(categories(1:2:end), barData, 'BarWidth', 0.5);
+    b(1).FaceColor = [.6 .6 .6];%'b';
+    b(2).FaceColor = rgb(66, 165, 245) ; %'r';
     disp(barData)
     ylim([0, 100]);
     title(roi);
@@ -88,10 +91,17 @@ for i = 3:3%length(uniqueROIs)
     set(gca, 'color', 'none');
     box off;
     hold off;
-%     axis tight
+    %     axis tight
 end
-lgd = legend(intervalTypes, 'Location', 'south', 'Orientation', 'horizontal', 'NumColumns', length(intervalTypes));
-set(gcf, 'Position', [400, 400, 300, 250]); % Adjust figure size
+
+if metricIdx == 2
+    lgd.Visible = 'off';   % Hides the legend but does not delete it
+end
+
+lgd = legend(intervalTypes, 'Location', 'bestoutside', 'Orientation', 'horizontal', 'NumColumns', length(intervalTypes));
+
+% lgd = legend(intervalTypes, 'Location', 'south', 'Orientation', 'horizontal', 'NumColumns', length(intervalTypes));
+set(gcf, 'Position', [400, 400, 300, 350]); % Adjust figure size
 
 cfg = []; cfg.outdir = save_dir; filename = 'Conc_Compr_lat'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
 close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');

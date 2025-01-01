@@ -21,7 +21,7 @@ glass_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for B
 
 glass_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/Glasser';
 
-cfg = struct('src_fname', src_fname, 'glass_dir', glass_dir, 'glass_atlas', glass_atlas, 'plotflag', 0);
+cfg = struct('src_fname', src_fname, 'glass_dir', glass_dir, 'glass_atlas', glass_atlas, 'plotflag', 1);
 Data_hcp_atlas = ecpfunc_hcp_atlas3(cfg);
 
 %% SAVE HCP ATLAS NETWORKS
@@ -52,8 +52,6 @@ cfg.export = 0; cfg.savedir = fullfile(outdir,'group');
 cfg.network_sel = [1,2,6]; do_map_HCP_net_sel(cfg);
 net_label = 'Fronto_tempro_pri';
 cfg.network_sel = [11]; do_map_HCP_net_sel(cfg);
-
-
 
 colorcode = {[0,114,189]; [217,83,25]; [237,177,32];[126,47,142]; [119,172,48]};
 network_sel = [1,2,5,6,11]; % LI networks compared between MEG and fMRI

@@ -46,17 +46,20 @@ for j=1:length(lang_id)
     crr_all(j,:) = crr;   
 end
 
-figure,
-plot(mean(wi'),crr_all,'LineWidth', 3), 
-% title([net_sel_mutiple_label{net_sel}]);
-set(gca,'color','none');
-ylabel('LIs corr (MEG vs. fMRI)')
-xlabel('Time (sec)')
-legend(net_sel_mutiple_label(net_sel_id),'Location','southoutside', 'NumColumns', 5)
-box off
-if isfield(cfg_main, 'title') 
-    title(cfg_main.title)
-end
+
+% figure,
+% plot(mean(wi'),crr_all,'LineWidth', 3), 
+% % title([net_sel_mutiple_label{net_sel}]);
+% set(gca,'color','none');
+% ylabel('LIs corr (MEG vs. fMRI)')
+% xlabel('Time (sec)')
+% legend(net_sel_mutiple_label(net_sel_id),'Location','southoutside', 'NumColumns', 5)
+% box off
+% if isfield(cfg_main, 'title') 
+%     title(cfg_main.title)
+% end
+
+plotTimeIntervalData(wi, crr_all, net_sel_mutiple_label, cfg_main)
 
 % - export figs
 if savefig == 1

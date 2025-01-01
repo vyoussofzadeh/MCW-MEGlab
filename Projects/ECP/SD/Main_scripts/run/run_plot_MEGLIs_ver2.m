@@ -1,5 +1,10 @@
 network_sel = [1, 2, 6, 11]; % Define the networks to include in the plot
 colors = distinguishable_colors(length(network_sel)); % Generate distinct colors for each selected network
+colors = [
+    0.4800    0.1200    0.6600
+    0.9600    0.4900         0
+    0.22 0.56 0.24
+    .69 .71 .17];
 
 for i = 1:length(LI_method_label)
     
@@ -12,15 +17,14 @@ for i = 1:length(LI_method_label)
         current_network = network_sel(net_idx); % Current network index
         
         % Prepare data to plot
-        %         LI_values = []; % Initialize LI_values array
-        %         for i = 1:1%length(LI_method_label)
-        LI_values = squeeze(nanmean(LI_pt_val_new.(LI_method_label{i})(current_network, :, :), 2)); % Extract and average LI values for the current method and network
-        %         end
+%         LI_values = squeeze(nanmean(LI_pt_val_new.(LI_method_label{i})(current_network, :, :), 2)); % Extract and average LI values for the current method and network
+        LI_values = squeeze((LI_pt_val_new.(LI_method_label{i})(current_network, :, :))); % Extract and average LI values for the current method and network
         
         % Calculate mean across methods
-        meanLI = LI_values;
+        meanLI = nanmean(LI_values, 1);
         % Plot the averaged LI values for the current network
         plotHandles(net_idx) = plot(wi(:,1)', meanLI, 'LineWidth', 2, 'Color', colors(net_idx,:));
+%         plotHandles(net_idx) = AlphaLine(wi(:,1)',LI_values, colors(net_idx,:), 'LineWidth', 1.5);
         
         % Find the maximum LI value and its corresponding time
         [maxLI, idx] = max(meanLI);

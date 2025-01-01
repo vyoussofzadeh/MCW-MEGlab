@@ -1,8 +1,22 @@
 network_sel = [1, 2, 6, 11]; % Define the networks to include in the plot
+
 colors = distinguishable_colors(length(network_sel)); % Generate distinct colors for each selected network
+
+customColors = [
+    0.96 0.49 0
+    0.22 0.56 0.24
+    0.69 0.71 0.17
+    0.48 0.12 0.66
+    ];
 
 figure; % Open a new figure window
 hold on; % Keep the plot active to add more elements
+
+
+% fig = figure('Units', 'inches', 'Position', [5, 5, 4.5, 5.5]);
+% 
+% %%% Amplitude discrim psychometric
+% ax(1) = axes('Position', [.1 .75 .25 .225]); hold on
 plotHandles = gobjects(length(network_sel), 1); % Initialize array for plot handles
 
 % Loop through the selected networks
@@ -18,7 +32,8 @@ for net_idx = 1:length(network_sel)
     % Calculate mean across methods
     meanLI = nanmean(LI_values, 1);
     % Plot the averaged LI values for the current network
-    plotHandles(net_idx) = plot(wi(:,1)', meanLI, 'LineWidth', 2, 'Color', colors(net_idx,:));
+%     plotHandles(net_idx) = plot(wi(:,1)', meanLI, 'LineWidth', 2, 'Color', colors(net_idx,:));
+    plotHandles(net_idx) = AlphaLine(wi(:,1)',LI_values, customColors(net_idx,:), 'LineWidth', 1.5);
     
     % Find the maximum LI value and its corresponding time
     [maxLI, idx] = max(meanLI);
@@ -32,7 +47,7 @@ for net_idx = 1:length(network_sel)
         'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
     
     % Draw a vertical line at the max time
-    line([maxTime maxTime], ylim, 'Color', colors(net_idx,:), 'LineWidth', 1.5, 'LineStyle', '--');
+    line([maxTime maxTime], ylim, 'Color', customColors(net_idx,:), 'LineWidth', 1.5, 'LineStyle', '--');
     
     legendEntries{net_idx} = net_sel_mutiple_label{network_sel(net_idx)}; % Store legend entry
 end

@@ -87,16 +87,18 @@ end
 %     title(cfg_main.title)
 % end
 
-figure,
-plot(mean(wi'), conc, 'LineWidth', 3),
-set(gca, 'color', 'none');
-ylabel('LIs concordance (MEG vs. fMRI)')
-xlabel('Time (sec)')
-legend(net_sel_mutiple_label(net_sel_id), 'Location', 'southoutside', 'NumColumns', 5)
-box off
-if isfield(cfg_main, 'title')
-    title(cfg_main.title)
-end
+% figure,
+% plot(mean(wi'), conc, 'LineWidth', 3),
+% set(gca, 'color', 'none');
+% ylabel('LIs concordance (MEG vs. fMRI)')
+% xlabel('Time (sec)')
+% legend(net_sel_mutiple_label(net_sel_id), 'Location', 'southoutside', 'NumColumns', 5)
+% box off
+% if isfield(cfg_main, 'title')
+%     title(cfg_main.title)
+% end
+
+plotTimeIntervalData(wi, conc, net_sel_mutiple_label, cfg_main)
 
 if savefig == 1
     cfg = [];

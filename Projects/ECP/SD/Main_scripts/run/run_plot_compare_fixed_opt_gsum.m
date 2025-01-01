@@ -44,18 +44,13 @@ for j = 1:length(uniqueMethods)
     method = uniqueMethods{j};
     methodData = comparisonTable(strcmp(comparisonTable.LI_Method, method), :);
     
-%     disp(method)
-%     disp(methodData.Correlation(strcmp(methodData.Interval_Type, 'Constant')))
-%     disp(methodData.Correlation(strcmp(methodData.Interval_Type, 'Dynamic')))
-    
     barData(j, :) = [mean(methodData.Correlation(strcmp(methodData.Interval_Type, 'Constant'))), ...
         mean(methodData.Correlation(strcmp(methodData.Interval_Type, 'Dynamic')))];
     
-%     pause,
 end
 b = bar(categorical(uniqueMethods), barData, 'BarWidth', 0.4);
-b(1).FaceColor = 'b';
-b(2).FaceColor = 'r';
+b(1).FaceColor = [.6 .6 .6];%'b';
+b(2).FaceColor = rgb(66, 165, 245) ; %'r';
 title('Correlation');
 ylabel('Value');
 ylim([0, 1]);
@@ -71,11 +66,11 @@ for j = 1:length(uniqueMethods)
     method = uniqueMethods{j};
     methodData = comparisonTable(strcmp(comparisonTable.LI_Method, method), :);
     barData(j, :) = [mean(methodData.Concordance(strcmp(methodData.Interval_Type, 'Constant'))), ...
-                     mean(methodData.Concordance(strcmp(methodData.Interval_Type, 'Dynamic')))];
+        mean(methodData.Concordance(strcmp(methodData.Interval_Type, 'Dynamic')))];
 end
 b = bar(categorical(uniqueMethods), barData, 'BarWidth', 0.4);
-b(1).FaceColor = 'b';
-b(2).FaceColor = 'r';
+b(1).FaceColor = [.6 .6 .6];%'b';
+b(2).FaceColor = rgb(66, 165, 245) ; %'r';
 title('Concordance');
 ylabel('Value');
 ylim([0, 100]);

@@ -1,6 +1,18 @@
 
 network_sel = [1, 2, 6, 11]; % Define the networks to include in the plot
-colors = distinguishable_colors(length(network_sel)); % Generate distinct colors for each selected network
+% colors = distinguishable_colors(length(network_sel)); % Generate distinct colors for each selected network
+% colors = [
+%     0.4800    0.1200    0.6600
+%     0.9600    0.4900         0
+%     0.22 0.56 0.24
+%     .69 .71 .17];
+
+customColors = [
+    0.96 0.49 0
+    0.22 0.56 0.24
+    0.69 0.71 0.17
+    0.48 0.12 0.66
+    ];
 
 for i = 1:length(LI_method_label)
     figure; % Open a new figure window
@@ -22,8 +34,8 @@ for i = 1:length(LI_method_label)
         meanSNR_right = nanmean(rSNR_right, 1);
         
         % Plot the averaged SNR values for left and right
-        plotHandlesLeft(net_idx) = plot(wi(:,1)', meanSNR_left, 'LineWidth', 2, 'Color', colors(net_idx,:));
-        plotHandlesRight(net_idx) = plot(wi(:,1)', meanSNR_right, 'LineWidth', 2, 'LineStyle', '--', 'Color', colors(net_idx,:));
+        plotHandlesLeft(net_idx) = plot(wi(:,1)', meanSNR_left, 'LineWidth', 2, 'Color', customColors(net_idx,:));
+        plotHandlesRight(net_idx) = plot(wi(:,1)', meanSNR_right, 'LineWidth', 2, 'LineStyle', '--', 'Color', customColors(net_idx,:));
         
         % Annotate and handle legends separately if needed
         legendEntries{net_idx} = ['Left - ' net_sel_mutiple_label{network_sel(net_idx)}]; % Store legend entry for left

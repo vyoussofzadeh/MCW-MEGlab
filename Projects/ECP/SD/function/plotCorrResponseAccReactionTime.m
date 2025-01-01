@@ -1,55 +1,74 @@
 function plotCorrResponseAccReactionTime(accuracyResults_updt, T_patn_MEGfMRI)
-    % plotCorrResponseAccReactionTime: Calculate and plot the correlation between accuracy and reaction time
-    %
-    % Inputs:
-    %   - accuracyResults_updt: Table containing accuracy data
-    %   - T_patn_MEGfMRI: Table containing reaction time data
+% plotCorrResponseAccReactionTime: Calculate and plot the correlation between accuracy and reaction time
+%
+% Inputs:
+%   - accuracyResults_updt: Table containing accuracy data
+%   - T_patn_MEGfMRI: Table containing reaction time data
 
-    % Convert numerical subject IDs in accuracyResults_updt to string format with 'EC' prefix
-    accuracyResults_updt.SubjectStr = strcat('EC', arrayfun(@num2str, accuracyResults_updt.Subject, 'UniformOutput', false));
+% Convert numerical subject IDs in accuracyResults_updt to string format with 'EC' prefix
+accuracyResults_updt.SubjectStr = strcat('EC', arrayfun(@num2str, accuracyResults_updt.Subject, 'UniformOutput', false));
 
-    % Find the intersection between subject IDs
-    [~, idxAccuracy, idxRT] = intersect(accuracyResults_updt.SubjectStr, T_patn_MEGfMRI.Sub_ID);
+% Find the intersection between subject IDs
+[~, idxAccuracy, idxRT] = intersect(accuracyResults_updt.SubjectStr, T_patn_MEGfMRI.Sub_ID);
 
-    % Extract relevant data
-    animalAcc = accuracyResults_updt.Animal_ACC(idxAccuracy);
-    falsefontAcc = accuracyResults_updt.Falsefont_ACC(idxAccuracy);
-    animalRT = T_patn_MEGfMRI.Animal(idxRT);
-    falsefontRT = T_patn_MEGfMRI.Symbol(idxRT);
+% Extract relevant data
+animalAcc = accuracyResults_updt.Animal_ACC(idxAccuracy);
+falsefontAcc = accuracyResults_updt.Falsefont_ACC(idxAccuracy);
+animalRT = T_patn_MEGfMRI.Animal(idxRT);
+falsefontRT = T_patn_MEGfMRI.Symbol(idxRT);
 
-    % Calculate correlation for animal condition
-    [correlationAnimal, pValueAnimal] = corr(animalAcc, animalRT, 'Rows', 'complete');
+% Calculate correlation for animal condition
+[correlationAnimal, pValueAnimal] = corr(animalAcc, animalRT, 'Rows', 'complete');
 
-    % Calculate correlation for falsefont condition
-    [correlationFalsefont, pValueFalsefont] = corr(falsefontAcc, falsefontRT, 'Rows', 'complete');
+% Calculate correlation for falsefont condition
+[correlationFalsefont, pValueFalsefont] = corr(falsefontAcc, falsefontRT, 'Rows', 'complete');
 
-    % Display results
-    disp(['Correlation between Animal Accuracy and Reaction Time: ', num2str(correlationAnimal)]);
-    disp(['P-value for Animal Accuracy and Reaction Time: ', num2str(pValueAnimal)]);
+% Display results
+fprintf('Animal Corr = %.3f, p = %.3f\n', correlationAnimal, pValueAnimal);
+fprintf('Falsefont Corr = %.3f, p = %.3f\n', correlationFalsefont, pValueFalsefont);
 
-    disp(['Correlation between Falsefont Accuracy and Reaction Time: ', num2str(correlationFalsefont)]);
-    disp(['P-value for Falsefont Accuracy and Reaction Time: ', num2str(pValueFalsefont)]);
+% Plot
+figure('Color','w');
+set(gcf, 'Position', [1000, 400, 450, 450]);
 
-    % Plot Correlations
+% ============== Animal ==============
+subplot(2,1,1);
+hold on;
+scatter_size = 40;
+scatter(animalAcc, animalRT, scatter_size, [0.2, 0.6, 0.8], 'filled');
 
-    % Plot for Animal condition
-    figure;
-    subplot(2, 1, 1)
-    scatter(animalAcc, animalRT, 'filled');
-    title('Correlation (Animal Acc, Reaction Time)');
-    xlabel('Animal Acc');
-    ylabel('Reaction Time (s)');
-    grid on;
-    set(gca, 'color', 'none');
+% Fit a line
+pAnimal = polyfit(animalAcc, animalRT, 1);
+xFitA = linspace(min(animalAcc), max(animalAcc), 100);
+yFitA = polyval(pAnimal, xFitA);
+plot(xFitA, yFitA, 'Color', [.6 .6 .6], 'LineWidth', 2);
 
-    % Plot for Falsefont condition
-    subplot(2, 1, 2)
-    scatter(falsefontAcc, falsefontRT, 'filled');
-    title('Correlation (Falsefont Acc, Reaction Time)');
-    xlabel('Falsefont Acc');
-    ylabel('Reaction Time (s)');
-    grid on;
-    box off;
-    set(gcf, 'Position', [1000, 100, 400, 400]);
-    set(gca, 'color', 'none');
+title('Animal: Acc vs Reaction Time');
+xlabel('Animal Accuracy');
+ylabel('Reaction Time (s)');
+grid on;
+box off;
+set(gca, 'color', 'none');
+hold off;
+
+% ============== Falsefont ==============
+subplot(2,1,2);
+hold on;
+scatter(falsefontAcc, falsefontRT, scatter_size, [0.2, 0.6, 0.8], 'filled');
+
+% Fit a line
+pFF = polyfit(falsefontAcc, falsefontRT, 1);
+xFitFF = linspace(min(falsefontAcc), max(falsefontAcc), 100);
+yFitFF = polyval(pFF, xFitFF);
+plot(xFitFF, yFitFF, 'Color', [.6 .6 .6], 'LineWidth', 2);
+
+title('Falsefont: Acc vs Reaction Time');
+xlabel('Falsefont Accuracy');
+ylabel('Reaction Time (s)');
+grid on;
+box off;
+set(gca, 'color', 'none');
+hold off;
+
 end
+
