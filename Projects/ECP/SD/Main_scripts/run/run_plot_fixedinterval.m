@@ -1,5 +1,4 @@
 plotCorrMaxByROI(summaryTable, [])
-
 cfg = []; cfg.outdir = save_dir; filename = ' Corr max'; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)
 close all, combined_path = fullfile(save_dir,[cfg.filename, '.svg']); web(combined_path, '-new');
 
