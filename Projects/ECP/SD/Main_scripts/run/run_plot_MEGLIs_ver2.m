@@ -1,10 +1,18 @@
 network_sel = [1, 2, 6, 11]; % Define the networks to include in the plot
 colors = distinguishable_colors(length(network_sel)); % Generate distinct colors for each selected network
+
 colors = [
     0.4800    0.1200    0.6600
     0.9600    0.4900         0
     0.22 0.56 0.24
     .69 .71 .17];
+
+colors = [
+    0 114 189
+    217 83 25
+    237 177 32
+    126 47 142
+    ]/256;
 
 for i = 1:length(LI_method_label)
     

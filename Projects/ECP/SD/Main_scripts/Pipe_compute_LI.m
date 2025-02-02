@@ -26,7 +26,7 @@ glass_atlas = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for B
 
 glass_dir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/Glasser';
 
-cfg = struct('src_fname', src_fname, 'glass_dir', glass_dir, 'glass_atlas', glass_atlas, 'plotflag', 1);
+cfg = struct('src_fname', src_fname, 'glass_dir', glass_dir, 'glass_atlas', glass_atlas, 'plotflag', 0);
 Data_hcp_atlas = ecpfunc_hcp_atlas3(cfg);
 
 %% SAVE ATLAS NETWORKS
@@ -142,8 +142,17 @@ switch LI_analysis
         cfg.datatag = 'wDICS_18_4_50ms';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
     case 3
-        cfg.datamask = fullfile('./Group_analysis/LCMV/results_average*.mat');
-        S_data = ecpfunc_read_sourcemaps(cfg);
+        protocol = fullfile(BS_dir, 'data_full/protocol.mat');
+        cfg.protocol = protocol;
+        BS_data_dir = fullfile(BS_dir,'data');
+        cfg.BS_data_dir = BS_data_dir;
+        %         cfg.datamask = fullfile('./Group_analysis/LCMV/results_average*.mat');
+        cfg.datamask =  './Group_analysis/ec*/*abs_ssmooth.mat';
+        
+        %         S_data = ecpfunc_read_sourcemaps(cfg);
+        S_data = ecpfunc_read_sourcemaps2(cfg);
+        S_data_sep = ecpfunc_separate_runs(S_data);
+        
         %     case 4
         %         cfg.datamask = fullfile('./Group_analysis/LCMV/results_abs*.mat');
         %         S_data = ecpfunc_read_sourcemaps_contrast(cfg);
@@ -167,10 +176,25 @@ patn_neuropsych_data = ecpfunc_read_patn_neuropsych();
 
 %% Subject demog details
 switch LI_analysis
-    case {1,3 ,5}
+    case {1,5}
         cfg = []; cfg.subjs_3 = S_data.subjs_3; cfg.subjs_2 = S_data.subjs_2;
         cfg.sFiles_3 = S_data.sFiles_3; cfg.sFiles_2 = S_data.sFiles_2;
         sub_demog_data = ecpfunc_read_sub_demog(cfg);
+    case 3
+        cfg = [];
+        cfg.subjs_3  = S_data_sep.subjs_3_run1;
+        cfg.subjs_2  = S_data_sep.subjs_2_run1;
+        cfg.sFiles_3 = S_data_sep.sFiles_3_run1;
+        cfg.sFiles_2 = S_data_sep.sFiles_2_run1;
+        sub_demog_data_run1 = ecpfunc_read_sub_demog(cfg);
+        
+        cfg = [];
+        cfg.subjs_3  = S_data_sep.subjs_3_run2;
+        cfg.subjs_2  = S_data_sep.subjs_2_run2;
+        cfg.sFiles_3 = S_data_sep.sFiles_3_run2;
+        cfg.sFiles_2 = S_data_sep.sFiles_2_run2;
+        sub_demog_data_run2 = ecpfunc_read_sub_demog(cfg);       
+        
     case {2, 6, 7}
         cfg = []; cfg.subjs = S_data.subjs;
         cfg.sFiles = S_data.sFiles_32;
@@ -200,7 +224,7 @@ cd(save_dir)
 mlabel = [LI_analysis_label{LI_analysis}, '_', LI_method_label{LI_method}];
 
 switch LI_analysis
-    case {1,3}
+    case {1}
         dtag = {'Anim, Ctrl';'Anim, Patn'; 'Symbol, Ctrl'; 'Symbol, Patn'};
         dtag_val = {[1,3]; [2,4]};
         
@@ -243,6 +267,56 @@ switch LI_analysis
             [label_8net, LI_sub] = do_group_LI_net_baseline(cfg); % Anim vs. Baseline vs. Symb vs. Baseline
         end
         
+        
+    case 3
+        
+        for task_run = 1:2
+            sub_demog_data_runs = { sub_demog_data_run1, sub_demog_data_run2 };
+            save_dir_new = [save_dir,'_run', num2str(task_run)];
+
+            dtag = {'Anim, Ctrl';'Anim, Patn'; 'Symbol, Ctrl'; 'Symbol, Patn'};
+            dtag_val = {[1,3]; [2,4]};
+            
+            for select_data = 1:length(dtag_val)
+                
+                disp(['Running ', mlabel, ' ', dtag{dtag_val{select_data}}, '...'])
+                
+                cfg = [];
+                cfg.sub_demog_data = sub_demog_data_runs{task_run};
+                cfg.select_data = dtag_val{select_data}(1);
+                S_data_sel_A = ecpfunc_select_data(cfg);
+                cfg.select_data = dtag_val{select_data}(2);
+                S_data_sel_B = ecpfunc_select_data(cfg);
+                
+                [C,IA,IB] = intersect(S_data_sel_A.sFiles_subid, S_data_sel_B.sFiles_subid);
+                
+                S_data_sel_A1 = S_data_sel_A;
+                S_data_sel_A1.sFiles_subid = S_data_sel_A1.sFiles_subid(IA);
+                S_data_sel_A1.sFiles_in = S_data_sel_A1.sFiles_in(IA);
+                
+                S_data_sel_B1 = S_data_sel_B;
+                S_data_sel_B1.sFiles_subid = S_data_sel_B1.sFiles_subid(IB);
+                S_data_sel_B1.sFiles_in = S_data_sel_B1.sFiles_in(IB);
+                
+                S_data_sel = {S_data_sel_A1; S_data_sel_B1};
+                
+                %- Subject-level LI (all 8 networks)
+                cfg = [];
+                cfg.S_data_sel = S_data_sel;
+                cfg.BS_data_dir = BS_data_dir;
+                cfg.Data_hcp_atlas = Data_hcp_atlas;
+                cfg.idx_L = idx_L;
+                cfg.idx_R = idx_R;
+                cfg.thre = thre;
+                cfg.wi = wi;
+                cfg.data_save_dir = save_dir_new;
+                cfg.method = mlabel;
+                cfg.Threshtype = 3;
+                cfg.doavg = 0;
+                [label_8net, LI_sub] = do_group_LI_net_baseline(cfg); % Anim vs. Baseline vs. Symb vs. Baseline
+            end
+        end
+        
     case {2, 6, 7}
         dtag = {'Ctrl';'Patn'};
         
@@ -272,7 +346,7 @@ switch LI_analysis
     case 5
         dtag = {'Anim, Ctrl';'Anim, Patn'};
         dtag_val = 1:2;
-   
+        
         for select_data = 1:length(dtag_val)
             
             disp(['Running ', mlabel, ' ', dtag{dtag_val(select_data)}, '...'])
@@ -296,7 +370,7 @@ switch LI_analysis
             cfg.doavg = 0;
             cfg.parcellaion = 0;
             [label_8net, LI_sub] = do_group_LI_net_contrast(cfg); % Anim vs. Baseline vs. Symb vs. Baseline
-        end    
+        end
 end
 
 %% Plot LI subjects

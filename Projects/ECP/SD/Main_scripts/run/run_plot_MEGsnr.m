@@ -14,6 +14,13 @@ customColors = [
     0.48 0.12 0.66
     ];
 
+customColors = [
+    0 114 189
+    217 83 25
+    237 177 32
+    126 47 142
+    ]/256;
+
 for i = 1:length(LI_method_label)
     figure; % Open a new figure window
     hold on; % Keep the plot active to add more elements

@@ -177,13 +177,14 @@ for methodIdx = 1:length(LI_method_label)
         % Drawing vertical lines for lower and upper bounds
         xline(wi(best_indices(1), 1), 'g', 'LineWidth', 2);  % Green line for lower bound
         xline(wi(best_indices(2), 1), 'b', 'LineWidth', 2);  % Blue line for upper bound
+        title(sprintf(roi));
     end
     
     xlabel('Window');
     ylabel('95th Percentile Value');
-    title('95th Percentile and Best Windows by ROI');
+%     title('95th Percentile and Best Windows by ROI');
     legend('95th Percentile', 'Best Windows');
-    title(sprintf('Percentile and Bounds for ROI: %s', roi));
+%     title(sprintf('Percentile and Bounds for ROI: %s', roi));
     disp(LI_method_label{methodIdx})
     plot_indiv_LI = 0; plot_rSNR = 0; plot_rSNR_LI = 0;
     idcx = [1,2,6,11];
@@ -197,3 +198,4 @@ end
 plot_indiv_LI = 0; plot_rSNR = 0; plot_rSNR_LI = 0;
 idcx = [1,2,6,11];
 run_optimalLIs_snr_dics_rois
+

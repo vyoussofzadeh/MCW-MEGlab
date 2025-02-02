@@ -1,6 +1,6 @@
 network_sel = [1, 2, 6, 11]; % Define the networks to include in the plot
 
-colors = distinguishable_colors(length(network_sel)); % Generate distinct colors for each selected network
+customColors = distinguishable_colors(length(network_sel)); % Generate distinct colors for each selected network
 
 customColors = [
     0.96 0.49 0
@@ -8,6 +8,19 @@ customColors = [
     0.69 0.71 0.17
     0.48 0.12 0.66
     ];
+
+% customColors = [
+%     0.4800    0.1200    0.6600
+%     0.9600    0.4900         0
+%     0.22 0.56 0.24
+%     .69 .71 .17];
+
+customColors = [
+    0 114 189
+    217 83 25
+    237 177 32
+    126 47 142
+    ]/256;
 
 figure; % Open a new figure window
 hold on; % Keep the plot active to add more elements
@@ -37,7 +50,8 @@ for net_idx = 1:length(network_sel)
     
     % Find the maximum LI value and its corresponding time
     [maxLI, idx] = max(meanLI);
-    maxTime = mean(wi(idx,:));  % Average time at the maximum LI point
+%     maxTime = mean(wi(idx,:));  % Average time at the maximum LI point
+    maxTime = (wi(idx,1));  % Average time at the maximum LI point
     
     % Annotate the maximum value on the plot
     %     text(maxTime, maxLI, sprintf('Mx:%.2f %.2fs', maxLI, maxTime), ...

@@ -44,7 +44,8 @@ for j = 1:length(network_sel)
                 lowerBound = best_bounds.(roiName).LowerBound; upperBound = best_bounds.(roiName).UpperBound;
                 [optimalIndices, maxDiff_opt] = findIndividualOptimalTimePoints_interval(MEG_LI, fMRI_LI, wi, NaN, lowerBound, upperBound);
             case 'AUC'
-                [optimalIndices, maxAUC_opt] = findIndividualOptimalTimePoints_maxAUC(rSNR_left, rSNR_right, wi, NaN, lowerBound, upperBound);
+%                 [optimalIndices, maxAUC_opt] = findIndividualOptimalTimePoints_maxAUC(rSNR_left, rSNR_right, wi, NaN, lowerBound, upperBound);
+                [optimalIndices, maxDiff_opt, bounds] = findIndividualOptimalTimePoints_interval_rSNR_slidingWindow(rSNR_left, rSNR_right, wi, NaN, minlowerband, maxUpperband);
             case 'DomH'
                 [optimalIndices, maxSNR_opt] = findIndividualOptimalTimePoints_dominantHemisphere(rSNR_left, rSNR_right, wi, NaN, lowerBound, upperBound);
             case 'rsnrmax'
@@ -58,18 +59,18 @@ for j = 1:length(network_sel)
         optimalInterval = wi(optimalIndices,:);
         meanOptimalTime = mean(optimalInterval);
         
-        [concordance, discordantSubs, groupCorrelation, pval] = ...
+        [concordance, discordantSubs, groupCorrelation, optimalMEG_LI, pval, kappa] = ...
             calculateConcordanceForTimePoints_interval(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, wi, optimalInterval);
         
         switch opt_method
             case 'rsnr_optbound_mean'
                 optimalInterval = wi(bounds,:);
-                [concordance, discordantSubs, groupCorrelation, pval] = ...
+                [concordance, discordantSubs, groupCorrelation, optimalMEG_LI, pval] = ...
                     calculateConcordanceForTimePoints_interval(MEG_LI, MEG_thre, fMRI_LI, fMRI_thre, wi, optimalInterval);
         end
         
         % Store results in the summary table
-        newRow = {LI_method_labels{methodIdx}, net_sel_mutiple_label{network_sel(j)}, groupCorrelation, concordance, meanOptimalTime, discordantSubs', MEG_LI, fMRI_LI, rSNR_left, rSNR_right};
+        newRow = {LI_method_labels{methodIdx}, net_sel_mutiple_label{network_sel(j)}, groupCorrelation, pval, concordance, kappa, meanOptimalTime, discordantSubs', MEG_LI, optimalMEG_LI, fMRI_LI, rSNR_left, rSNR_right};      
         summaryTableDynamic = [summaryTableDynamic; newRow];
         
         if network_sel(j) == 11 && plot_indiv_LI == 1 % lateral network (11)
@@ -82,8 +83,8 @@ for j = 1:length(network_sel)
 end
 
 % Set column names for the summary table
-summaryTableDynamic.Properties.VariableNames = {'LI_Method', 'ROI', 'Correlation', 'Concordance', 'mean_Optimal_Time', 'discord_Subs', 'MEG_LI', 'fMRI_LI', 'rSNR_left', 'rSNR_right'};
-
+summaryTableDynamic.Properties.VariableNames = {'LI_Method', 'ROI', 'Correlation', 'Corr_P_value', 'Concordance', 'kappa', 'mean_Optimal_Time', 'discord_Subs', 'MEG_LI', 'optimalMEG_LI', 'fMRI_LI', 'rSNR_left', 'rSNR_right'};
+summaryTableDynamic.Corr_P_value = round(summaryTableDynamic.Corr_P_value, 6);
 summaryTableDynamic_save = summaryTableDynamic;
 summaryTableDynamic_save = summaryTableDynamic_save(:,1:end-5);
 

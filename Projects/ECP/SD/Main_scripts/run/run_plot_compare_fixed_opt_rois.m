@@ -48,9 +48,9 @@ for i = 1:length(uniqueROIs)
     
     % Create bar plot
     barData = reshape(correlationValues, [], 3)';
-    b = bar(categories(1:2:end), barData,'BarWidth', 0.2);
-    b(1).FaceColor = 'b';
-    b(2).FaceColor = 'r';
+    b = bar(categories(1:2:end), barData,'BarWidth', 0.5);
+    b(1).FaceColor = [.6 .6 .6];%'b';
+    b(2).FaceColor = rgb(66, 165, 245) ; %'r';
     
 %     % Add data labels
 %     for k = 1:length(b)
@@ -114,9 +114,9 @@ for i = 1:length(uniqueROIs)
     
     % Create bar plot
     barData = reshape(concordanceValues, [], 3)';
-    b = bar(categories(1:2:end), barData, 'BarWidth', 0.2);
-    b(1).FaceColor = 'b';
-    b(2).FaceColor = 'r';
+    b = bar(categories(1:2:end), barData, 'BarWidth', 0.5);
+    b(1).FaceColor = [.6 .6 .6];%'b';
+    b(2).FaceColor = rgb(66, 165, 245) ; %'r';
     
     title(roi);
     ylabel('Concordance');

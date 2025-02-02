@@ -14,3 +14,6 @@ validPairs = sum(~isnan(T_patn_MEGfMRI.Animal) & ~isnan(T_patn_MEGfMRI.Symbol));
 df = validPairs - 2;
 disp(['Correlation coefficient: ', num2str(correlationCoefficient)]);
 disp(['Degrees of freedom: ', num2str(df)]);
+T_patn_MEGfMRI.Properties.VariableNames{'Sub_ID'} = 'SubjectID';
+T_patn_MEGfMRI.Properties.VariableNames{'Animal'} = 'Animal_RT';
+T_patn_MEGfMRI.Properties.VariableNames{'Symbol'} = 'Symbol_RT';

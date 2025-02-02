@@ -32,7 +32,7 @@ function plotDiscordantReactionTimes2(sub_MF_pt, discordantSubs, T_patn_MEGfMRI)
     discordant_RT = T_patn_MEGfMRI.Avg(discordant_indices);
 
     % For reference, calculate the median (or mean if you prefer) of discordant RT
-    meanRT = nanmedian(discordant_RT);
+    meanRT = nanmedian(T_patn_MEGfMRI.Avg);
 
     %% 2. Prepare x-axis labels for the 'bar' subplot
     xllabel = arrayfun(@(x) sprintf('Sub%d', x), discordantSubs, 'UniformOutput', false);

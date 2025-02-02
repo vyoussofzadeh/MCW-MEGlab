@@ -13,14 +13,14 @@ for methodIdx = 1:length(LI_method_labels)
             Timeint = wi(maxIndex, :); % Assuming 'wi' contains start and end times of intervals
             
             % Add to the summary table
-            newRow = {LI_method_labels{methodIdx}, metricNames{metricIdx}, roi_labels{roiIdx}, maxValue, Timeint};
+            newRow = {LI_method_labels{methodIdx}, metricNames{metricIdx}, roi_labels{roiIdx}, maxValue, Timeint, maxIndex};
             summaryTable = [summaryTable; newRow];
         end
     end
 end
 
 % Set column names
-summaryTable.Properties.VariableNames = {'LI_Method', 'Metric_Type', 'ROI', 'Max_Value', 'Time_Interval'};
+summaryTable.Properties.VariableNames = {'LI_Method', 'Metric_Type', 'ROI', 'Max_Value', 'Time_Interval', 'maxIndex'};
 
 % Round numeric data to two decimal places before saving to CSV
 summaryTable.Max_Value = round(summaryTable.Max_Value, 2);
@@ -49,5 +49,16 @@ for i = 1:height(summaryTable)
 end
 
 fclose(fid); % Close the file
+
+
+% MEG_LI_int = getMEGLIForIntervals(MEG_LI, summaryTable, wi);
+% 
+% for i = 1:numel(MEG_LI_int)
+%     fprintf('Row %d, time interval = [%.2f %.2f], #cols matched = %d\n', ...
+%         i, summaryTable.Time_Interval(i,1), summaryTable.Time_Interval(i,2), size(MEG_LI_cell{i},2));
+% end
+% 
+% summaryTable = [summaryTable, MEG_LI_int];
+% summaryTable.Properties.VariableNames{'Var6'} = 'MEG_LI_int';
 disp('constant interval')
 disp(summaryTable)
