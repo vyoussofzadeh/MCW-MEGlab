@@ -556,197 +556,217 @@ end
 ecpfunc_assess_gross_discondances(cfg)
 
 %% Fisher analysis
-run_fisheranalysis
+%- Epilepsy Metrics
+% Convert or define categorical variables
+T1_epil_measures_upted = [];
+T1_epil_measures_upted.EHQcat       = defineHandedness(final_combined_updt.EHQ, 40);
+T1_epil_measures_upted.IQcat        = defineIQbins(final_combined_updt.NP1WASI_FSIQ);
+T1_epil_measures_upted.TLEside      = defineTLEside(final_combined_updt.TLEside);
+T1_epil_measures_upted.AEDcat       = defineAEDbins(final_combined_updt.AEDCount);
+T1_epil_measures_upted.LTGTCcat     = defineLTGTCbins(final_combined_updt.LTGTC);
+T1_epil_measures_upted.SGcat        = defineSGfreqbins(final_combined_updt.SG_freq);
+T1_epil_measures_upted.cp_freq_cat  = defineCPfreqbins(final_combined_updt.CP_freq);
+
+T1_epil_measures_upted.AnimalRTcat   = defineRTbins(final_combined_updt.Animal_RT);
+T1_epil_measures_upted.SymbolRTcat   = defineRTbins(final_combined_updt.Symbol_RT);
+T1_epil_measures_upted.AnimalACCcat  = defineACCbins(final_combined_updt.Animal_ACC);
+T1_epil_measures_upted.SymbolACCcat  = defineACCbins(final_combined_updt.Symbol_ACC);
+T1_epil_measures_upted.SubjectID     = final_combined_updt.SubjectID;
+
+
+clc, close all
+run_fisheranalysis_2x2
+run_fisheranalysis_2x3
 
 %% Optional
 % clc
-ecpfunc_stackedBar_TLE_EHQ_IQ(bestResultsTable, T1_epil_measures)
-
-%%
-clc, close all
-
-cfg = [];
-cfg.bestResultsTable = bestResultsTable;
-cfg.myCategorical = T1_epil_measures_upted.SymbolACCcat;
-cfg.discordColumn = 'Gross_Discord_Subs';
-cfg.categoryList  = {'Low','Mid','High'};
-cfg.title = 'Symbol ACC';
-cfg.doFisher = true;
-cfg.binA = {'Low','Mid'};
-cfg.binB = {'High'};
-cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-[counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-cfg.myCategorical = T1_epil_measures_upted.AnimalACCcat;
-cfg.title = 'Animal ACC';
-[counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-
-
-cfg = [];
-cfg.bestResultsTable = bestResultsTable;
-cfg.myCategorical = T1_epil_measures_upted.AnimalRTcat;
-cfg.discordColumn = 'Gross_Discord_Subs';
-cfg.categoryList  = {'Fast','Moderate','Slow'};
-cfg.doFisher = true;
-cfg.binA = {'Moderate','Slow'};
-cfg.binB = {'Fast'};
-cfg.title = 'Animal RT';
-cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-[counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-cfg.myCategorical = T1_epil_measures_upted.SymbolRTcat;
-cfg.title = 'Symbol RT';
-[counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-
-
-cfg = [];
-cfg.bestResultsTable = bestResultsTable;
-cfg.myCategorical = T1_epil_measures_upted.EHQcat;
-cfg.discordColumn = 'Gross_Discord_Subs';
-cfg.categoryList  = {'Left','Right','Ambi'};
-cfg.doFisher = true;
-cfg.binA = {'Ambi','Left'};
-cfg.binB = {'Right'};
-cfg.title = 'EHQ';
-cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-[counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-
-
-cfg = [];
-cfg.bestResultsTable = bestResultsTable;
-cfg.myCategorical = T1_epil_measures_upted.TLEside;
-cfg.discordColumn = 'Gross_Discord_Subs';
-cfg.categoryList  = {'Left','Right','Bilateral'};
-cfg.doFisher = true;
-cfg.binA = {'Bilateral','Right'};
-cfg.binB = {'Left'};
-cfg.title = 'TLE side';
-cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-[counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-
-
-cfg = [];
-cfg.bestResultsTable = bestResultsTable;
-cfg.myCategorical = T1_epil_measures_upted.AEDcat;
-cfg.discordColumn = 'Gross_Discord_Subs';
-cfg.categoryList  = {'1','2','3plus'};
-cfg.doFisher = true;
-cfg.binA = {'1','2'};
-cfg.binB = {'3plus'};
-cfg.title = 'AED';
-cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-[counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-
-
-cfg = [];
-cfg.bestResultsTable = bestResultsTable;
-cfg.myCategorical = T1_epil_measures_upted.LTGTCcat;
-cfg.discordColumn = 'Gross_Discord_Subs';
-cfg.categoryList  = {'0','1-5','6-20','21plus'};
-cfg.doFisher = true;
-cfg.binA = {'0','1-5','6-20'};
-cfg.binB = {'21plus'};
-cfg.title = 'LTGT';
-cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-[counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-
-cfg = [];
-cfg.bestResultsTable = bestResultsTable;
-cfg.myCategorical = T1_epil_measures_upted.SGcat;
-cfg.discordColumn = 'Gross_Discord_Subs';
-cfg.categoryList  = {'1to2','0','3plus'};
-cfg.doFisher = true;
-cfg.binA = {'1to2','0'};
-cfg.binB = {'3plus'};
-cfg.title = 'SG';
-cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-[counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-
-cfg = [];
-cfg.bestResultsTable = bestResultsTable;
-cfg.myCategorical = T1_epil_measures_upted.cp_freq_cat;
-cfg.discordColumn = 'Gross_Discord_Subs';
-cfg.categoryList  = {'1to5','11plus','6to10'};
-cfg.doFisher = true;
-cfg.binA = {'1to5'};
-cfg.binB = {'11plus', '6to10'};
-cfg.title = 'cp freq';
-cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-[counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-
-
-%%
-clc, close all
-
-% --- 1) Plot TLE Side
-run_plot_TLEside;  % Creates TLE side stacked bar
-doPlotExport(plot_option, save_dir, ...
-    sprintf('TLEside_%s_%s', roi, method), 'svg');
-disp('--------')
-
-% --- 2) Plot IQ
-run_plotIQ;        % Creates IQ stacked bar
-doPlotExport(plot_option, save_dir, ...
-    sprintf('IQ_%s_%s', roi, method), 'svg');
-disp('--------')
-
-
-% --- 3) Plot EHQ (handedness)
-run_plot_EHQ;      % Creates EHQ stacked bar
-doPlotExport(plot_option, save_dir, ...
-    sprintf('EHQ_%s_%s', roi, method), 'svg');
-disp('--------')
-
-% --- 4) Plot AEDcount
-run_plot_AED;
-% Creates AED count stacked bar
-doPlotExport(plot_option, save_dir, ...
-    sprintf('AED_%s_%s', roi, method), 'svg');
-disp('--------')
-
-
-run_plot_AED_median
-% Creates AED count stacked bar
-doPlotExport(plot_option, save_dir, ...
-    sprintf('AED_median_%s_%s', roi, method), 'svg');
-disp('--------')
-
-
-% --- 5) Plot LTGTC
-run_plot_LTGTC;    % LTGTC stacked bar (multi-level)
-doPlotExport(plot_option, save_dir, ...
-    sprintf('LTGTC_%s_%s', roi, method), 'svg');
-disp('--------')
-
-run_plot_LTGTC_median
-doPlotExport(plot_option, save_dir, ...
-    sprintf('LTGTC_median_%s_%s', roi, method), 'svg');
-disp('--------')
-
-% --- 6) Plot SG frequency
-run_plot_SGfreq_median
-doPlotExport(plot_option, save_dir, ...
-    sprintf('SGfreq_%s_%s', roi, method), 'svg');
-disp('--------')
-
-run_plot_SGfreq_median
-doPlotExport(plot_option, save_dir, ...
-    sprintf('SGfreq_median_%s_%s', roi, method), 'svg');
-disp('--------')
-
-% --- 7) Plot CP frequency
-run_plot_CPFreq;   % CP_freq_cat (complex partial freq) stacked bar
-doPlotExport(plot_option, save_dir, ...
-    sprintf('CPfreq_%s_%s', roi, method), 'svg');
-disp('--------')
-
-run_plot_CPFreq_median
-doPlotExport(plot_option, save_dir, ...
-    sprintf('CPfreq_median_%s_%s', roi, method), 'svg');
-disp('--------')
-
-%%
-
-
-lm = fitlm(T, 'Diff_LI ~ TLEside*CP_freq + SG_freq + AEDCount + FSIQ');
+% ecpfunc_stackedBar_TLE_EHQ_IQ(bestResultsTable, T1_epil_measures)
+% 
+% %%
+% clc, close all
+% 
+% cfg = [];
+% cfg.bestResultsTable = bestResultsTable;
+% cfg.myCategorical = T1_epil_measures_upted.SymbolACCcat;
+% cfg.discordColumn = 'Gross_Discord_Subs';
+% cfg.categoryList  = {'Low','Mid','High'};
+% cfg.title = 'Symbol ACC';
+% cfg.doFisher = true;
+% cfg.binA = {'Low','Mid'};
+% cfg.binB = {'High'};
+% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
+% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
+% cfg.myCategorical = T1_epil_measures_upted.AnimalACCcat;
+% cfg.title = 'Animal ACC';
+% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
+% 
+% 
+% cfg = [];
+% cfg.bestResultsTable = bestResultsTable;
+% cfg.myCategorical = T1_epil_measures_upted.AnimalRTcat;
+% cfg.discordColumn = 'Gross_Discord_Subs';
+% cfg.categoryList  = {'Fast','Moderate','Slow'};
+% cfg.doFisher = true;
+% cfg.binA = {'Moderate','Slow'};
+% cfg.binB = {'Fast'};
+% cfg.title = 'Animal RT';
+% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
+% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
+% cfg.myCategorical = T1_epil_measures_upted.SymbolRTcat;
+% cfg.title = 'Symbol RT';
+% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
+% 
+% 
+% cfg = [];
+% cfg.bestResultsTable = bestResultsTable;
+% cfg.myCategorical = T1_epil_measures_upted.EHQcat;
+% cfg.discordColumn = 'Gross_Discord_Subs';
+% cfg.categoryList  = {'Left','Right','Ambi'};
+% cfg.doFisher = true;
+% cfg.binA = {'Ambi','Left'};
+% cfg.binB = {'Right'};
+% cfg.title = 'EHQ';
+% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
+% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
+% 
+% 
+% cfg = [];
+% cfg.bestResultsTable = bestResultsTable;
+% cfg.myCategorical = T1_epil_measures_upted.TLEside;
+% cfg.discordColumn = 'Gross_Discord_Subs';
+% cfg.categoryList  = {'Left','Right','Bilateral'};
+% cfg.doFisher = true;
+% cfg.binA = {'Bilateral','Right'};
+% cfg.binB = {'Left'};
+% cfg.title = 'TLE side';
+% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
+% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
+% 
+% 
+% cfg = [];
+% cfg.bestResultsTable = bestResultsTable;
+% cfg.myCategorical = T1_epil_measures_upted.AEDcat;
+% cfg.discordColumn = 'Gross_Discord_Subs';
+% cfg.categoryList  = {'1','2','3plus'};
+% cfg.doFisher = true;
+% cfg.binA = {'1','2'};
+% cfg.binB = {'3plus'};
+% cfg.title = 'AED';
+% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
+% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
+% 
+% 
+% cfg = [];
+% cfg.bestResultsTable = bestResultsTable;
+% cfg.myCategorical = T1_epil_measures_upted.LTGTCcat;
+% cfg.discordColumn = 'Gross_Discord_Subs';
+% cfg.categoryList  = {'0','1-5','6-20','21plus'};
+% cfg.doFisher = true;
+% cfg.binA = {'0','1-5','6-20'};
+% cfg.binB = {'21plus'};
+% cfg.title = 'LTGT';
+% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
+% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
+% 
+% cfg = [];
+% cfg.bestResultsTable = bestResultsTable;
+% cfg.myCategorical = T1_epil_measures_upted.SGcat;
+% cfg.discordColumn = 'Gross_Discord_Subs';
+% cfg.categoryList  = {'1to2','0','3plus'};
+% cfg.doFisher = true;
+% cfg.binA = {'1to2','0'};
+% cfg.binB = {'3plus'};
+% cfg.title = 'SG';
+% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
+% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
+% 
+% cfg = [];
+% cfg.bestResultsTable = bestResultsTable;
+% cfg.myCategorical = T1_epil_measures_upted.cp_freq_cat;
+% cfg.discordColumn = 'Gross_Discord_Subs';
+% cfg.categoryList  = {'1to5','11plus','6to10'};
+% cfg.doFisher = true;
+% cfg.binA = {'1to5'};
+% cfg.binB = {'11plus', '6to10'};
+% cfg.title = 'cp freq';
+% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
+% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
+% 
+% 
+% %%
+% clc, close all
+% 
+% % --- 1) Plot TLE Side
+% run_plot_TLEside;  % Creates TLE side stacked bar
+% doPlotExport(plot_option, save_dir, ...
+%     sprintf('TLEside_%s_%s', roi, method), 'svg');
+% disp('--------')
+% 
+% % --- 2) Plot IQ
+% run_plotIQ;        % Creates IQ stacked bar
+% doPlotExport(plot_option, save_dir, ...
+%     sprintf('IQ_%s_%s', roi, method), 'svg');
+% disp('--------')
+% 
+% 
+% % --- 3) Plot EHQ (handedness)
+% run_plot_EHQ;      % Creates EHQ stacked bar
+% doPlotExport(plot_option, save_dir, ...
+%     sprintf('EHQ_%s_%s', roi, method), 'svg');
+% disp('--------')
+% 
+% % --- 4) Plot AEDcount
+% run_plot_AED;
+% % Creates AED count stacked bar
+% doPlotExport(plot_option, save_dir, ...
+%     sprintf('AED_%s_%s', roi, method), 'svg');
+% disp('--------')
+% 
+% 
+% run_plot_AED_median
+% % Creates AED count stacked bar
+% doPlotExport(plot_option, save_dir, ...
+%     sprintf('AED_median_%s_%s', roi, method), 'svg');
+% disp('--------')
+% 
+% 
+% % --- 5) Plot LTGTC
+% run_plot_LTGTC;    % LTGTC stacked bar (multi-level)
+% doPlotExport(plot_option, save_dir, ...
+%     sprintf('LTGTC_%s_%s', roi, method), 'svg');
+% disp('--------')
+% 
+% run_plot_LTGTC_median
+% doPlotExport(plot_option, save_dir, ...
+%     sprintf('LTGTC_median_%s_%s', roi, method), 'svg');
+% disp('--------')
+% 
+% % --- 6) Plot SG frequency
+% run_plot_SGfreq_median
+% doPlotExport(plot_option, save_dir, ...
+%     sprintf('SGfreq_%s_%s', roi, method), 'svg');
+% disp('--------')
+% 
+% run_plot_SGfreq_median
+% doPlotExport(plot_option, save_dir, ...
+%     sprintf('SGfreq_median_%s_%s', roi, method), 'svg');
+% disp('--------')
+% 
+% % --- 7) Plot CP frequency
+% run_plot_CPFreq;   % CP_freq_cat (complex partial freq) stacked bar
+% doPlotExport(plot_option, save_dir, ...
+%     sprintf('CPfreq_%s_%s', roi, method), 'svg');
+% disp('--------')
+% 
+% run_plot_CPFreq_median
+% doPlotExport(plot_option, save_dir, ...
+%     sprintf('CPfreq_median_%s_%s', roi, method), 'svg');
+% disp('--------')
+% 
+% %%
+% 
+% 
+% lm = fitlm(T, 'Diff_LI ~ TLEside*CP_freq + SG_freq + AEDCount + FSIQ');
 
 
 

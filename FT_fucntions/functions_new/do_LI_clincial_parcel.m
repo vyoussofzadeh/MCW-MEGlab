@@ -22,10 +22,10 @@ LHvals = ImageGridAmp(LHscout(:),:);
 RHvals = ImageGridAmp(RHscout(:),:);
 
 %% PCA analysis
-COEFF = pca(LHvals'); pcaLHvals = LHvals' * COEFF(:,1); %figure, plot(pcaLHvals)
-COEFF = pca(RHvals'); pcaRHvals = RHvals' * COEFF(:,1); %figure, plot(pcaRHvals)
-
-LHvals = pcaLHvals; RHvals = pcaRHvals;
+% COEFF = pca(LHvals'); pcaLHvals = LHvals' * COEFF(:,1); %figure, plot(pcaLHvals)
+% COEFF = pca(RHvals'); pcaRHvals = RHvals' * COEFF(:,1); %figure, plot(pcaRHvals)
+% 
+% LHvals = pcaLHvals; RHvals = pcaRHvals;
 %%
 
 % Calculate maximum values for left and right subregions

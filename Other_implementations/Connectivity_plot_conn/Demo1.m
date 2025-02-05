@@ -4,7 +4,7 @@ addpath(conn_path);
 
 spmpath = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/SPM/spm12_2021/spm12';
 addpath(spmpath)
-s
+
 coor_file = 'centers.tsv';
 
 s = tdfread(coor_file);

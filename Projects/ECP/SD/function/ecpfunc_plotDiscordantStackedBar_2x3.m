@@ -100,7 +100,7 @@ box off;
 for i = 1:nROIs
     fprintf('ROI: %s', allROI{i});
     if doFH && ~isnan(pValsExact2x3(i))
-        fprintf(' | FreedmanHalton 2×3 p=%.4g', pValsExact2x3(i));
+        fprintf(' | Freedman-Halton 2×3 p=%.4g', pValsExact2x3(i));
     elseif ~doFH && ~isnan(chi2P_vals(i))
         fprintf(' | Chi-square 2×3 p=%.4g', chi2P_vals(i));
     end

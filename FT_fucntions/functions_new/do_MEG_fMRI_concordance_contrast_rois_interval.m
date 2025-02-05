@@ -24,7 +24,7 @@ for j = 1:length(lang_id)
             %             mLI_sub1 = mean(LI_pt_new(net_sel,:,i));
             mLI_sub1 = max(LI_pt_new(net_sel,:,i));
         else
-            mLI_sub1 = (LI_pt_new(net_sel,:,i));
+            mLI_sub1 = LI_pt_new(net_sel,:,i);
         end
         megLI_sub_pt = (mLI_sub1)';
         
@@ -38,18 +38,15 @@ for j = 1:length(lang_id)
             percentageMatch = (numMatches / length(mLI_sub_pt_trn)) * 100;
             conc(j,i,:) = percentageMatch;
         else
-            conc(j,i,:) = (megLI_sub_pt .* fmri_LIs_val);
+            conc(j,i,:) = megLI_sub_pt .* fmri_LIs_val;
         end
-        %     end
         
         % Find the interval with the best concordance
         [mx, idx] = max(conc(j,:));
         interval = wi(idx,:);
         
         % Use the new interval to calculate mLI_sub1
-        disp(['selected time for ', cfg_main.lang_id{j}, ':', num2str(interval(1)), '-', num2str(interval(end)), ' ms'])
-        
-        
+        disp(['selected time for ', cfg_main.lang_id{j}, ':', num2str(interval(1)), '-', num2str(interval(end)), ' ms']);        
         
         MEG_LI = mLI_sub_pt_trn;
         fMRI_LI = fmri_LIs_val;

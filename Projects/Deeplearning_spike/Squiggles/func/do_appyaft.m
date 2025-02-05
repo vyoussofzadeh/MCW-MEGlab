@@ -1,8 +1,5 @@
 function data = do_appyaft (cfg_main, data)
 
-
-
-
 fs = data.fsample;
 aft = cfg_main.aft;
 aftval = cfg_main.aftval;
