@@ -577,6 +577,7 @@ T1_epil_measures_upted.SubjectID     = final_combined_updt.SubjectID;
 clc, close all
 run_fisheranalysis_2x2
 run_fisheranalysis_2x3
+cd(save_dir)
 
 %% Optional
 % clc

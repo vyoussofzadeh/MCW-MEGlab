@@ -65,8 +65,8 @@ else
                 [LI, ~, ~, roi_count] = do_lat_analysis_contrast_Counting(cfg);
                 count_sub(j,i,:) = roi_count;
             elseif contains (method, 'Bootstrapping')
-                cfg.divs = 20;
-                cfg.n_resampling = 100;
+%                 cfg.divs = 20; cfg.n_resampling = 100;
+                cfg.divs = 10; cfg.n_resampling = 20;
                 cfg.RESAMPLE_RATIO = 0.75;
                 cfg.dvd = 5;
                 cfg.downsamplerate = 1; % 2 times down-sampling

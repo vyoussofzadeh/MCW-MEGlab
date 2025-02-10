@@ -112,11 +112,12 @@ d2 = rdir(fullfile(BS_data_dir,'/*/ec*raw_tsss_low_clean/channel_vectorview306_a
 d3 = rdir(fullfile(BS_data_dir,'/*/EC*raw_low_clean/channel_vectorview306_acc1.mat'));
 d4 = rdir(fullfile(BS_data_dir,'/*/ec*raw_clean_low/channel_vectorview306_acc1.mat'));
 d5 = rdir(fullfile(BS_data_dir,'/*/ec*elecfix*raw_clean*/channel_vectorview306_acc1.mat'));
+d6 = rdir(fullfile(BS_data_dir,'/*/ec*_raw_ica_clean_low/channel_vectorview306_acc1.mat'));
 
-d = [d1;d2;d3; d4; d5];
+d = [d1;d2;d3; d4; d5; d6];
 
 
-for i=1:length(d)
+for i=201:length(d)
     
     [pathstr, name] = fileparts(d(i).name);
     tkz = tokenize(pathstr,'/');
@@ -152,7 +153,8 @@ for i=1:length(d)
     
     if isempty(results)
         flag = 1;
-    elseif isempty(find(contains(results, '-0.500s-2.000s')==1, 1))
+%     elseif isempty(find(contains(results, '-0.500s-2.000s')==1, 1))
+    elseif isempty(find(contains(results, '_hshape')==1, 1))
         flag = 1;
     else
         flag = 0;
@@ -242,7 +244,8 @@ for ii = 1:length(subj)
         for jj=1:length(dd)
             tmp = load(dd(jj).name);
             disp(tmp.Comment);
-            if contains(tmp.Comment,'0.5ms')
+            %             if contains(tmp.Comment,'0.5ms')
+            if contains(tmp.Comment,'5%')
                 sel = [sel,jj];
             end
         end
@@ -290,7 +293,7 @@ for ii = 1:length(subj)
                 for kk=1:length(dd1)
                     tmp = load(dd1(kk).name);
                     disp(tmp.Comment);
-                    if contains(tmp.Comment,[subj{ii}, '_wDICS_50ms'])
+                    if contains(tmp.Comment,[subj{ii}, '_wDICS_hshape'])
                         runok = 0; break,
                     else
                         runok = 1;
@@ -299,14 +302,15 @@ for ii = 1:length(subj)
             else
                 runok = 1;
             end
+            
             if length(sFiles1)==2 && runok == 1
-%                 pause,
+                pause,
                 % Process: Average: Everything
                 bst_process('CallProcess', 'process_average', sFiles1, [], ...
                     'avgtype',         1, ...  % Everything
                     'avg_func',        1, ...  % Arithmetic average:  mean(x)
                     'weighted',        0, ...
-                    'Comment', [subj{ii}, '_wDICS_50ms'], ...
+                    'Comment', [subj{ii}, '_wDICS_hshape'], ...
                     'scalenormalized', 0);
             else
                 warning(['check data:', subj{ii}])
@@ -414,7 +418,7 @@ for ii = 1:length(subj)
                 runok = 1;
             end
             if length(sFiles1)==2 && runok == 1
-%                 pause,
+                pause,
                 % Process: Average: Everything
                 bst_process('CallProcess', 'process_average', sFiles1, [], ...
                     'avgtype',         1, ...  % Everything
@@ -515,7 +519,7 @@ if length(idx)>1
             db_reload_subjects(idx1);
             disp(tkz{end-2});
             sFiles1 = fullfile(tkz{end-2}, tkz{end-1}, tkz{end});
-%             pause,
+            pause,
             bst_project_sources ({sFiles1}, destSurfFile);
         end
     end

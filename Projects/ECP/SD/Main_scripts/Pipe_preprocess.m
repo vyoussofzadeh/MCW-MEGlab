@@ -118,7 +118,7 @@ for ii=1:L_data
         iSubject = find(contains(unq_bs_subj, sub_sel)==1);
         RawFiles = datafile_fif{ii};
         disp(RawFiles)
-%         pause,
+        pause,
 %         OutputFiles = import_raw(RawFiles, 'FIF', iSubject, [], []); % GUI-based
         ecp_import_raw(RawFiles, iSubject); % no GUI
         
@@ -126,7 +126,7 @@ for ii=1:L_data
 end
 
 %% Preprocess raw data
-Unload('fieldtrip');
+% Unload('fieldtrip');
 
 d1 = rdir(fullfile(BS_data_dir,'/EC*/@raw*/*_raw_ica_clean.mat'));
 d2 = rdir(fullfile(BS_data_dir,'/EC*/@raw*/*_raw_tsss_ica_clean.mat'));
@@ -151,26 +151,29 @@ for i=1:length(d)
     if  ~isfolder(['@rawec',sub_sel, '_SD_run', run_sel, '_raw_ica_clean_low_clean']) ...
             && ~isfolder(['@rawec',sub_sel, '_SD_Run', run_sel, '_raw_ica_clean_low_clean']) ...
             && ~isfolder(['@rawec',sub_sel, '_SD_run', run_sel, '_raw_ica_clean_low']) ...
+            && ~isfolder(['@rawec',sub_sel, '_SD_run', run_sel, '_raw_tsss_ica_clean_low_clean']) ...
             && ~isfolder(['@rawec',sub_sel, '_SD_run', run_sel, '_elecfix_raw_ica_clean_low'])
 %         ...
 %             && ~isfolder(['@rawec',sub_sel, '_SD_Run', run_sel, '_raw_ica_clean'])
         cd(pathstr2)
         disp(sFiles)
         disp(i)
-%         pause,
+        pause,
         bs_preprocess(sFiles)
     end
 end
 
 %% Import epoched data
-Load('fieldtrip');
+% Load('fieldtrip');
 
 % db_reload_database('current',1)
 d1 = rdir(fullfile(BS_data_dir,'/**/@raw*/*clean_low_clean.mat'));
+d2 = rdir(fullfile(BS_data_dir,'/**/@raw*/*raw_ica_clean_low.mat'));
+
 % d2 = rdir(fullfile(BS_data_dir,'/**/@raw*/*tsss_ica_clean.mat'));
 
-% d = [d1; d2];
-d = d1;
+d = [d1; d2];
+% d = d1;
 % d = rdir(fullfile(BS_data_dir,'/**/@raw*/*raw_ica_clean_low.mat'));
 
 % Exception: ec1134 (no eog?)
@@ -182,14 +185,19 @@ for i=1:length(d)
     [pathstr3, name3] = fileparts(pathstr2);
     sFiles = {fullfile(name3, name2, [name, '.mat'])};
     idx = strfind(name,'ec'); idx1 = strfind(name,'_');
+    id2 = strfind(name,'_run');
+    if isempty(id2)
+        id2 = strfind(name,'_Run');
+    end
     sub_sel = name(idx+2:idx+5);
-    run_sel = name(idx1(end-5)+1:idx1(end-4)-1);
+    run_sel = name(id2+1:id2+4);
     iSubject = find(contains(unq_bs_subj, sub_sel)==1);
     cd(pathstr2)
-    if  ~isfolder(['ec',sub_sel, '_SD_', run_sel, '_raw_ica_clean_low_clean'])
+    if  ~isfolder(['ec',sub_sel, '_SD_', run_sel, '_raw_ica_clean_low_clean']) ...
+            && ~isfolder(['ec',sub_sel, '_SD_', run_sel, '_raw_tsss_ica_clean_low_clean'])
         disp(sFiles)
         
-        %         pause,
+        pause,
         %         import_raw_to_db(sFiles{1}); % GUI-based
         
         % Define epoching parameters
@@ -234,52 +242,6 @@ for i=1:length(d)
     end
 end
 
-%% run BAD trials as separe section (BAKUP in case FT causing issues) 
-% d = rdir(fullfile(BS_data_dir,'/**/@raw*/*clean_band_clean.mat'));
-% 
-% clc
-% for i=1:length(d)
-%     
-%     [pathstr, name] = fileparts(d(i).name);
-%     [pathstr2, name2] = fileparts(pathstr);
-%     [pathstr3, name3] = fileparts(pathstr2);
-%     sFiles = {fullfile(name3, name2, [name, '.mat'])};
-%     idx = strfind(name,'ec'); idx1 = strfind(name,'_');
-%     sub_sel = name(idx+2:idx+5);
-%     run_sel = name(idx1(end-5)+1:idx1(end-4)-1);
-%     iSubject = find(contains(unq_bs_subj, sub_sel)==1);
-%     cd(pathstr2)
-%     
-%     disp(sFiles)
-%     
-%     run_idx = strfind(name,'run'); 
-%     dd_32 = rdir(fullfile(pathstr2,['/*run',name(run_idx+3),'*/data_3_trial*.mat']));
-% 
-%     sFiles_3 = [];
-%     for j=1:length(dd_32)
-%         [pathstr, name_32] = fileparts(dd_32(j).name);
-%         [pathstr2, name2] = fileparts(pathstr);
-%         [~, name3] = fileparts(pathstr2);
-%         sFiles_3{j} = fullfile(name3, name2, [name_32, '.mat']);
-%     end
-%     
-%     % Reject bad trials
-%     bst_process('CallProcess', 'process_ft_reject_trials_edit', sFiles_3, [], 'sensortype', 'MEG', 'mrej', 'Auto', 'arej', 0.9); % Process: FieldTrip: process_ft_reject_trials kurtosis > 15
-%       
-%     dd_22 = rdir(fullfile(pathstr2,['/*run',name(run_idx+3),'*/data_3_trial*.mat']));
-%     
-%     sFiles_2 = [];
-%     for j=1:length(dd_22)
-%         [pathstr, name_22] = fileparts(dd_22(j).name);
-%         [pathstr2, name2] = fileparts(pathstr);
-%         [~, name3] = fileparts(pathstr2);
-%         sFiles_2{j} = fullfile(name3, name2, [name_22, '.mat']);
-%     end
-%     
-%     % Reject bad trials
-%     bst_process('CallProcess', 'process_ft_reject_trials_edit', sFiles_2, [], 'sensortype', 'MEG', 'mrej', 'Auto', 'arej', 0.9); % Process: FieldTrip: process_ft_reject_trials kurtosis > 15
-% end
-
 %% Est. head model
 d1 = rdir(fullfile(BS_data_dir,'/*/ec*_ica_clean_low_clean/channel_vectorview306_acc1.mat'));
 d2 = rdir(fullfile(BS_data_dir,'/*/ec*_raw_ica_clean_low_clean/channel_vectorview306_acc1.mat'));
@@ -288,8 +250,9 @@ d4 = rdir(fullfile(BS_data_dir,'/*/ec*raw_ica_clean_low_clean/channel_vectorview
 d5 = rdir(fullfile(BS_data_dir,'/*/ec*elecfix_raw_ica_clean*/channel_vectorview306_acc1.mat'));
 d6 = rdir(fullfile(BS_data_dir,'/*/ec*_raw_ica_clean_low/channel_vectorview306_acc1.mat'));
 d7 = rdir(fullfile(BS_data_dir,'/*/ec*_raw_ica_clean_low_clean/channel_vectorview306_acc1.mat'));
+d8 = rdir(fullfile(BS_data_dir,'/*/ec*_raw_ica_clean_low/channel_vectorview306_acc1.mat'));
 
-d = [d1;d2;d3;d4;d5;d7];
+d = [d1;d2;d3;d4;d5;d7;d8];
 
 OPTIONS = [];
 OPTIONS.comment = 'Overlapping spheres';
@@ -311,8 +274,67 @@ for ii=1:length(d)
     OPTIONS.HeadFile =  fullfile(f,'tess_head_mask.mat');
     cd(a)
     if ~~exist(fullfile(BS_dir,'anat',OPTIONS.CortexFile),'file') && ~exist('headmodel_surf_os_meg.mat','file')
+        pause
         bst_headmodeler(OPTIONS);
     end
     disp(a)
 end
-db_reload_database('current',1)
+% db_reload_database('current',1)
+
+%% Refine the headpoint
+
+ChannelFile = 'EC1002/ec1002_SD_run2_raw_ica_clean_low_clean/channel_vectorview306_acc1.mat';
+ChannelMat = [];
+isWarning = 1;
+isConfirm = 0;
+tolerance = [];
+
+channel_align_auto(ChannelFile, ChannelMat, isWarning, isConfirm, tolerance)
+
+
+%% channel alignment
+% 1) Set your root BS "data_full" directory
+rootDir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data_full';
+
+% 2) List all subfolders named "ECxxxx"
+dSubs = dir(fullfile(rootDir, 'EC*')); % e.g. "EC1002", "EC1077", etc.
+dSubs = dSubs([dSubs.isdir]);         % keep only directories
+
+% 3) For each subject subfolder, gather channel_vectorview306_acc1.mat files
+channelFiles = {};   % we'll store them in a cell array
+for i = 1:length(dSubs)
+    subjFolder = fullfile(rootDir, dSubs(i).name); % e.g. /data_full/EC1002
+    
+    % Find all channel_vectorview306_acc1.mat files inside this subject folder
+    % (Sometimes they may be in sub-subfolders like @raw etc.)
+    pattern   = fullfile(subjFolder, '/ec*/', 'channel_vectorview306_acc1.mat');
+    foundList = dir(pattern);
+    for j = 1:length(foundList)
+        channelFiles{end+1} = fullfile(foundList(j).folder, foundList(j).name);
+    end
+end
+
+fprintf('Found %d channel_vectorview306_acc1.mat files total.\n', numel(channelFiles));
+
+% 4) Refine each channel file with channel_align_auto()
+ChannelMat = [];
+isWarning  = 1; % show warnings in console
+isConfirm  = 0; % no user prompts
+tolerance  = 0;
+ignorepercent = '0';
+
+for iFile = 1:numel(channelFiles)
+    ChannelFile = channelFiles{iFile};
+    fprintf('\n[%d/%d] Refining alignment for:\n  %s\n', iFile, numel(channelFiles), ChannelFile);
+    
+    % Call Brainstorm function (make sure Brainstorm is on path and BST is open/started)
+    channel_align_auto_ecp(ChannelFile, ChannelMat, isWarning, isConfirm, tolerance, ignorepercent);
+    
+    close all
+    
+    % You can optionally reload BST database after each run:
+    % db_reload_database('current',1);
+end
+
+fprintf('\nDone! Processed %d channel files.\n', numel(channelFiles));
+

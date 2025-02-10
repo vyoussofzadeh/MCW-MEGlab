@@ -1,6 +1,7 @@
 
 subdir = '/data/MEG/Vahab/Github/MCW-MEGlab/Projects/ECP/behavioural_demog/Subj_demog';
 cd(subdir)
+
 %% reading subject demographic information
 clc
 [num, txt, sub_demog] = xlsread(fullfile(subdir,'ECP Progress Tracker'));

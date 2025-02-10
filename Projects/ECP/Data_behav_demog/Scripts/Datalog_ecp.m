@@ -176,14 +176,29 @@ end
 
 % disp(T.ID(index.hc_anat_SD))
 
+field_names = fieldnames(index);           % e.g. {'hc','pt','rest_EO',...}
+variable_lengths = structfun(@length, index);  % e.g. [44,81,118,...]
+IndexName = string(field_names);
+Count     = variable_lengths(:);
+Tindex = table(IndexName, Count, ...
+    'VariableNames', {'IndexName','Count'});
+
 %%
 outdir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/Data_behav_demog/Subj_demog';
 cd(outdir)
+
 filename = fullfile(outdir,'ECP_MEG_datalog.xlsx');
-writetable(T,filename)
-filename = fullfile(outdir,'ECP_MEG_datalog.csv');
-disp(filename)
-writetable(T,filename)
 
+% If the file already exists and you don't need it, delete it:
+if exist(filename, 'file')
+    delete(filename);
+end
 
+% Now write your primary table T to sheet "MEG_datalog"
+writetable(T, filename, 'Sheet', 'Sheet1');
+% writetable(T, filename, 'Sheet', 'MEG_datalog');
+
+% Then write the summary table Tindex to sheet "IndexSummary"
+writetable(Tindex, filename, 'Sheet', 'Sheet2');
+% writetable(Tindex, filename, 'Sheet', 'IndexSummary');
 
