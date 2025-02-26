@@ -242,57 +242,7 @@ for i=1:length(d)
     end
 end
 
-%% Est. head model
-d1 = rdir(fullfile(BS_data_dir,'/*/ec*_ica_clean_low_clean/channel_vectorview306_acc1.mat'));
-d2 = rdir(fullfile(BS_data_dir,'/*/ec*_raw_ica_clean_low_clean/channel_vectorview306_acc1.mat'));
-d3 = rdir(fullfile(BS_data_dir,'/*/EC*raw_ica_low_clean/channel_vectorview306_acc1.mat'));
-d4 = rdir(fullfile(BS_data_dir,'/*/ec*raw_ica_clean_low_clean/channel_vectorview306_acc1.mat'));
-d5 = rdir(fullfile(BS_data_dir,'/*/ec*elecfix_raw_ica_clean*/channel_vectorview306_acc1.mat'));
-d6 = rdir(fullfile(BS_data_dir,'/*/ec*_raw_ica_clean_low/channel_vectorview306_acc1.mat'));
-d7 = rdir(fullfile(BS_data_dir,'/*/ec*_raw_ica_clean_low_clean/channel_vectorview306_acc1.mat'));
-d8 = rdir(fullfile(BS_data_dir,'/*/ec*_raw_ica_clean_low/channel_vectorview306_acc1.mat'));
-
-d = [d1;d2;d3;d4;d5;d7;d8];
-
-OPTIONS = [];
-OPTIONS.comment = 'Overlapping spheres';
-OPTIONS.MEGMethod =  'os_meg';
-OPTIONS.EEGMethod  ='';
-OPTIONS.ECOGMethod = '';
-OPTIONS.SEEGMethod = '';
-OPTIONS.SaveFile = 1;
-
-for ii=1:length(d)
-    [a, ~] = fileparts(d(ii).name);
-    [c,~] = fileparts(a);
-    [e,f] = fileparts(c);
-    OPTIONS.HeadModelFile =  a;
-    OPTIONS.HeadModelType  = 'surface';
-    A = load(d(ii).name);
-    OPTIONS.Channel = A.Channel;
-    OPTIONS.CortexFile = fullfile(f,'tess_cortex_pial_low.mat');
-    OPTIONS.HeadFile =  fullfile(f,'tess_head_mask.mat');
-    cd(a)
-    if ~~exist(fullfile(BS_dir,'anat',OPTIONS.CortexFile),'file') && ~exist('headmodel_surf_os_meg.mat','file')
-        pause
-        bst_headmodeler(OPTIONS);
-    end
-    disp(a)
-end
-% db_reload_database('current',1)
-
 %% Refine the headpoint
-
-ChannelFile = 'EC1002/ec1002_SD_run2_raw_ica_clean_low_clean/channel_vectorview306_acc1.mat';
-ChannelMat = [];
-isWarning = 1;
-isConfirm = 0;
-tolerance = [];
-
-channel_align_auto(ChannelFile, ChannelMat, isWarning, isConfirm, tolerance)
-
-
-%% channel alignment
 % 1) Set your root BS "data_full" directory
 rootDir = '/data/MEG/Research/ECP/Semantic_Decision/BS_database/data_full';
 
@@ -337,4 +287,53 @@ for iFile = 1:numel(channelFiles)
 end
 
 fprintf('\nDone! Processed %d channel files.\n', numel(channelFiles));
+
+
+%% Est. head model
+overWriteHM = true;
+
+d1 = rdir(fullfile(BS_data_dir,'/*/ec*_ica_clean_low_clean/channel_vectorview306_acc1.mat'));
+d2 = rdir(fullfile(BS_data_dir,'/*/ec*_raw_ica_clean_low_clean/channel_vectorview306_acc1.mat'));
+d3 = rdir(fullfile(BS_data_dir,'/*/EC*raw_ica_low_clean/channel_vectorview306_acc1.mat'));
+d4 = rdir(fullfile(BS_data_dir,'/*/ec*raw_ica_clean_low_clean/channel_vectorview306_acc1.mat'));
+d5 = rdir(fullfile(BS_data_dir,'/*/ec*elecfix_raw_ica_clean*/channel_vectorview306_acc1.mat'));
+d6 = rdir(fullfile(BS_data_dir,'/*/ec*_raw_ica_clean_low/channel_vectorview306_acc1.mat'));
+d7 = rdir(fullfile(BS_data_dir,'/*/ec*_raw_ica_clean_low_clean/channel_vectorview306_acc1.mat'));
+d8 = rdir(fullfile(BS_data_dir,'/*/ec*_raw_ica_clean_low/channel_vectorview306_acc1.mat'));
+
+d = [d1;d2;d3;d4;d5;d7;d8];
+
+OPTIONS = [];
+OPTIONS.comment = 'Overlapping spheres';
+OPTIONS.MEGMethod =  'os_meg';
+OPTIONS.EEGMethod  ='';
+OPTIONS.ECOGMethod = '';
+OPTIONS.SEEGMethod = '';
+OPTIONS.SaveFile = 1;
+
+for ii=1:length(d)
+    [a, ~] = fileparts(d(ii).name);
+    [c,~] = fileparts(a);
+    [e,f] = fileparts(c);
+    OPTIONS.HeadModelFile =  a;
+    OPTIONS.HeadModelType  = 'surface';
+    A = load(d(ii).name);
+    OPTIONS.Channel = A.Channel;
+    OPTIONS.CortexFile = fullfile(f,'tess_cortex_pial_low.mat');
+    OPTIONS.HeadFile =  fullfile(f,'tess_head_mask.mat');
+    headmodelFile = 'headmodel_surf_os_meg.mat';
+    cd(a)
+    if ~~exist(fullfile(BS_dir,'anat',OPTIONS.CortexFile),'file') && ~exist(headmodelFile,'file') || overWriteHM == true
+        if overWriteHM == true
+            delete(headmodelFile);
+            pause(2)
+        end
+%         pause
+        bst_headmodeler(OPTIONS);
+    end
+    disp(a)
+end
+% % db_reload_database('current',1)
+
+
 

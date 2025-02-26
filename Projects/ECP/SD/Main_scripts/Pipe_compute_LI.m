@@ -140,6 +140,7 @@ switch LI_analysis
         S_data = ecpfunc_read_sourcemaps_dics(cfg);
     case 2
         cfg.datatag = 'wDICS_18_4_50ms';
+%         cfg.datatag = 'wDICS_hshape';
         S_data = ecpfunc_read_sourcemaps_dics_contrast(cfg);
     case 3
         protocol = fullfile(BS_dir, 'data_full/protocol.mat');
@@ -211,6 +212,17 @@ cfg.overlap = 0.05;
 cfg.linterval = 0.3;
 % cfg.linterval = 0.1;
 wi  = do_time_intervals(cfg);
+
+%%
+% PostStim =   [-0.5, 2];
+% tlength = 0.3;
+% Overlap = 0.3;
+% Overlap1 = 1-Overlap;
+% w1 = PostStim(1); l = tlength; ov = l.*Overlap1; j=1; wi=[];
+% while w1+l <= PostStim(2)
+%     wi(j,:) = [w1, w1+l]; j=j+1; w1 = w1 + ov;
+% end
+% disp(wi)
 
 %%
 thre = 0.5;

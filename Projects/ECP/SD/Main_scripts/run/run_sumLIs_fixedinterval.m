@@ -1,6 +1,15 @@
 % Initialize a table to store results
 resultsTable = table([], [], 'VariableNames', {'Method', 'Metrics'});
 
+
+fmri_LIs_trn_rios = [];
+for j = 1:size(fmri_LIs_ROIs,2)
+    cfg = [];
+    cfg.thre = fMRI_thre; cfg.LI = fmri_LIs_ROIs(:,j);
+    fmri_LIs_trn = do_ternary_classification2(cfg);
+    fmri_LIs_trn_rios(:,j) = fmri_LIs_trn;
+end
+
 for i=1:length(LI_method_label)
     
     disp(['Processing: ', LI_method_label{i}]);
@@ -19,6 +28,7 @@ for i=1:length(LI_method_label)
     cfg.idx = IB_megfmri;
     cfg.title = LI_method_label{i};
     
+    
     % Correlation Analysis
     cfg.thre = MEG_thre;
     cfg.ternary = 0;
@@ -28,7 +38,7 @@ for i=1:length(LI_method_label)
     cfg.thre = MEG_thre;
     cfg.ternary = 1;
     cfg.buffervalue = 2;
-    cfg.fmri_LIs_val = fmri_LIs_trn;
+    cfg.fmri_LIs_val = fmri_LIs_trn_rios;
 %     [~, ~, concordanceMetrics] = do_MEG_fMRI_concordance_contrast_rois(cfg);
     [~, concordanceMetrics, kappa] = do_MEG_fMRI_concordance_contrast_rois_interval(cfg);
     
@@ -37,3 +47,5 @@ for i=1:length(LI_method_label)
     resultsTable = [resultsTable; {LI_method_label{i}, metrics}];
 end
 close all,
+
+%%

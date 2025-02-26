@@ -70,6 +70,8 @@ fclose(fid);
 clc
 % Create a new column in bestResultsTable to hold subject indices
 bestResultsTable.Gross_Discord_Subs = cell(height(bestResultsTable),1);
+bestResultsTable.MEG_LI_tern  = cell(height(bestResultsTable),1);
+bestResultsTable.fMRI_LI_tern = cell(height(bestResultsTable),1);
 
 for iRow = 1:height(bestResultsTable)
     % Extract the MEG & fMRI LI arrays (Nx1 each)
@@ -77,31 +79,71 @@ for iRow = 1:height(bestResultsTable)
     fmri_LI       = bestResultsTable.fMRI_LI{iRow};
     
     % 1) Ternary classification for MEG
-    cfg = []; 
+    cfg = [];
     cfg.thre = MEG_thre;          % e.g. 10
     cfg.LI   = optimalMEG_LI;     % Nx1 numeric
     MEG_LI_tern = do_ternary_classification2(cfg);
     % e.g. MEG_LI_tern is Nx1 numeric with 0=Right, 1=Left, 2=Mid/Unknown
-
+    
     % 2) Ternary classification for fMRI
     cfg = [];
     cfg.thre = fMRI_thre;         % e.g. 10
     cfg.LI   = fmri_LI;
     fMRI_LI_tern = do_ternary_classification2(cfg);
     % Nx1 numeric (0=Right, 1=Left, 2=Mid)
-
+    
+    % --- Store these ternary vectors in the new columns
+    bestResultsTable.MEG_LI_tern{iRow}  = MEG_LI_tern;
+    bestResultsTable.fMRI_LI_tern{iRow} = fMRI_LI_tern;
+    
     grossDiscordSubs = find( (MEG_LI_tern==1 & fMRI_LI_tern==-1) | ...
-                             (MEG_LI_tern==-1 & fMRI_LI_tern==1) );
+        (MEG_LI_tern==-1 & fMRI_LI_tern==1) );
     
     % Store these subject indices in the new column
     bestResultsTable.Gross_Discord_Subs{iRow} = grossDiscordSubs;
-
+    
     % (Optional) Print them
-%     fprintf('ROI #%d = %s: #GrossDiscord = %d\n', iRow, bestResultsTable.ROI{iRow}, length(grossDiscordSubs));
-%     disp(grossDiscordSubs);
+    %     fprintf('ROI #%d = %s: #GrossDiscord = %d\n', iRow, bestResultsTable.ROI{iRow}, length(grossDiscordSubs));
+    %     disp(grossDiscordSubs);
     
 end
 
+%%
+% % 1) Initialize the columns as cell arrays
+% %    (One cell per row, each containing the Nx1 ternary vector)
+% bestResultsTable.MEG_LI_tern  = cell(height(bestResultsTable),1);
+% bestResultsTable.fMRI_LI_tern = cell(height(bestResultsTable),1);
+% 
+% % 2) For loop across each ROI row in bestResultsTable
+% for iRow = 1:height(bestResultsTable)
+%     % Extract the MEG & fMRI LI arrays (Nx1 each)
+%     optimalMEG_LI = bestResultsTable.optMEG_LI{iRow};  % numeric Nx1
+%     fmri_LI       = bestResultsTable.fMRI_LI{iRow};   % numeric Nx1
+%     
+%     % --- MEG ternary classification ---
+%     cfg = [];
+%     cfg.thre = MEG_thre;  % e.g. 10
+%     cfg.LI   = optimalMEG_LI;
+%     MEG_LI_tern = do_ternary_classification2(cfg); 
+%     % MEG_LI_tern is Nx1 numeric, e.g. -1=Right, +1=Left, 0=Mid
+%     
+%     % --- fMRI ternary classification ---
+%     cfg = [];
+%     cfg.thre = fMRI_thre; % e.g. 10
+%     cfg.LI   = fmri_LI;
+%     fMRI_LI_tern = do_ternary_classification2(cfg);
+% 
+%     % --- Store these ternary vectors in the new columns
+%     bestResultsTable.MEG_LI_tern{iRow}  = MEG_LI_tern;
+%     bestResultsTable.fMRI_LI_tern{iRow} = fMRI_LI_tern;
+%     
+%     % --- (Optional) compute 'Gross_Discord_Subs' based on Left vs. Right mismatch
+%     grossDiscordSubs = find( ...
+%         (MEG_LI_tern == 1 & fMRI_LI_tern == -1) | ...
+%         (MEG_LI_tern == -1 & fMRI_LI_tern == 1) ...
+%     );
+%     bestResultsTable.Gross_Discord_Subs{iRow} = grossDiscordSubs;
+% end
 
 %% Gross discordance (blandAltman)
 % bestResultsTable.Gross_Discord_Subs = cell(height(bestResultsTable),1);
