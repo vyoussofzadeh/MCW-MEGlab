@@ -13,11 +13,14 @@ fMRI_LI      = bestResultsTable.fMRI_LI{roi_sel};
 rSNR_L       = bestResultsTable.rSNR_L{roi_sel};
 rSNR_R       = bestResultsTable.rSNR_R{roi_sel};
 optMEG_LI    = bestResultsTable.optMEG_LI{roi_sel};
+MEG_LI_trn   = bestResultsTable.MEG_LI_tern{roi_sel};
+fMRI_LI_trn  = bestResultsTable.fMRI_LI_tern{roi_sel};
+
 
 wi = cfg_main.wi;
 bounds = cfg_main.bounds;
 plot_option = cfg_main.plot_option;
-save_dir = cfg_main.save_dir;
+save_dir = fullfile(cfg_main.save_dir,roi); checkOrCreateDir(save_dir)
 final_combined_updt = cfg_main.final_combined_updt;
 T1_epil_measures = cfg_main.T1_epil_measures;
 Pt_ID = final_combined_updt.SubjectID;
@@ -54,11 +57,20 @@ doPlotExport(plot_option, save_dir, ...
 %% Plot LI & rSNR
 subIDs    = 1:size(fMRI_LI,1);  % or however you store subject labels
 plotMEGandRsnrDiscordant(optMEG_LI, rSNR_L, rSNR_R, discordSubs, 1:size(MEG_LI,1));
+
 % Export
 doPlotExport(plot_option, save_dir, ...
-    sprintf('optMEG_LI_rSNR__%s_Method_%s', roi, method), 'svg');
+    sprintf('discordSubs_optMEG_LI_rSNR__%s_Method_%s', roi, method), 'svg');
 
 % plotMEGLITimeseriesWithRSNR(MEG_LI, rSNR_L, rSNR_R, wi(:,1), discordSubs, subIDs);
+
+%%
+% allSubs = 1:length(MEG_LI);  % total subjects
+% concordSubs = setdiff(allSubs, discordSubs);
+% plotMEGandRsnrDiscordant(optMEG_LI, rSNR_L, rSNR_R, concordSubs, 1:size(MEG_LI,1));
+% 
+% doPlotExport(plot_option, save_dir, ...
+%     sprintf('concordSubs_optMEG_LI_rSNR__%s_Method_%s', roi, method), 'svg');
 
 %% Opt-MEG LIs vs. fMRI LIs
 plotMEGvsfMRI(optMEG_LI, fMRI_LI, discordSubs, subIDs);
@@ -188,11 +200,11 @@ if isfield(stats,'OddsRatio')
 end
 
 %% Regression model
-
 % Example: pick some columns from final_combined_updt
 T = table( ...
     optMEG_LI, ...
     optMEG_LI - fMRI_LI, ...
+    MEG_LI_trn - fMRI_LI_trn, ...
     final_combined_updt.Animal_RT, ...
     final_combined_updt.Symbol_RT, ...
     final_combined_updt.Animal_ACC, ...
@@ -200,8 +212,8 @@ T = table( ...
     final_combined_updt.AEDCount, ...
     final_combined_updt.TLEside, ...
     final_combined_updt.EHQ, ...
-    final_combined_updt.NP1WASI_FSIQ, ...
     final_combined_updt.CP_freq, ...
+    final_combined_updt.SG_freq, ...
     final_combined_updt.LTGTC, ...
     final_combined_updt.NP1WASI_FSIQ, ...
     rsnr_max', ...
@@ -209,6 +221,7 @@ T = table( ...
     'VariableNames', { ...
     'optMEG_LI', ...         % The outcome
     'MEG_fMRI_diff', ...
+    'MEG_fMRI_diff_trn', ...
     'Animal_RT', ...
     'Symbol_RT', ...
     'Animal_ACC', ...
@@ -216,8 +229,8 @@ T = table( ...
     'AEDCount', ...
     'TLEside', ...
     'EHQ', ...
-    'FSIQ' ...            % renamed NP1WASI_FSIQ -> FSIQ for convenience
     'CP_freq', ...
+    'SG_freq', ...
     'LTGTC',...
     'NP1WASI_FSIQ', ...
     'rSNR', ...
@@ -232,12 +245,93 @@ end
 % (Optional) Remove rows with any missing values
 T(any(ismissing(T),2), :) = [];
 
+%% collinearity
+
+MEG_fMRI_diff_conc = (optMEG_LI - fMRI_LI); MEG_fMRI_diff_conc = MEG_fMRI_diff_conc(discordSubs);
+MEG_LI_trn_conc = (MEG_LI_trn - fMRI_LI_trn); MEG_LI_trn_conc = MEG_LI_trn_conc(discordSubs);
+
+% Example: pick some columns from final_combined_updt
+T_discordance = table( ...
+    optMEG_LI(discordSubs), ...
+    MEG_fMRI_diff_conc, ...
+    MEG_LI_trn_conc, ...
+    final_combined_updt.Animal_RT(discordSubs), ...
+    final_combined_updt.Symbol_RT(discordSubs), ...
+    final_combined_updt.Animal_ACC(discordSubs), ...
+    final_combined_updt.Symbol_ACC(discordSubs), ...
+    final_combined_updt.AEDCount(discordSubs), ...
+    final_combined_updt.TLEside(discordSubs), ...
+    final_combined_updt.EHQ(discordSubs), ...
+    final_combined_updt.CP_freq(discordSubs), ...
+    final_combined_updt.LTGTC(discordSubs), ...
+    final_combined_updt.NP1WASI_FSIQ(discordSubs), ...
+    rsnr_max(discordSubs)', ...
+    fMRI_LI(discordSubs), ...
+    'VariableNames', { ...
+    'optMEG_LI', ...         % The outcome
+    'MEG_fMRI_diff', ...
+    'MEG_fMRI_diff_trn', ...
+    'Animal_RT', ...
+    'Symbol_RT', ...
+    'Animal_ACC', ...
+    'Symbol_ACC', ...
+    'AEDCount', ...
+    'TLEside', ...
+    'EHQ', ...
+    'CP_freq', ...
+    'LTGTC',...
+    'NP1WASI_FSIQ', ...
+    'rSNR', ...
+    'fMRI_LI'
+    });
+
+% Suppose your table is T, and you have defined:
+numericVars = {
+    'Animal_RT','Symbol_RT','Animal_ACC','Symbol_ACC',...
+    'AEDCount','EHQ','CP_freq','NP1WASI_FSIQ',...
+    'rSNR','MEG_fMRI_diff','MEG_fMRI_diff_trn','optMEG_LI','fMRI_LI'};
+numericVarsShort = {
+    'AniRT','SymRT','AniACC','SymACC',...
+    'AED','EHQ','CP','FSIQ',...
+    'rSNR','MEGfMRIdiff','MEGfMRIdiffTr','MEG_LI','fMRI_LI'};
+
+plotLowerHalfCorr(T_discordance, numericVars, numericVarsShort, ['collinearity, gross discordance ', roi]);
+doPlotExport(plot_option, save_dir, 'collinearity_grossDisc', 'svg');
+
+plotLowerHalfCorr(T, numericVars, numericVarsShort, ['collinearity, allsub ', roi]);
+doPlotExport(plot_option, save_dir, ['collinearity_all_',roi], 'svg');
+
+%% Regression analysis
 % 4) Fit the linear model
-lm = fitlm(T, 'optMEG_LI ~ Animal_RT + Symbol_RT + Animal_ACC + Symbol_ACC + AEDCount + TLEside + EHQ + FSIQ + CP_freq + NP1WASI_FSIQ + rSNR + fMRI_LI');
+lm = fitlm(T, 'optMEG_LI ~ Animal_RT + Symbol_RT + Animal_ACC + Symbol_ACC + AEDCount + TLEside + EHQ + CP_freq + SG_freq + NP1WASI_FSIQ + rSNR + fMRI_LI');
 disp(lm);
 
-lm = fitlm(T, 'MEG_fMRI_diff ~ Animal_RT + Symbol_RT + Animal_ACC + Symbol_ACC + AEDCount + TLEside + EHQ + FSIQ + CP_freq + NP1WASI_FSIQ + rSNR + fMRI_LI');
+lm = fitlm(T, 'MEG_fMRI_diff ~ Animal_RT + Symbol_RT + Animal_ACC + Symbol_ACC + AEDCount + TLEside + EHQ + CP_freq + SG_freq + NP1WASI_FSIQ + rSNR + fMRI_LI');
 disp(lm);
+
+lm = fitlm(T, 'MEG_fMRI_diff_trn ~ Animal_RT + Symbol_RT + Animal_ACC + Symbol_ACC + AEDCount + TLEside + EHQ + CP_freq + SG_freq + NP1WASI_FSIQ + rSNR + fMRI_LI');
+disp(lm);
+
+
+% lmStep1 = stepwiselm(T, ...
+%     'MEG_fMRI_diff ~ Animal_RT + Symbol_RT + Animal_ACC + Symbol_ACC + AEDCount + TLEside + EHQ + FSIQ + CP_freq + NP1WASI_FSIQ + rSNR + fMRI_LI', ...
+%     'PEnter',0.05,'PRemove',0.10, ...
+%     'NSteps',20);  % or another maximum
+% disp(lmStep1);
+
+
+% lmStep2 = stepwiselm(T, ...
+%     'optMEG_LI ~ ...', ...
+%     'Criterion','aic', ...  % or 'bic'
+%     'NSteps',20);
+% disp(lmStep2);
+
+
+% % Example after you do a simpler fit:
+% lmSimple = fitlm(T,'optMEG_LI ~ fMRI_LI + Animal_RT + ...');
+% figure; plotDiagnostics(lmSimple,'cookd');
+
+
 
 % 5) Inspect model output:
 % - Look at 'lm.Coefficients' to see each predictor's slope, p-value
@@ -307,103 +401,6 @@ varLabels = {
 plot_discordance_values_multi(d_in_cell, discordSubs, varLabels);
 doPlotExport(plot_option, save_dir, 'Taskperformace', 'svg');
 
-
-%%
-% run_plotmatrix
-% 
-% %%
-% % % Example variables:
-% numericVars = {'optMEG_LI','fMRI_LI','rSNR','Animal_RT','Symbol_RT',...
-%     'Animal_ACC','Symbol_ACC','AEDCount','EHQ','CP_freq','FSIQ'};
-% 
-% numericVars_label = {'MEG-LI','fMRI-LI','rSNR','Anim-RT','Symb-RT',...
-%     'Anim-ACC','Symb-ACC','AEDCount','EHQ','CP-freq','FSIQ'};
-% 
-% 
-% numericVars = {'optMEG_LI','fMRI_LI','rSNR','Animal_ACC'};
-% 
-% numericVars_label = {'MEG-LI','fMRI-LI','rSNR','Anim-ACC'};
-% 
-% % Suppose T is your table, numericVars is a cell array of your variable names,
-% % and numericVars_label are the corresponding axis labels.
-% 
-% % Extract numeric data
-% X = T{:, numericVars};
-% nVars = size(X, 2);
-% 
-% % 1) Compute pairwise correlations and p-values (e.g., Pearson)
-% Corr = zeros(nVars, nVars);
-% Pvals = ones(nVars, nVars);
-% 
-% for i = 1:nVars
-%     for j = 1:nVars
-%         if i ~= j
-%             [R, P] = corr(X(:,i), X(:,j), 'Rows','complete');  % or 'Type','Spearman'
-%             Corr(i,j)  = R;
-%             Pvals(i,j) = P;
-%         else
-%             Corr(i,j)  = 1;   % diagonal (self-correlation)
-%             Pvals(i,j) = 0;
-%         end
-%     end
-% end
-% 
-% % 2) Create scatter matrix
-% [h, AX] = plotmatrix(X);
-% 
-% % 3) Label axes
-% for i = 1:nVars
-%     % x-labels on bottom row
-%     AX(nVars, i).XLabel.String = numericVars_label{i};
-%     % y-labels on left column
-%     AX(i, 1).YLabel.String = numericVars_label{i};
-% end
-% 
-% % 4) Zero lines on off-diagonal subplots (optional)
-% for row = 1:nVars
-%     for col = 1:nVars
-%         if row ~= col
-%             ax = AX(row, col);
-%             hold(ax, 'on');
-%             xline(ax, 0,'k--','HandleVisibility','off');
-%             yline(ax, 0,'k--','HandleVisibility','off');
-%         end
-%     end
-% end
-% 
-% % 5) Reduce Font Size
-% for row = 1:nVars
-%     for col = 1:nVars
-%         axHandle = AX(row, col);
-%         axHandle.FontSize = 8;
-%         axHandle.XLabel.FontSize = 8;
-%         axHandle.YLabel.FontSize = 8;
-%     end
-% end
-% 
-% % 6) Indicate significant relationships on off-diagonal plots
-% alphaLevel = 0.05;   % significance threshold
-% for row = 1:nVars
-%     for col = 1:nVars
-%         if row ~= col
-%             ax = AX(row,col);
-%             hold(ax,'on');
-%             
-%             % Check significance
-%             if Pvals(row,col) < alphaLevel
-%                 % Add small text in the upper-left corner or specify a location
-%                 text(ax, ...
-%                     0.05*range(ax.XLim)+ax.XLim(1), ...  % X coordinate near left
-%                     0.9*range(ax.YLim)+ax.YLim(1), ...   % Y coordinate near top
-%                     sprintf('p=%.3g', Pvals(row,col)), ...
-%                     'FontSize',8, 'Color','m', 'FontWeight','bold');
-%             end
-%         end
-%     end
-% end
-% 
-% % 7) Figure styling
-% set(gcf,'Name','Pairwise Scatter Matrix with Significance','NumberTitle','off');
 
 end
 

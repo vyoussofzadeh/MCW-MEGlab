@@ -83,6 +83,9 @@ for i = 1:length(discordSubs)
         'FontSize',8,'Color','k');
 end
 
+[R, p] = corr(discord_rSNR_left, discord_rSNR_right, 'Type','Pearson','Rows','complete');
+fprintf('Correlation coefficient r = %.3f, p-value = %.4g\n', R, p);
+
 % reference line
 xL = xlim;
 plot(xL,xL,'k--','LineWidth',1); % y = x line

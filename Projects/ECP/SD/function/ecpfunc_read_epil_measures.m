@@ -49,5 +49,9 @@ T1.NP1WASI_FSIQ = T.NP1WASI_FSIQ;
 T1 = struct2table(T1);
 T1.SubjectID = cellstr(T1.SubjectID);
 
+%% correction for the nan values
+T1.SG_freq(isnan(T1.SG_freq)) = 0;
+T1.CP_freq(isnan(T1.CP_freq)) = 0;
+
 
 

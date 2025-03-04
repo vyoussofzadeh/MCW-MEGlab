@@ -137,14 +137,14 @@ box off;
 
 %% (Optional) Print fisher and chi-square results
 for i = 1:nROIs
-    fprintf('ROI: %s', allROI{i});
+%     fprintf('ROI: %s', allROI{i});
     if doFisher && ~isnan(fisherP_vals(i))
-        fprintf(' | Fisher p=%.4g, OR=%.3f', fisherP_vals(i), oddsRatio_vals(i));
+%         fprintf(' | Fisher p=%.4g, OR=%.3f', fisherP_vals(i), oddsRatio_vals(i));
     end
     if doFisher && ~isnan(chi2P_vals(i))
-        fprintf(' | Chi-Square p=%.4g', chi2P_vals(i));
+%         fprintf(' | Chi-Square p=%.4g', chi2P_vals(i));
     end
-    fprintf('\n');
+%     fprintf('\n');
 end
 
 end
