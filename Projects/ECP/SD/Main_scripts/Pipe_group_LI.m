@@ -530,6 +530,10 @@ run_taskperformance
 %- Epilepsy Metrics
 T1_epil_measures = ecpfunc_read_epil_measures();   % Load additional measures
 
+% Noise-SNR
+cd('/data/MEG/Research/Rupesh/Scripts/SNR_Data')
+run_read_noiseSNR
+
 %% Combine all variables
 combined1 = outerjoin(T_patn_MEGfMRI, accuracyResults_updt, 'Keys', 'SubjectID', 'MergeKeys', true);
 
