@@ -2,9 +2,11 @@ clc;
 clear;
 close all;
 
-% runMaxFilter tSSS
-% Writtern by MCW group, Youssofzadeh, Vahab <vyoussofzadeh@mcw.edu>
-% Lastest update: 09/11/2024
+% runMaxFilter (t)SSS for MEGIN data
+% Writtern by MCW MEG group, Youssofzadeh, Vahab <vyoussofzadeh@mcw.edu>
+
+% Update, SSS analysis was added for emptyroom data, 03/24/25
+% Update: Pipeline was created 09/11/24
 
 %% Remove dynamically added Java class paths
 dynamicPaths = javaclasspath('-dynamic');
@@ -43,11 +45,24 @@ for j=1:length(files)
     baseFileName = files(j).name(1:end-4);
     
     %% Define base directory and base file name for artifact removal
-    FileNames = generateFileNames(ddir, files(j).name(1:end-8));
+    FileNames_tsss = generateFileNames_tsss_cleanup(ddir, files(j).name(1:end-8));
+    FileNames_sss = generateFileNames_sss_nocleanup(ddir, files(j).name(1:end-8));
+
     
-    
-    if ~contains(baseFileName, 'emptyroom') && ...
-            ~exist(fullfile(FileNames.filelocation, FileNames.cleanFileName),'file')
+    if contains(baseFileName, 'emptyroom', 'IgnoreCase',true) && ...
+            ~exist(fullfile(FileNames_sss.filelocation, FileNames_sss.cleanFileName),'file')
+        % -----------------------------------------------------------------
+        % This section ONLY runs tSSS if the filename has "emptyroom"
+        % -----------------------------------------------------------------
+        disp(['Empty-room data detected. Running MaxFilter tSSS for: ', baseFileName]);
+        runMaxFilterSSS(ddir, files(j));
+        
+        % Skip all artifact removal
+        disp('Skipping all artifact cleanup for empty-room data.');
+        
+        
+    elseif ~contains(baseFileName, 'emptyroom') && ...
+            ~exist(fullfile(FileNames_tsss.filelocation, FileNames_tsss.cleanFileName),'file')
         
         disp(['Preprocessing, ', baseFileName])
         
@@ -58,26 +73,26 @@ for j=1:length(files)
         disp('Configured file paths:');
         
         %% Artifact Removal Functions
-        if do_analysis.ongoing == 1, nogui_remove_ongoing_artifact(FileNames); end
-        if do_analysis.ecg == 1,nogui_remove_ecg_artifact(FileNames); end
-        if do_analysis.eog == 1,nogui_remove_eog_artifact(FileNames); end
+        if do_analysis.ongoing == 1, nogui_remove_ongoing_artifact(FileNames_tsss); end
+        if do_analysis.ecg == 1,nogui_remove_ecg_artifact(FileNames_tsss); end
+        if do_analysis.eog == 1,nogui_remove_eog_artifact(FileNames_tsss); end
         
         %% Generate the clean file if it does not already exist
-        cleanFile = fullfile(FileNames.filelocation, FileNames.cleanFileName);
+        cleanFile = fullfile(FileNames_tsss.filelocation, FileNames_tsss.cleanFileName);
         if ~exist(cleanFile, 'file')
-            ecgProjExist = exist(fullfile(FileNames.filelocation, FileNames.ecgProjFileName),'file');
+            ecgProjExist = exist(fullfile(FileNames_tsss.filelocation, FileNames_tsss.ecgProjFileName),'file');
             
             if do_analysis.ecg == 1
                 appliedProj = {};
                 if ecgProjExist
-                    appliedProj{end+1} = FileNames.ecgProjFileName;
+                    appliedProj{end+1} = FileNames_tsss.ecgProjFileName;
                 end
             end
             
             if do_analysis.eog == 1
-                eogProjExist = exist(fullfile(FileNames.filelocation, FileNames.eogProjFileName), 'file');
+                eogProjExist = exist(fullfile(FileNames_tsss.filelocation, FileNames_tsss.eogProjFileName), 'file');
                 if eogProjExist
-                    appliedProj{end+1} = FileNames.eogProjFileName;
+                    appliedProj{end+1} = FileNames_tsss.eogProjFileName;
                 end
             end
             
@@ -85,7 +100,7 @@ for j=1:length(files)
             
             if ~isempty(projString)
                 command = sprintf('mne_process_raw --cd %s --raw %s %s --projon --save %s --filteroff', ...
-                    FileNames.filelocation, FileNames.filename, projString, FileNames.cleanFileName);
+                    FileNames_tsss.filelocation, FileNames_tsss.filename, projString, FileNames_tsss.cleanFileName);
                 [status, cmdout] = unix(command);
                 if status
                     error('Error processing MNE command:\n%s', cmdout);
@@ -93,6 +108,8 @@ for j=1:length(files)
             end
             disp('Completed.')
         end
+    else
+        disp(['Skipping ', baseFileName, 'preprocessing becuase of existing data.'])
     end
 end
 
@@ -128,7 +145,39 @@ for k = 1:length(files)
 end
 end
 
-function FileNames = generateFileNames(baseDir, baseFileName)
+function runMaxFilterSSS(ddir, files)
+
+for k = 1:length(files)
+    fileName = files(k).name;
+    inputFile = fullfile(ddir, fileName);
+    subDirName = fileName(1:end-8); % '_raw.fif' is 8 characters
+    outputSubDir = fullfile(ddir, 'sss', subDirName);
+    
+    % Create the 'sss' and specific subdirectory if it does not exist
+    if ~exist(outputSubDir, 'dir')
+        mkdir(outputSubDir);
+    end
+    
+    % Construct the output file path
+    outputFile = fullfile(outputSubDir, [subDirName, '_raw_sss.fif']);
+    
+    % Construct the command for MaxFilter processing
+    commandStr = sprintf(['/neuro/bin/util/maxfilter -gui -f %s -o %s ' ...
+        '-ctc /neuro/databases/ctc/ct_sparse.fif ' ...
+        '-cal /neuro/databases/sss/sss_cal.dat ' ...
+        '-autobad off -force'], inputFile, outputFile);
+    
+    % Execute the command and handle the output
+    [status, cmdout] = system(commandStr);
+    if status ~= 0
+        fprintf('Error running command for file %s:\n%s\n', fileName, cmdout);
+    else
+        fprintf('Successfully processed %s\n', fileName);
+    end
+end
+end
+
+function FileNames = generateFileNames_tsss_cleanup(baseDir, baseFileName)
 
 filelocation = fullfile(baseDir, 'sss', baseFileName);
 
@@ -149,6 +198,18 @@ FileNames.cleanFileName = [baseFileName, '_raw_t_sss_ecgClean_raw.fif'];
 
 FileNames.ecgCleanFileName = [baseFileName, '_raw_t_sss_ecgClean_raw.fif'];
 FileNames.eogCleanFileName =  [baseFileName, '_raw_t_sss_eogClean_raw.fif'];
+
+end
+
+function FileNames = generateFileNames_sss_nocleanup(baseDir, baseFileName)
+
+filelocation = fullfile(baseDir, 'sss', baseFileName);
+
+% Initialize the FileNames structure with paths
+FileNames = struct();
+FileNames.filelocation = filelocation;
+FileNames.filename = fullfile(filelocation, [baseFileName, '_raw_sss.fif']);
+FileNames.cleanFileName = [baseFileName, '_raw_sss.fif'];
 
 end
 
@@ -188,14 +249,14 @@ switch (type)
             hpf = '10'; %char(config.ECG_HPFILTER);
             lpf = '40'; %char(config.ECG_LPFILTER);
             command = ['mne_process_raw --cd ' directory ' --raw ' raw ' --events ' eve ' --makeproj --projtmin ' start ' --projtmax ' stop ' --saveprojtag ' projTag ' --projnmag ' nMag ' --projngrad ' nGrad ' --projevent 999 --highpass ' hpf ' --lowpass ' lpf ' --digtrigmask 0'];
-%             logFile.write(['command: ' command]);
+            %             logFile.write(['command: ' command]);
             [status,w] = unix(command);
-%             logFile.write(w);
+            %             logFile.write(w);
         else
             command = ['mne_process_raw --cd ' directory ' --raw ' raw ' --events ' eve ' --makeproj --projtmin ' start ' --projtmax ' stop ' --saveprojtag ' projTag ' --projnmag ' nMag ' --projngrad ' nGrad ' --projevent 999 --filteroff --digtrigmask 0'];
-%             logFile.write(['command: ' command]);
+            %             logFile.write(['command: ' command]);
             [status,w] = unix(command);
-%             logFile.write(w);
+            %             logFile.write(w);
         end
         
         %  For names containing DefaultHead_sss
@@ -459,7 +520,7 @@ if ~projExists
             projFile = dir(fullfile(FileNames.filelocation, '*_ecg-proj.fif'));
             if isempty(projFile)
                 % No proj files for ecg exist
-%                 GUI.ErrorMessage(GUI.ErrorMessage.GENERIC_WARNING, sprintf('%s\n%s','Heartbeat projections not created.',' See log for details'));
+                %                 GUI.ErrorMessage(GUI.ErrorMessage.GENERIC_WARNING, sprintf('%s\n%s','Heartbeat projections not created.',' See log for details'));
             else
                 % Find most recent
                 dates = {projFile.date};
@@ -470,7 +531,7 @@ if ~projExists
             end
         end
     else
-%         GUI.ErrorMessage(GUI.ErrorMessage.GENERIC_WARNING, sprintf('%s\n%s','Heartbeat events not found.',' Cannot compute projections.'));
+        %         GUI.ErrorMessage(GUI.ErrorMessage.GENERIC_WARNING, sprintf('%s\n%s','Heartbeat events not found.',' Cannot compute projections.'));
     end
     
 else
@@ -640,7 +701,7 @@ if ~isempty(qrs_event.time)
     rms_thresh = rms_mean+(rms_std*Options.noiseThresh); % rms threshold
     b = find(qrs_event.rms < rms_thresh); % find events less than rms threshold
     a = qrs_event.numcross(b);
-    c = find(a < Options.maxCrossings); % find events with threshold crosses less than desired value
+    c = a < Options.maxCrossings; % find events with threshold crosses less than desired value
     clean_events = qrs_event.time(b(c));
 end
 
@@ -662,7 +723,7 @@ function nogui_writeEventFile(eventFileName, firstSamp, events, eventType)
 %   - firstSamp   : first valid sample of raw data (type double)
 %   - event       : array of events (samples)
 %   - eventType   : type of events (ie 1000)
-% OUTPUT: 
+% OUTPUT:
 %   _sss-eve.fif file with events (MNE format)
 %
 % Author: Elizabeth Bock, 2009
@@ -691,5 +752,3 @@ eventlist(2:num_events+1,3) = ones(1,num_events)*eventType;
 mne_write_events(eventFileName,eventlist);
 
 end
-
-
