@@ -96,6 +96,11 @@ sProcess.options.sname.Comment = 'Saving filename:';
 sProcess.options.sname.Type    = 'text';
 sProcess.options.sname.Value   = ''; % Default value can be empty or a specific name
 
+% === COLORBAR OPTION
+sProcess.options.showcolorbar.Comment = 'Show colorbar';
+sProcess.options.showcolorbar.Type    = 'checkbox';
+sProcess.options.showcolorbar.Value   = 0;  % Default: not shown
+
 end
 
 
@@ -141,6 +146,9 @@ end
 % Get Background Color Selection
 backgroundSelection = sProcess.options.background.Value{1};
 
+% Get colorbar option
+showColorbar = sProcess.options.showcolorbar.Value;
+
 fname = OutputFiles{1};
 
 % Obtain saving directory
@@ -161,13 +169,19 @@ else
     set(hFig, 'color', 'w');
 end
 
-bst_colormaps('SetColorbarVisible', hFig, 0);
+% Show or hide the colorbar
+if showColorbar
+    bst_colormaps('SetColorbarVisible', hFig, 1);  % Turn colorbar on
+else
+    bst_colormaps('SetColorbarVisible', hFig, 0);  % Turn colorbar off
+end
+
 axis equal
 pause,
 
 %% Export images: PNG
 b = []; a = [];
-img = [];
+img = cell(1, length(Orient));
 for iOrient=1:length(Orient)
     figure_3d('SetStandardView', hFig, Orient{iOrient});
     img{iOrient} = out_figure_image(hFig, '', '');
@@ -178,7 +192,12 @@ for iOrient=1:length(Orient)
     pause(1)
 end
 
-ncut = 16;
+switch showColorbar
+    case 0
+        ncut = 16;
+    case 1
+        ncut = 150;        
+end
 domosaiccrop = 1;
 if domosaiccrop
     cropt_idx={};
@@ -201,7 +220,7 @@ imgFile = fullfile(savedir, [svname,'.png']);
 imwrite(a,imgFile);
 
 % -PNG
-combined_path = fullfile(savedir,[svname, '.png']); 
+combined_path = fullfile(savedir,[svname, '.png']);
 web(combined_path, '-new');
 
 %% -SVG (incomplete - adding extra white border)
@@ -212,7 +231,7 @@ web(combined_path, '-new');
 % set(gca, 'color', 'none');
 % combined_path = fullfile(savedir, [svname, '.svg']);
 % print(fig, '-dsvg', combined_path);  % Save the figure as SVG
-% 
+%
 % % Close the figure
 % close(fig);
 
