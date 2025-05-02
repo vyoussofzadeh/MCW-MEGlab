@@ -474,50 +474,66 @@ run_table_bestLIs
 % fprintf('Concordance = %.1f%%\n', 100*concordanceBA);
 % fprintf('Outlier subjects: %s\n', num2str(outlierIdx'));
 
+%%  fMRI & MEG LI dominance summary
+Dominance  =[];
+for i = 1:4
+    tmp = bestResultsTable.fMRI_LI_tern{i};
+    Dominance.(bestResultsTable.ROI{i}).fmri = [length(find(tmp == 1)), length(find(tmp == 0)), length(find(tmp == -1))];
+    Dominance.(bestResultsTable.ROI{i}).fmri_perc = Dominance.(bestResultsTable.ROI{i}).fmri./ length(tmp) .* 100;
+
+    tmp = bestResultsTable.MEG_LI_tern{i};
+    Dominance.(bestResultsTable.ROI{i}).meg = [length(find(tmp == 1)), length(find(tmp == 0)), length(find(tmp == -1))];
+    Dominance.(bestResultsTable.ROI{i}).meg_perc = Dominance.(bestResultsTable.ROI{i}).meg./ length(tmp) .* 100;
+    
+    Dominance.(bestResultsTable.ROI{i}).method = bestResultsTable.Best_LI_Method{i};
+    Dominance.(bestResultsTable.ROI{i}).side = {'Left';'Bilateral';'Right'};
+
+end
+
 %% Optional 
 
-close all
-% Suppose your table is named "bestResultsTable" with columns:
-%  - ROI
-%  - Best_LI_Method
-%  - MEG_LI  (each cell contains a [72 x 1] or [72 x T] numeric array)
-%  - fMRI_LI (each cell contains a [72 x 1] or [72 x T] numeric array)
-% etc.
-
-for iRow = 1:height(bestResultsTable)
-    
-    % 1) Extract the ROI name and method (for labeling)
-    currentROI    = bestResultsTable.ROI{iRow};
-    currentMethod = bestResultsTable.Best_LI_Method{iRow};
-    
-    % 2) Extract the MEG_LI and fMRI_LI arrays
-    %    Note: If these are [72 x 1], perfect; if they're bigger ([72 x 44]),
-    %    you'll need to pick which column or reduce them somehow.
-    megLI  = bestResultsTable.optMEG_LI{iRow};   % e.g., [72 x 1]
-    fmriLI = bestResultsTable.fMRI_LI{iRow};  % e.g., [72 x 1]
-    
-    % 3) Generate subject labels (S1, S2, ...).
-    %    Adjust if you have actual IDs in your data.
-    nSubj  = size(megLI,1);  % e.g. 72
-    subjectLabels = arrayfun(@(x) sprintf('S%d', x), 1:nSubj, 'UniformOutput', false);
-    
-    % 4) Create a new figure (optional)
-    %     figure('Name', sprintf('BlandAltman: ROI=%s, Method=%s', currentROI, currentMethod));
-    
-    % 5) Call your BlandAltman plotting function.
-    %    For example, if you want to label only outliers:
-    ecpfunc_blandAltmanPlot(megLI, fmriLI, subjectLabels);
-    [concordanceBA, outlierIdx] = ecpfunc_blandAltmanConcordance(megLI, fmriLI);
-    disp([currentROI, '-', currentMethod])
-    fprintf('Concordance = %.1f%%\n', 100*concordanceBA);
-    fprintf('Outlier subjects: %s\n', num2str(outlierIdx'));
-    
-    % 6) (Optional) Adjust the plot title or save it
-    title(sprintf('Bland-Altman Plot: %s (Method: %s)', currentROI, currentMethod));
-    
-    %    If you want to save automatically:
-    %    saveas(gcf, sprintf('BlandAltman_%s_%s.png', currentROI, currentMethod));
-end
+% close all
+% % Suppose your table is named "bestResultsTable" with columns:
+% %  - ROI
+% %  - Best_LI_Method
+% %  - MEG_LI  (each cell contains a [72 x 1] or [72 x T] numeric array)
+% %  - fMRI_LI (each cell contains a [72 x 1] or [72 x T] numeric array)
+% % etc.
+% 
+% for iRow = 1:height(bestResultsTable)
+%     
+%     % 1) Extract the ROI name and method (for labeling)
+%     currentROI    = bestResultsTable.ROI{iRow};
+%     currentMethod = bestResultsTable.Best_LI_Method{iRow};
+%     
+%     % 2) Extract the MEG_LI and fMRI_LI arrays
+%     %    Note: If these are [72 x 1], perfect; if they're bigger ([72 x 44]),
+%     %    you'll need to pick which column or reduce them somehow.
+%     megLI  = bestResultsTable.optMEG_LI{iRow};   % e.g., [72 x 1]
+%     fmriLI = bestResultsTable.fMRI_LI{iRow};  % e.g., [72 x 1]
+%     
+%     % 3) Generate subject labels (S1, S2, ...).
+%     %    Adjust if you have actual IDs in your data.
+%     nSubj  = size(megLI,1);  % e.g. 72
+%     subjectLabels = arrayfun(@(x) sprintf('S%d', x), 1:nSubj, 'UniformOutput', false);
+%     
+%     % 4) Create a new figure (optional)
+%     %     figure('Name', sprintf('BlandAltman: ROI=%s, Method=%s', currentROI, currentMethod));
+%     
+%     % 5) Call your BlandAltman plotting function.
+%     %    For example, if you want to label only outliers:
+%     ecpfunc_blandAltmanPlot(megLI, fmriLI, subjectLabels);
+%     [concordanceBA, outlierIdx] = ecpfunc_blandAltmanConcordance(megLI, fmriLI);
+%     disp([currentROI, '-', currentMethod])
+%     fprintf('Concordance = %.1f%%\n', 100*concordanceBA);
+%     fprintf('Outlier subjects: %s\n', num2str(outlierIdx'));
+%     
+%     % 6) (Optional) Adjust the plot title or save it
+%     title(sprintf('Bland-Altman Plot: %s (Method: %s)', currentROI, currentMethod));
+%     
+%     %    If you want to save automatically:
+%     %    saveas(gcf, sprintf('BlandAltman_%s_%s.png', currentROI, currentMethod));
+% end
 
 
 %% Task and epil. measures
@@ -530,9 +546,13 @@ run_taskperformance
 %- Epilepsy Metrics
 T1_epil_measures = ecpfunc_read_epil_measures();   % Load additional measures
 
-% Noise-SNR
-cd('/data/MEG/Research/Rupesh/Scripts/SNR_Data')
-run_read_noiseSNR
+%% Noise SNR
+plot_option = 1;
+snrDataDir  = '/data/MEG/Research/MEGIN project/Scripts/SNR/SNR_Data';
+save_dir_snr    = '/data/MEG/Research/MEGIN project/Scripts/SNR/Plots';
+
+T_snr = ecp_func_noiseSNRAnalysis2(plot_option, snrDataDir, save_dir_snr);
+disp(T_snr);
 
 %% Combine all variables
 combined1 = outerjoin(T_patn_MEGfMRI, accuracyResults_updt, 'Keys', 'SubjectID', 'MergeKeys', true);
@@ -542,18 +562,73 @@ final_combined = outerjoin(combined1, T1_epil_measures, 'LeftKeys', 'SubjectID',
 [commonSubs, idxFinal, idxPt] = intersect(final_combined.SubjectID, Pt_ID);
 final_combined_updt       = final_combined(idxFinal,:);
 
+%
+% Make sure SubjectID columns match in format and case
+if iscell(final_combined_updt.SubjectID)
+    final_combined_updt.SubjectID = upper(string(final_combined_updt.SubjectID));
+else
+    final_combined_updt.SubjectID = upper(final_combined_updt.SubjectID);
+end
+if iscell(T_snr.SubjectID)
+    T_snr.SubjectID = upper(string(T_snr.SubjectID));
+else
+    T_snr.SubjectID = upper(T_snr.SubjectID);
+end
+
+% Perform a LEFT JOIN using outerjoin with 'Type','left'
+%    - This keeps ALL subjects from final_combined_updt
+%    - Adds columns from T_snr where SubjectID matches
+%    - If a subject is missing in T_snr, those columns become NaN/empty
+final_combined_snr = outerjoin(final_combined_updt, T_snr, ...
+    'LeftKeys','SubjectID', 'RightKeys','SubjectID', ...
+    'Type','left', ...           % left join
+    'MergeKeys',true);
+
+% Inspect the result
+head(final_combined_snr)
+
+%%  fMRI & MEG LI dominance summary
+Dominance  =[];
+for i = 1:4
+    tmp = bestResultsTable.fMRI_LI_tern{i};
+    Dominance.(bestResultsTable.ROI{i}).fmri = [length(find(tmp == 1)), length(find(tmp == 0)), length(find(tmp == -1))];
+    Dominance.(bestResultsTable.ROI{i}).fmri_perc = Dominance.(bestResultsTable.ROI{i}).fmri./ length(tmp) .* 100;
+
+    tmp = bestResultsTable.MEG_LI_tern{i};
+    Dominance.(bestResultsTable.ROI{i}).meg = [length(find(tmp == 1)), length(find(tmp == 0)), length(find(tmp == -1))];
+    Dominance.(bestResultsTable.ROI{i}).meg_perc = Dominance.(bestResultsTable.ROI{i}).meg./ length(tmp) .* 100;
+   
+    Dominance.(bestResultsTable.ROI{i}).method = bestResultsTable.Best_LI_Method{i};
+    Dominance.(bestResultsTable.ROI{i}).side = {'Left';'Bilateral';'Right'};
+
+end
+
+%% Plot noise SNR
+clc
+close all
+
+plot_option = 1;
+save_dir_test = '/path/to/export';
+
+% ecp_plot_noiseSNR(final_combined_snr, plot_option, save_dir);
+
+ecp_plot_noiseSNRCombined(final_combined_snr, plot_option, save_dir_test)
+
+% plot_option = 1;
+% run_plotSNR
+
 %% Investigate Discordant Samples of Best Results and Obtain Corresponding MEG_LI and fMRI_LI
 clc
 close all
 
-for roi = 1:4
+for roi = 3:3
     cfg = [];
     cfg.roi_sel = roi; %lateral, n=3
     cfg.wi = wi;
     cfg.bounds = bounds;
     cfg.plot_option  = 1;
     cfg.save_dir = save_dir;
-    cfg.final_combined_updt = final_combined_updt;
+    cfg.final_combined_updt = final_combined_snr;
     cfg.T1_epil_measures = T1_epil_measures;
     switch opt_sel
         case 1
@@ -561,12 +636,24 @@ for roi = 1:4
         case 4
             cfg.bestResultsTable = bestResultsTable_fixed;
     end
-    % ecpfunc_assess_discondances(cfg)
-    % cfg.discordSubs = [4, 5, 10, 21, 28, 36, 56];
-    % ecpfunc_assess_discondances(cfg)
-    ecpfunc_assess_gross_discondances(cfg)
-    
+    ecpfunc_assess_gross_discondances2(cfg)
 end
+
+%% Beta
+T_snr.tSSS_3cat_beta = defineTertiles(T_snr.nSNR_Beta_MEGnetvstSSS);
+T_snr.megnet_3cat_beta = defineTertiles(T_snr.nSNR_Beta_tSSSvsRaw);
+head(T_snr(:, ["nSNR_Beta_MEGnetvstSSS","nSNR_Beta_tSSSvsRaw"]))
+
+T_snr.tSSS_2cat_beta = defineTwoCategories(T_snr.nSNR_Beta_MEGnetvstSSS);
+T_snr.megnet_2cat_beta = defineTwoCategories(T_snr.nSNR_Beta_tSSSvsRaw);
+
+%% Broadband
+T_snr.tSSS_3cat_broad = defineTertiles(T_snr.nSNR_Broad_MEGnetvstSSS);
+T_snr.megnet_3cat_broad = defineTertiles(T_snr.nSNR_Broad_tSSSvsRaw);
+head(T_snr(:, ["nSNR_Broad_MEGnetvstSSS","nSNR_Broad_tSSSvsRaw"]))
+
+T_snr.tSSS_2cat_broad = defineTwoCategories(T_snr.nSNR_Broad_MEGnetvstSSS);
+T_snr.megnet_2cat_broad = defineTwoCategories(T_snr.nSNR_Broad_tSSSvsRaw);
 
 %% Fisher analysis
 %- Epilepsy Metrics
@@ -588,232 +675,33 @@ T1_epil_measures_upted.AnimalACCcat  = defineACCbins(final_combined_updt.Animal_
 T1_epil_measures_upted.SymbolACCcat  = defineACCbins(final_combined_updt.Symbol_ACC);
 T1_epil_measures_upted.SubjectID     = final_combined_updt.SubjectID;
 
+%% Braodband
+% 1) Find matching row indices
+[commonSubj, idxInT1, idxInSNR] = intersect( ...
+        T1_epil_measures_upted.SubjectID, ...
+        T_snr.SubjectID, 'stable');
 
-clc, close all
-run_fisheranalysis_2x2
-run_fisheranalysis_2x3
-cd(save_dir)
+% 2) Copy the new columns for those matching subjects
+T1_epil_measures_upted.tSSS_3cat_broad(idxInT1)   = T_snr.tSSS_3cat_broad(idxInSNR);
+T1_epil_measures_upted.megnet_3cat_broad(idxInT1) = T_snr.megnet_3cat_broad(idxInSNR);
+T1_epil_measures_upted.tSSS_2cat_broad(idxInT1)   = T_snr.tSSS_2cat_broad(idxInSNR);
+T1_epil_measures_upted.megnet_2cat_broad(idxInT1) = T_snr.megnet_2cat_broad(idxInSNR);
+
+T1_epil_measures_upted.tSSS_3cat_beta(idxInT1)   = T_snr.tSSS_3cat_beta(idxInSNR);
+T1_epil_measures_upted.megnet_3cat_beta(idxInT1) = T_snr.megnet_3cat_beta(idxInSNR);
+T1_epil_measures_upted.tSSS_2cat_beta(idxInT1)   = T_snr.tSSS_2cat_beta(idxInSNR);
+T1_epil_measures_upted.megnet_2cat_beta(idxInT1) = T_snr.megnet_2cat_beta(idxInSNR);
 
 %%
-% 1) Prepare your variables of interest
-% For instance, "MEG_LI" might be your outcome, continuous
-Y = final_combined_updt.MEG_LI;       % Dependent variable
-X1 = final_combined_updt.EHQ;         % Edinburgh handedness (continuous)
-X2 = final_combined_updt.NP1WASI_FSIQ; % IQ measure (continuous)
+clc, close all
+% run_fisheranalysis_2x2_beta
+% run_fisheranalysis_2x2_broad
+run_fisheranalysis_2x2_all
 
-% (Optional) You can remove rows with NaN if needed:
-validIdx = ~isnan(Y) & ~isnan(X1) & ~isnan(X2);
-Y  = Y(validIdx);
-X1 = X1(validIdx);
-X2 = X2(validIdx);
-
-% 2) Build a table
-T = table(Y, X1, X2, 'VariableNames', {'MEG_LI','EHQ','FSIQ'});
-
-% 3) Fit a linear model: MEG_LI ~ EHQ + FSIQ
-lm = fitlm(T, 'MEG_LI ~ EHQ + FSIQ');
-
-% 4) Inspect output
-disp(lm);
-
-% Model fields of interest:
-%   lm.Coefficients      (slopes and p-values)
-%   lm.Rsquared.Ordinary (R^2)
-%   lm.anova             (ANOVA of model)
-
-
-%% Optional
-% clc
-% ecpfunc_stackedBar_TLE_EHQ_IQ(bestResultsTable, T1_epil_measures)
-% 
-% %%
-% clc, close all
-% 
-% cfg = [];
-% cfg.bestResultsTable = bestResultsTable;
-% cfg.myCategorical = T1_epil_measures_upted.SymbolACCcat;
-% cfg.discordColumn = 'Gross_Discord_Subs';
-% cfg.categoryList  = {'Low','Mid','High'};
-% cfg.title = 'Symbol ACC';
-% cfg.doFisher = true;
-% cfg.binA = {'Low','Mid'};
-% cfg.binB = {'High'};
-% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-% cfg.myCategorical = T1_epil_measures_upted.AnimalACCcat;
-% cfg.title = 'Animal ACC';
-% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-% 
-% 
-% cfg = [];
-% cfg.bestResultsTable = bestResultsTable;
-% cfg.myCategorical = T1_epil_measures_upted.AnimalRTcat;
-% cfg.discordColumn = 'Gross_Discord_Subs';
-% cfg.categoryList  = {'Fast','Moderate','Slow'};
-% cfg.doFisher = true;
-% cfg.binA = {'Moderate','Slow'};
-% cfg.binB = {'Fast'};
-% cfg.title = 'Animal RT';
-% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-% cfg.myCategorical = T1_epil_measures_upted.SymbolRTcat;
-% cfg.title = 'Symbol RT';
-% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-% 
-% 
-% cfg = [];
-% cfg.bestResultsTable = bestResultsTable;
-% cfg.myCategorical = T1_epil_measures_upted.EHQcat;
-% cfg.discordColumn = 'Gross_Discord_Subs';
-% cfg.categoryList  = {'Left','Right','Ambi'};
-% cfg.doFisher = true;
-% cfg.binA = {'Ambi','Left'};
-% cfg.binB = {'Right'};
-% cfg.title = 'EHQ';
-% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-% 
-% 
-% cfg = [];
-% cfg.bestResultsTable = bestResultsTable;
-% cfg.myCategorical = T1_epil_measures_upted.TLEside;
-% cfg.discordColumn = 'Gross_Discord_Subs';
-% cfg.categoryList  = {'Left','Right','Bilateral'};
-% cfg.doFisher = true;
-% cfg.binA = {'Bilateral','Right'};
-% cfg.binB = {'Left'};
-% cfg.title = 'TLE side';
-% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-% 
-% 
-% cfg = [];
-% cfg.bestResultsTable = bestResultsTable;
-% cfg.myCategorical = T1_epil_measures_upted.AEDcat;
-% cfg.discordColumn = 'Gross_Discord_Subs';
-% cfg.categoryList  = {'1','2','3plus'};
-% cfg.doFisher = true;
-% cfg.binA = {'1','2'};
-% cfg.binB = {'3plus'};
-% cfg.title = 'AED';
-% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-% 
-% 
-% cfg = [];
-% cfg.bestResultsTable = bestResultsTable;
-% cfg.myCategorical = T1_epil_measures_upted.LTGTCcat;
-% cfg.discordColumn = 'Gross_Discord_Subs';
-% cfg.categoryList  = {'0','1-5','6-20','21plus'};
-% cfg.doFisher = true;
-% cfg.binA = {'0','1-5','6-20'};
-% cfg.binB = {'21plus'};
-% cfg.title = 'LTGT';
-% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-% 
-% cfg = [];
-% cfg.bestResultsTable = bestResultsTable;
-% cfg.myCategorical = T1_epil_measures_upted.SGcat;
-% cfg.discordColumn = 'Gross_Discord_Subs';
-% cfg.categoryList  = {'1to2','0','3plus'};
-% cfg.doFisher = true;
-% cfg.binA = {'1to2','0'};
-% cfg.binB = {'3plus'};
-% cfg.title = 'SG';
-% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-% 
-% cfg = [];
-% cfg.bestResultsTable = bestResultsTable;
-% cfg.myCategorical = T1_epil_measures_upted.cp_freq_cat;
-% cfg.discordColumn = 'Gross_Discord_Subs';
-% cfg.categoryList  = {'1to5','11plus','6to10'};
-% cfg.doFisher = true;
-% cfg.binA = {'1to5'};
-% cfg.binB = {'11plus', '6to10'};
-% cfg.title = 'cp freq';
-% cfg.nSubjects = length(T1_epil_measures_upted.SubjectID);
-% [counts, pVals, ORvals, hFig] = ecpfunc_plotDiscordantStackedBar(cfg);
-% 
-% 
-% %%
-% clc, close all
-% 
-% % --- 1) Plot TLE Side
-% run_plot_TLEside;  % Creates TLE side stacked bar
-% doPlotExport(plot_option, save_dir, ...
-%     sprintf('TLEside_%s_%s', roi, method), 'svg');
-% disp('--------')
-% 
-% % --- 2) Plot IQ
-% run_plotIQ;        % Creates IQ stacked bar
-% doPlotExport(plot_option, save_dir, ...
-%     sprintf('IQ_%s_%s', roi, method), 'svg');
-% disp('--------')
-% 
-% 
-% % --- 3) Plot EHQ (handedness)
-% run_plot_EHQ;      % Creates EHQ stacked bar
-% doPlotExport(plot_option, save_dir, ...
-%     sprintf('EHQ_%s_%s', roi, method), 'svg');
-% disp('--------')
-% 
-% % --- 4) Plot AEDcount
-% run_plot_AED;
-% % Creates AED count stacked bar
-% doPlotExport(plot_option, save_dir, ...
-%     sprintf('AED_%s_%s', roi, method), 'svg');
-% disp('--------')
-% 
-% 
-% run_plot_AED_median
-% % Creates AED count stacked bar
-% doPlotExport(plot_option, save_dir, ...
-%     sprintf('AED_median_%s_%s', roi, method), 'svg');
-% disp('--------')
-% 
-% 
-% % --- 5) Plot LTGTC
-% run_plot_LTGTC;    % LTGTC stacked bar (multi-level)
-% doPlotExport(plot_option, save_dir, ...
-%     sprintf('LTGTC_%s_%s', roi, method), 'svg');
-% disp('--------')
-% 
-% run_plot_LTGTC_median
-% doPlotExport(plot_option, save_dir, ...
-%     sprintf('LTGTC_median_%s_%s', roi, method), 'svg');
-% disp('--------')
-% 
-% % --- 6) Plot SG frequency
-% run_plot_SGfreq_median
-% doPlotExport(plot_option, save_dir, ...
-%     sprintf('SGfreq_%s_%s', roi, method), 'svg');
-% disp('--------')
-% 
-% run_plot_SGfreq_median
-% doPlotExport(plot_option, save_dir, ...
-%     sprintf('SGfreq_median_%s_%s', roi, method), 'svg');
-% disp('--------')
-% 
-% % --- 7) Plot CP frequency
-% run_plot_CPFreq;   % CP_freq_cat (complex partial freq) stacked bar
-% doPlotExport(plot_option, save_dir, ...
-%     sprintf('CPfreq_%s_%s', roi, method), 'svg');
-% disp('--------')
-% 
-% run_plot_CPFreq_median
-% doPlotExport(plot_option, save_dir, ...
-%     sprintf('CPfreq_median_%s_%s', roi, method), 'svg');
-% disp('--------')
-% 
-% %%
-% 
-% 
-% lm = fitlm(T, 'Diff_LI ~ TLEside*CP_freq + SG_freq + AEDCount + FSIQ');
-
-
-
+% run_fisheranalysis_2x3_beta
+% run_fisheranalysis_2x3_broad
+run_fisheranalysis_2x3_all
+cd(save_dir)
 
 
 

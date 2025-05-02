@@ -111,6 +111,33 @@ doFH    = true;
 Tsummary2x3 = [Tsummary2x3; run2x3(myCat, catList, measure, doFH)];
 doPlotExport(plot_option, save_dir, measure, 'svg');
 
+%% 13) tSSS_3cat
+myCat   = T1_epil_measures_upted.tSSS_3cat;
+% If your categories are 'LowerTertile','MidTertile','UpperTertile',
+% you can either specify them manually:
+catList = {'LowerTertile','MidTertile','UpperTertile'};
+% Or automatically get them from the variable:
+% catList = categories(myCat);
+
+measure = 'tSSS-3cat (2by3)';
+doFH    = true;  % Use the FreemanHalton exact test
+
+% Run the 2×3 analysis (Discord vs Concord by 3 levels)
+Tsummary2x3 = [Tsummary2x3; run2x3(myCat, catList, measure, doFH)];
+
+% Optionally save a figure
+doPlotExport(plot_option, save_dir, measure, 'svg');
+
+
+%% 14) megnet_3cat
+myCat   = T1_epil_measures_upted.megnet_3cat;
+catList = {'LowerTertile','MidTertile','UpperTertile'};
+measure = 'MEGnet-3cat (2by3)';
+doFH    = true;
+Tsummary2x3 = [Tsummary2x3; run2x3(myCat, catList, measure, doFH)];
+doPlotExport(plot_option, save_dir, measure, 'svg');
+
+
 %% Finally, display
 disp(Tsummary2x3);
 writetable(Tsummary2x3,fullfile(save_dir, 'Fisher_Freeman_Halton_2by3.csv'));
