@@ -127,7 +127,6 @@ ComparisonStr = sprintf('{%s} vs {%s}', strjoin(cfg.binA,','), strjoin(cfg.binB,
 
 doPlotExport(plot_option, save_dir, char(['2by2Fisher_'+ cfg.title]), 'svg');
 
-
 Tloc = table( ...
     repmat(cfg.title,nROIs,1), ...
     repmat(ComparisonStr,nROIs,1), ...
@@ -209,6 +208,66 @@ ComparisonStr = sprintf('{%s} vs {%s}', strjoin(cfg.binA,','), strjoin(cfg.binB,
 
 doPlotExport(plot_option, save_dir, char(['2by2Fisher_'+ cfg.title]), 'svg');
 
+Tloc = table( ...
+    repmat(cfg.title,nROIs,1), ...
+    repmat(ComparisonStr,nROIs,1), ...
+    cfg.bestResultsTable.ROI, ...
+    pVals, ...
+    ORvals, ...
+    'VariableNames',{'Measure','Comparison','ROI','pVal','OR'});
+Tsummary = [Tsummary; Tloc];
+
+%% 11) tSSS_2cat
+cfg = [];
+cfg.bestResultsTable = bestResultsTable;  % same table used above
+cfg.myCategorical    = T1_epil_measures_upted.tSSS_2cat; 
+cfg.discordColumn    = 'Gross_Discord_Subs';   % your existing mismatch variable
+cfg.categoryList     = {'Low','High'};         % the categories in tSSS_2cat
+cfg.doFisher         = true;
+cfg.binA             = {'Low'};                % "Group A"
+cfg.binB             = {'High'};               % "Group B"
+cfg.title            = 'tSSS-2cat';
+cfg.nSubjects        = length(T1_epil_measures_upted.SubjectID);
+
+[counts, pVals, ORvals, chi2P_vals] = ecpfunc_plotDiscordantStackedBar(cfg);
+
+ComparisonStr = sprintf('{%s} vs {%s}', ...
+    strjoin(cfg.binA,','), strjoin(cfg.binB,','));
+
+doPlotExport(plot_option, save_dir, char(['2by2Fisher_', cfg.title]), 'svg');
+
+% Summarize in Tsummary
+nROIs = height(cfg.bestResultsTable);
+Tloc = table( ...
+    repmat(cfg.title,nROIs,1), ...
+    repmat(ComparisonStr,nROIs,1), ...
+    cfg.bestResultsTable.ROI, ...
+    pVals, ...
+    ORvals, ...
+    'VariableNames',{'Measure','Comparison','ROI','pVal','OR'});
+Tsummary = [Tsummary; Tloc];
+
+%% 12) megnet_2cat
+cfg = [];
+cfg.bestResultsTable = bestResultsTable;
+cfg.myCategorical    = T1_epil_measures_upted.megnet_2cat; 
+cfg.discordColumn    = 'Gross_Discord_Subs';
+cfg.categoryList     = {'Low','High'};
+cfg.doFisher         = true;
+cfg.binA             = {'Low'};
+cfg.binB             = {'High'};
+cfg.title            = 'megnet-2cat';
+cfg.nSubjects        = length(T1_epil_measures_upted.SubjectID);
+
+[counts, pVals, ORvals, chi2P_vals] = ecpfunc_plotDiscordantStackedBar(cfg);
+
+ComparisonStr = sprintf('{%s} vs {%s}', ...
+    strjoin(cfg.binA,','), strjoin(cfg.binB,','));
+
+doPlotExport(plot_option, save_dir, char(['2by2Fisher_', cfg.title]), 'svg');
+
+% Summarize in Tsummary
+nROIs = height(cfg.bestResultsTable);
 Tloc = table( ...
     repmat(cfg.title,nROIs,1), ...
     repmat(ComparisonStr,nROIs,1), ...

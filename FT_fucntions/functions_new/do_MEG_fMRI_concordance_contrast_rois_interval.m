@@ -21,7 +21,7 @@ for j = 1:length(lang_id)
     midx = [];
     for i = 1:length(wi)
         if length(net_sel) > 1
-            %             mLI_sub1 = mean(LI_pt_new(net_sel,:,i));
+%             mLI_sub1 = nanmean(LI_pt_new(net_sel,:,i));
             mLI_sub1 = max(LI_pt_new(net_sel,:,i));
         else
             mLI_sub1 = LI_pt_new(net_sel,:,i);
@@ -33,12 +33,12 @@ for j = 1:length(lang_id)
         if cfg_main.ternary == 1
             cfg = []; cfg.thre = thre;
             cfg.LI = megLI_sub_pt; mLI_sub_pt_trn = do_ternary_classification2(cfg);
-            matches = mLI_sub_pt_trn == fmri_LIs_val;
+            matches = mLI_sub_pt_trn == fmri_LIs_val(:,j);
             numMatches = sum(matches);
             percentageMatch = (numMatches / length(mLI_sub_pt_trn)) * 100;
             conc(j,i,:) = percentageMatch;
         else
-            conc(j,i,:) = megLI_sub_pt .* fmri_LIs_val;
+            conc(j,i,:) = megLI_sub_pt .* fmri_LIs_val(:,j);
         end
         
         % Find the interval with the best concordance
@@ -49,7 +49,7 @@ for j = 1:length(lang_id)
         disp(['selected time for ', cfg_main.lang_id{j}, ':', num2str(interval(1)), '-', num2str(interval(end)), ' ms']);        
         
         MEG_LI = mLI_sub_pt_trn;
-        fMRI_LI = fmri_LIs_val;
+        fMRI_LI = fmri_LIs_val(:,j);
         % Create a contingency table from the categorical data
         confusion_matrix = crosstab(MEG_LI, fMRI_LI);
         
