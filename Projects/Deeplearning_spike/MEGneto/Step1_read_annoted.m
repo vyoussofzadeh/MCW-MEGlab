@@ -33,7 +33,6 @@ indir = '/MEG_data/epilepsy';
 %- Output dir
 savedir = '/MEG_data/Research_studies/Epil_annotated_data/annotated_info';
 
-
 %- Adding path
 cfg_init = [];
 cfg_init.path_tools = '/MEG_data/LAB_MEMBERS/Vahab/Github/tools';

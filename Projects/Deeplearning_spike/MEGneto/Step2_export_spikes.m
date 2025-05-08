@@ -35,7 +35,7 @@ outdir = '/MEG_data/Research_studies/Epil_annotated_data/annotated_data';
 
 %- Adding path
 cfg_init = [];
-cfg_init.path_tools = '/MEG_data/LAB_MEMBERS/Vahab/Github/tools';
+cfg_init.path_tools = '/usr/local/MATLAB_Tools';
 [allpath, atlas] = vy_init(cfg_init);
 
 %%
@@ -82,12 +82,22 @@ for i=1:length(d)
             if  Anot.T_tint(j,2) -  Anot.T_tint(j,1) > 0.2
                 cfg.toilim = Anot.T_tint(j,:)./(raw_data.fsample/dsample_data.fsample);
                 anot_data = ft_selectdata(cfg,dsample_data);
-                anot_data_all{k} = anot_data;
+                anot_data_all(k,:,:) = anot_data.trial{1}(:,1:67);
                 k=k+1;
             end
         end
+        
+        D = [];
+        D.hdr = anot_data.hdr;
+        D.label = anot_data.label;
+        D.trial = anot_data_all;
+        D.Anot = Anot;
+        D.time = anot_data.time{1}(1:67);
+        
+        
         tkz = tokenize(name,'_');
-        save(fullfile(outdir,name), 'anot_data_all', 'Anot')
+        save(fullfile(outdir,name), 'D')
+%         save(fullfile(outdir,name), 'D', '-v7.3')
     end
 end
 
