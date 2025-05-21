@@ -38,7 +38,6 @@ cfg_init = [];
 cfg_init.path_tools = '/MEG_data/LAB_MEMBERS/Vahab/Github/tools';
 [allpath, atlas] = vy_init(cfg_init);
 
-
 %%
 [~, ~, raw] = xlsread('/MEG_data/Research_studies/MEG_in_Epilepsy_Surgery/PRO00015813_Consented Patient Registry_8-17-2020.xls','Sheet1');
 
@@ -49,7 +48,6 @@ for i=2:length(raw)
     if ~isnan(raw{i, 3})
         consented_sub{k} = [strtrim(raw{i, 3}),'_',strtrim(raw{i, 4})];
         k=1+k;
-        %         pause,
     end
 end
 disp(consented_sub');

@@ -93,8 +93,7 @@ for i=1:length(d)
         D.trial = anot_data_all;
         D.Anot = Anot;
         D.time = anot_data.time{1}(1:67);
-        
-        
+               
         tkz = tokenize(name,'_');
         save(fullfile(outdir,name), 'D')
 %         save(fullfile(outdir,name), 'D', '-v7.3')
