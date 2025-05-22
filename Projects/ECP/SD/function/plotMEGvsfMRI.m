@@ -54,7 +54,7 @@ for k = 1:numel(subIDs)
 end
 
 % y = x reference line ---------------------------------------------------
-% plot(xlim, ylim, 'k--', 'LineWidth',1, 'DisplayName','y = x')
+plot(xlim, ylim, 'k--', 'LineWidth',1, 'DisplayName','y = x')
 
 % Pearson correlation ----------------------------------------------------
 [r,p]   = corr(optMEG_LI(:), fMRI_LI(:), 'Rows','complete');
@@ -65,13 +65,13 @@ text(-95, 90, sprintf('r = %.2f (p = %.3g)', r, p), 'Color','b', 'FontSize',10)
 
 xFit  = linspace(min(optMEG_LI), max(optMEG_LI), 100);
 yFit  = b(1) + b(2)*xFit;
-plot(xFit, yFit, 'm-', 'LineWidth',1.8, 'DisplayName','Deming fit')
+% plot(xFit, yFit, 'm-', 'LineWidth',1.8, 'DisplayName','Deming fit')
 
-if isfield(stats,'b_ci') && ~isempty(stats.b_ci)  % CI bands if available
-    yLo = stats.b_ci(1,1) + stats.b_ci(2,1)*xFit;
-    yHi = stats.b_ci(1,2) + stats.b_ci(2,2)*xFit;
-    plot(xFit, yLo, 'm--', xFit, yHi, 'm--', 'HandleVisibility','off')
-end
+% if isfield(stats,'b_ci') && ~isempty(stats.b_ci)  % CI bands if available
+%     yLo = stats.b_ci(1,1) + stats.b_ci(2,1)*xFit;
+%     yHi = stats.b_ci(1,2) + stats.b_ci(2,2)*xFit;
+%     plot(xFit, yLo, 'm--', xFit, yHi, 'm--', 'HandleVisibility','off')
+% end
 
 %% --------- package results for manuscript ------------------------------
 demingRes = struct( ...

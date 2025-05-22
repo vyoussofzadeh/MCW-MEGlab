@@ -1,4 +1,5 @@
-function [countsMatrix, pValsExact2x3, chi2P_vals, figHandle] = ecpfunc_plotDiscordantStackedBar_2x3(cfg)
+function [cellCounts, pValsExact2x3, chi2P_vals, qVals, figHandle] = ...
+         ecpfunc_plotDiscordantStackedBar_2x3(cfg)
 % ECPFUNC_PLOTDISCORDANTSTACKEDBAR_2X3
 %
 % This function:
@@ -43,6 +44,9 @@ nCats  = length(categoryList);
 allROI = bestResultsTable.ROI;
 nROIs  = height(bestResultsTable);
 
+qVals = nan(nROIs,1);          % FDR-corrected ps (initialised to NaN)
+
+
 % We'll store results
 pValsExact2x3 = nan(nROIs,1);  % if doFreemanHalton==true
 chi2P_vals    = nan(nROIs,1);  % if doFreemanHalton==false
@@ -60,6 +64,7 @@ for i = 1:nROIs
     for c = 1:nCats
         countsMatrix(i,c) = sum(cat_discord == categoryList{c});
     end
+    
 
     % (C) Build 2×3 freq table: row1=Discord, row2=Concord; col=Low,Mid,High
     cat_concord = myCategorical(concordSubs);
@@ -70,6 +75,7 @@ for i = 1:nROIs
         RowConcord(c) = sum(cat_concord == categoryList{c});
     end
     ContTable_2x3 = [RowDiscord; RowConcord];  % 2×3
+    cellCounts(i,:,:) = ContTable_2x3;          % ? store per-ROI 2×2 table
 
     % (D) If doFreemanHalton => use exact 2x3 approach, else do Chi-square
     if doFH
@@ -83,6 +89,25 @@ for i = 1:nROIs
         chi2P_vals(i) = chiSquare2x3(ContTable_2x3);
     end
 end
+
+%%
+% ---------------------------------------------------------------
+% Pick whichever set of raw p-values is populated
+if cfg.doFreemanHalton
+    rawP = pValsExact2x3;
+else
+    rawP = chi2P_vals;
+end
+
+% BenjaminiHochberg FDR
+qVals = mafdr(rawP,'BHFDR',true);   % Statistics Toolbox
+% --- fallback if mafdr absent ---
+% [ps,idx] = sort(rawP);
+% m       = numel(ps);
+% qtmp    = ps .* m ./ (1:m)';       % BH formula
+% qtmp    = min(cummin(flipud(qtmp)),1);
+% qVals   = nan(size(rawP));
+% qVals(idx) = qtmp;
 
 %% Plot stacked bar (Discordant group only)
 figHandle = figure('Color','w','Name','Discordant 2×3','Position',[100 300 700 400]);

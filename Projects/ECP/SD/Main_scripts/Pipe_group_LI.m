@@ -621,7 +621,7 @@ ecp_plot_noiseSNRCombined(final_combined_snr, plot_option, save_dir_test)
 clc
 close all
 
-for roi = 3:3
+for roi = 1:4
     cfg = [];
     cfg.roi_sel = roi; %lateral, n=3
     cfg.wi = wi;
@@ -696,11 +696,11 @@ T1_epil_measures_upted.megnet_2cat_beta(idxInT1) = T_snr.megnet_2cat_beta(idxInS
 clc, close all
 % run_fisheranalysis_2x2_beta
 % run_fisheranalysis_2x2_broad
-run_fisheranalysis_2x2_all
+run_fisheranalysis_2x2_all_2
 
 % run_fisheranalysis_2x3_beta
 % run_fisheranalysis_2x3_broad
-run_fisheranalysis_2x3_all
+run_fisheranalysis_2x3_all_2
 cd(save_dir)
 
 

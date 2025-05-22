@@ -57,15 +57,20 @@ sub_run_unq_nospike = [];
 for i=1:length(sub_run_unq)
     sub_run_unq_nospike{i} = [num2str(i), '_', sub_run_unq{i}];
 end
-disp(sub_run_unq_nospike')
+disp(sub_run_unq_nospike');
 
 %% BAD DATA?
 % baddata = [12];
-ndata = [1:11,13:89,91:length(d_spike)];
+% ndata = [1:11,13:89,91:length(d_spike)];
+ndata = 1:length(d_spike);
+
+%% refLabels
+spikedata = load(d_spike(1).name);
+anot_data = spikedata.anot_data_all{1};
+refLabels = anot_data.label;
 
 %% Spike data
 ft_progress('init', 'text',     'please wait ...');
-
 anot_spike_apd = [];
 for i= ndata
     ft_progress(i/length(ndata), 'Reading spike data %d from %d', i, length(ndata));
@@ -74,14 +79,46 @@ for i= ndata
     anot_spike = [];
     for j=1:length(spikedata.anot_data_all)
         anot_data = spikedata.anot_data_all{j};
-        anot_data = spikedata.anot_data_all{j};
+        anot_data   = do_ensure_consistent_labels(anot_data, refLabels);
         anot_spike(:,:,j) = do_normalize_data(anot_data.trial{1}(:,1:67));
     end
     anot_spike_apd = cat(3, anot_spike_apd, anot_spike);
+%     size(anot_spike)
+%     size(anot_spike_apd)
 end
 ft_progress('close');
 
 size(anot_spike_apd)
+
+%%
+% spike-epoch concatenation done 
+size(anot_spike_apd)            % keep this line if you want the size check
+
+% ---- OPTIONAL SAVE ------------------------------------------------------
+disp('Save concatenated spike epochs?  1 = yes, 0 = no');
+savespike = input('save anot_spike_apd: ');
+
+if savespike == 1
+    saved_folder = '/data/MEG/Research/SpikeDectection/Epil_annotated_data/processed';
+    if ~exist(saved_folder,'dir');  mkdir(saved_folder);  end
+    
+    % File name encodes trial count and time-stamp
+    fname = sprintf('anot_spike_apd_%dtrials_%s.mat', ...
+                    size(anot_spike_apd,3), datestr(now,'yyyymmdd_HHMM'));
+    
+    % Use -v7.3 if the array is >2 GB
+    save(fullfile(saved_folder,fname), 'anot_spike_apd', '-v7.3');
+    fprintf('Saved to %s\n', fullfile(saved_folder,fname));
+end
+
+%%
+% m1 = mean(squeeze(mean (anot_spike_apd,1)),1);
+% 
+% figure, plot(anot_spike_apd(1,:))
+% 
+% m2 = squeeze(mean(anot_spike,3));
+% 
+% figure, plot(median(m2));
 
 %% non-spike data
 ft_progress('init', 'text',     'please wait ...');
@@ -94,6 +131,7 @@ for i= ndata
     anot_nonspike = [];  
     for j=1:length(no_spikedata.anot_data_all)
         anot_data = no_spikedata.anot_data_all{j};
+        anot_data   = do_ensure_consistent_labels(anot_data, refLabels);
         anot_nonspike(:,:,j) = do_normalize_data (anot_data.trial{1}(:,1:67));
     end
     anot_nospike_apd = cat(3, anot_nospike_apd, anot_nonspike);

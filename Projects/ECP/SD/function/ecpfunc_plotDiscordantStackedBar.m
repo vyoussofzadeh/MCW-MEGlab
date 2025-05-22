@@ -76,36 +76,38 @@ for i = 1:nROIs
     discordSubs = bestResultsTable.(discordColumn){i};
     % Concordant
     concordSubs = setdiff(allSubs, discordSubs);
-
+    
     %% 2) For the DISCORDANT group, retrieve the categories
     cat_discord = myCategorical(discordSubs);
-
+    
     %% 3) Count how many fall into each category
     for c = 1:nCats
         countsMatrix(i,c) = sum(cat_discord == categoryList{c});
     end
-
+    
     %% 4) If doFisher is true, do a custom 2×2 test
     if doFisher && ~isempty(binA) && ~isempty(binB)
         cat_concord = myCategorical(concordSubs);
-
+        
         % We'll sum up binA and binB among discord & concord
         nA_disc = sum(ismember(cat_discord, binA));
         nB_disc = sum(ismember(cat_discord, binB));
-
+        
         nA_conc = sum(ismember(cat_concord, binA));
         nB_conc = sum(ismember(cat_concord, binB));
-
+        
         ContTable_2x2 = [nA_disc, nB_disc;
-                         nA_conc, nB_conc];
-
+            nA_conc, nB_conc];
+        
         % If each row has >0 total
         if all(sum(ContTable_2x2,2) > 0)
             % Fisher's exact test
             [~, pVal, stats] = fishertest(ContTable_2x2);
             fisherP_vals(i)   = pVal;
             oddsRatio_vals(i) = stats.OddsRatio;
-
+            ciLow(i)  = stats.ConfidenceInterval(1);  % lower 95 % CI
+            ciHigh(i) = stats.ConfidenceInterval(2);  % upper 95 % CI
+            
             % Chi-square test
             [~, chi2P_vals(i)] = chi2test(ContTable_2x2); % Call chi2test function
         else
@@ -137,41 +139,41 @@ box off;
 
 %% (Optional) Print fisher and chi-square results
 for i = 1:nROIs
-%     fprintf('ROI: %s', allROI{i});
+    %     fprintf('ROI: %s', allROI{i});
     if doFisher && ~isnan(fisherP_vals(i))
-%         fprintf(' | Fisher p=%.4g, OR=%.3f', fisherP_vals(i), oddsRatio_vals(i));
+        %         fprintf(' | Fisher p=%.4g, OR=%.3f', fisherP_vals(i), oddsRatio_vals(i));
     end
     if doFisher && ~isnan(chi2P_vals(i))
-%         fprintf(' | Chi-Square p=%.4g', chi2P_vals(i));
+        %         fprintf(' | Chi-Square p=%.4g', chi2P_vals(i));
     end
-%     fprintf('\n');
+    %     fprintf('\n');
 end
 
 end
 
 %% Helper function for chi-square test
 function [chi2stat, pVal] = chi2test(observed)
-    % chi2test - Performs a chi-square test of independence.
-    %
-    % Input:
-    %   observed - A 2×2 contingency table of observed frequencies.
-    %
-    % Output:
-    %   chi2stat - The chi-square test statistic.
-    %   pVal     - The p-value of the test.
+% chi2test - Performs a chi-square test of independence.
+%
+% Input:
+%   observed - A 2×2 contingency table of observed frequencies.
+%
+% Output:
+%   chi2stat - The chi-square test statistic.
+%   pVal     - The p-value of the test.
 
-    % Calculate the expected frequencies
-    rowTotals = sum(observed, 2);
-    colTotals = sum(observed, 1);
-    total = sum(rowTotals);
-    expected = (rowTotals * colTotals) / total;
+% Calculate the expected frequencies
+rowTotals = sum(observed, 2);
+colTotals = sum(observed, 1);
+total = sum(rowTotals);
+expected = (rowTotals * colTotals) / total;
 
-    % Calculate the chi-square statistic
-    chi2stat = sum((observed - expected).^2 ./ expected, 'all');
+% Calculate the chi-square statistic
+chi2stat = sum((observed - expected).^2 ./ expected, 'all');
 
-    % Calculate degrees of freedom
-    df = 1; % For a 2×2 table, df = (2-1)*(2-1) = 1
+% Calculate degrees of freedom
+df = 1; % For a 2×2 table, df = (2-1)*(2-1) = 1
 
-    % Calculate the p-value
-    pVal = 1 - chi2cdf(chi2stat, df);
+% Calculate the p-value
+pVal = 1 - chi2cdf(chi2stat, df);
 end

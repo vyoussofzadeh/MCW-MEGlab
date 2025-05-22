@@ -8,15 +8,28 @@ clear; clc, close('all'); warning off
 
 %% FieldTrip toolbox
 restoredefaultpath % reset the default path
-ft_path ='/opt/matlab_toolboxes/ft_packages/latest/fieldtrip-master';
+ft_path ='/opt/matlab_toolboxes/ft_packages/Stable_version/fieldtrip-master';
 addpath(ft_path);
 ft_defaults
 
-addpath('/data/MEG/Research/awang/Scripts/func')
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/functions_new/')
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/helper')
 
-datadir = '/data/MEG/Research/awang/Epil_annotated_data/annotated_data_anonymized';
+
+
+
+% restoredefaultpath % reset the default path
+% ft_path ='/opt/matlab_toolboxes/ft_packages/latest/fieldtrip-master';
+% addpath(ft_path);
+% ft_defaults
+% 
+% addpath('/data/MEG/Research/awang/Scripts/func')
+% 
+datadir = '/data/MEG/Research/SpikeDectection/Epil_annotated_data/annotated_data_anonymized';
 
 % if exist(savedir, 'file') == 0, mkdir(savedir);  end
+
+addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/Deeplearning_spike/Squiggles/func')
 
 %%
 cd(datadir)
@@ -85,20 +98,20 @@ pca_all = zeros(1,68);
 pca_eeg_sub = [];
 pca_meg_sub = [];
 
-ft_progress('init', 'etf',     'Please wait...');
+ft_progress('init', 'etf', 'Please wait...');
 
 
 for i= 1: length(d)
     disp([num2str(i),'/',num2str(length(d))])
     [pathstr, name] = fileparts(d(i).name);
-    load(d(i).name);
+    A = load(d(i).name);
     
 %     ft_progress(i/length(d), 'Processing thresholded time windows %d from %d', i, length(d))  % show string, x=i/N
 %     pca_all = zeros(1,68);
-    for j=1:length(anot_data_all)
+    for j=1:length(A.anot_data_all)
         
 %         disp([num2str(j), '/', num2str(length(anot_data_all))])
-        anot_data = anot_data_all{j};
+        anot_data = A.anot_data_all{j};
         
 %         cfg = [];
 %         cfg.channel = 'EEG*';
@@ -115,7 +128,9 @@ for i= 1: length(d)
         
 %         pca_eeg(j,:) = zeros(1,68); D_eeg = smooth(smooth(do_pca(eeg.trial{:},1))); pca_eeg(j,1:length(D_eeg)) = D_eeg;
 %         pca_meg(j,:) = zeros(1,68); D_meg = smooth(smooth(do_pca(meg.trial{:},1))); pca_meg(j,1:length(D_meg)) = D_meg;
-        pca_all(j,:) = zeros(1,68); D_all = smooth(smooth(do_pca(abs(anot_data.trial{:}),1))); pca_all(j,1:length(D_all)) = D_all;
+%         pca_all(j,:) = zeros(1,68); 
+        D_all = smooth(smooth(do_pca(abs(anot_data.trial{:}),1))); 
+        pca_all(j,1:length(D_all)) = D_all;
         
         %         pca_eeg(j,:) = smooth(smooth(do_pca(eeg.trial{:}, 1)));
         %         pca_meg(j,:) = smooth(smooth(do_pca(meg.trial{:}, 1)));
