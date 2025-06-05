@@ -73,7 +73,7 @@ end
 
 %% Exsining copied suject files (in temp folder)
 clc
-savedir = '/MEG_data/Research_studies/Epil_clinial/';
+savedir = '/MEG_data/Research_studies/Epil_clinical2/';
 cd (savedir)
 files_exist = dir(savedir);
 
@@ -102,13 +102,18 @@ name_list.notmatched = sort(C_notfound);
 disp('1) copy MEG files')
 disp('2) copy brainstorm db files')
 disp('3) copy FS files')
+disp('4) Run cleanup')
 
 disp('select task'); task = input('');
 switch task
-    case 1       
+    case 1
         Run_copyrawMEG
     case 2
         Run_copy_BrainstormDB
     case 3
         Run_copy_Freefurfer
+    case 4
+        addpath('/MEG_data/MCW_pipeline/Preprocess')
+        Run_copyRaw_CleanupMEG
 end
+
