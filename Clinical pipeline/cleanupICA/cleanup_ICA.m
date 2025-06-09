@@ -84,27 +84,58 @@ n_components = input('Enter the number of ICs to use (e.g., 10): ');
 cfg = []; cfg.layout = 'neuromag306mag.lay'; neuromaglayout  = ft_prepare_layout(cfg);
 
 %% Process selected files
+% for i = file_indices
+%     datafile = d(i).name;
+%     disp(['Processing: ', datafile]);
+%
+%     % Read fif file
+%     cfg = [];
+%     cfg.channel = {'MEG'};
+%     cfg.datafile = datafile;
+%     f_data = ft_preprocessing(cfg);
+%
+%     % Apply ICA with specified number of components
+%     cfg = [];
+%     cfg.savepath = [];
+%     cfg.savefile = [];
+%     cfg.saveflag = 2;
+%     cfg.overwrite = 2;
+%     cfg.lay = neuromaglayout;
+%     cfg.n = n_components;
+%     cfg.subj = subjdir;
+%     cfg.allpath = allpath;
+%     cfg.select = 1;
+%     [cln_data, bic] = do_ica(cfg, f_data);
 for i = file_indices
     datafile = d(i).name;
     disp(['Processing: ', datafile]);
     
-    % Read fif file
-    cfg = [];
-    cfg.channel = {'MEG'};
-    cfg.datafile = datafile;
-    f_data = ft_preprocessing(cfg);
+    % ------------------------------------------------------
+    % Try FieldTrip's native reader first
+    % ------------------------------------------------------
+    switch dcon
+        case 1
+            f_data = do_read_neuromag_raw_nofilter(datafile);
+        otherwise
+            cfg = [];
+            cfg.channel   = {'MEG'};
+            cfg.datafile  = datafile;
+            f_data        = ft_preprocessing(cfg);
+    end
     
-    % Apply ICA with specified number of components
-    cfg = [];
-    cfg.savepath = [];
-    cfg.savefile = [];
-    cfg.saveflag = 2;
-    cfg.overwrite = 2;
-    cfg.lay = neuromaglayout;
-    cfg.n = n_components;
-    cfg.subj = subjdir;
-    cfg.allpath = allpath;
-    cfg.select = 1;
+    % ------------------------------------------------------
+    % … your existing ICA code …
+    % ------------------------------------------------------
+    cfg            = [];
+    cfg.savepath   = [];
+    cfg.savefile   = [];
+    cfg.saveflag   = 2;
+    cfg.overwrite  = 2;
+    cfg.lay        = neuromaglayout;
+    cfg.n          = n_components;
+    cfg.subj       = subjdir;
+    cfg.allpath    = allpath;
+    cfg.select     = 1;
     [cln_data, bic] = do_ica(cfg, f_data);
     
     if ~isempty(bic)
@@ -131,11 +162,22 @@ for i = file_indices
             end
         end
         
-        cfg = [];
-        cfg.infile = datafile;
-        cfg.outfile = outfile;
-        cfg.cln_data = cln_data;
-        do_mne_ex_read_write_raw(cfg);
+        switch dcon
+            case 1
+                helperfif = input('enter helper (fullpath) fif file to read the header: ');
+                cfg = [];
+                cfg.infile = datafile;
+                cfg.helper = helperfif;
+                cfg.outfile = outfile;
+                cfg.cln_data = cln_data;
+                do_mne_ex_read_write_raw_helper(cfg);
+            otherwise
+                cfg = [];
+                cfg.infile = datafile;
+                cfg.outfile = outfile;
+                cfg.cln_data = cln_data;
+                do_mne_ex_read_write_raw(cfg);
+        end
         cd(savedir);
         disp('Completed, data are ready to review in MEG_clinic!');
         disp(outfile);
