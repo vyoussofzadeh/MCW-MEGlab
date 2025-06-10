@@ -59,6 +59,7 @@ if ~isempty(bic)
     dataout = ft_rejectcomponent(cfg, comp, data);
 else
     dataout = data;
+    disp('no corrections were applied.')
 end
 
 end
