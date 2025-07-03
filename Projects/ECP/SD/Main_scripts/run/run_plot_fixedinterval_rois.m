@@ -14,6 +14,13 @@ colors = [
     0.48 0.12 0.66
     ];
 
+colors = [
+    0 114 189
+    217 83 25
+    237 177 32
+    126 47 142
+    ]/256;
+
 midpoints = mean(wi, 2);
 
 % Loop through each LI method
@@ -41,10 +48,10 @@ for methodIdx = 1:length(LI_method_labels)
                     plot(midpoints, currentMetrics(roiIdx, :), 'LineWidth', 3, 'Color', colors(roiIdx,:));
                     
                     % Set x-ticks and labels for every other interval
-                    xticks(midpoints(1:3:end));  % x-ticks for every other midpoint
-                    xLabels = arrayfun(@(i) sprintf('%.1f - %.1f', wi(i, 1), wi(i, 2)), 1:length(midpoints), 'UniformOutput', false);
-                    xticklabels(xLabels(1:3:end));  % x-labels for every other interval
-                    xtickangle(45);  % Rotate labels by 45 degrees
+%                     xticks(midpoints(1:3:end));  % x-ticks for every other midpoint
+%                     xLabels = arrayfun(@(i) sprintf('%.1f - %.1f', wi(i, 1), wi(i, 2)), 1:length(midpoints), 'UniformOutput', false);
+%                     xticklabels(xLabels(1:3:end));  % x-labels for every other interval
+%                     xtickangle(45);  % Rotate labels by 45 degrees
                     
                     % Set font size for x-axis labels
                     ax = gca; % Get current axes

@@ -51,17 +51,28 @@ for net_idx = 1:length(network_sel)
     % Find the maximum LI value and its corresponding time
     [maxLI, idx] = max(meanLI);
 %     maxTime = mean(wi(idx,:));  % Average time at the maximum LI point
-    maxTime = (wi(idx,1));  % Average time at the maximum LI point
+    maxTime = wi(idx,1);  % Average time at the maximum LI point
     
-    % Annotate the maximum value on the plot
-    %     text(maxTime, maxLI, sprintf('Mx:%.2f %.2fs', maxLI, maxTime), ...
-    %         'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
     
-    text(maxTime, maxLI, sprintf('%.2fs', maxTime), ...
-        'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
-    
-    % Draw a vertical line at the max time
-    line([maxTime maxTime], ylim, 'Color', customColors(net_idx,:), 'LineWidth', 1.5, 'LineStyle', '--');
+        % ===== NEW BLOCK 1: annotate value + time =====
+    text(maxTime, maxLI, sprintf('%.2f @ %.1fs', maxLI, maxTime), ...
+         'HorizontalAlignment','center','VerticalAlignment','bottom');
+
+    % ===== NEW BLOCK 2: vertical reference line, hidden from legend ====
+    line([maxTime maxTime], ylim, ...
+         'Color',customColors(net_idx,:), ...
+         'LineWidth',1.5,'LineStyle','--', ...
+         'HandleVisibility','off');
+%     
+%     % Annotate the maximum value on the plot
+%     %     text(maxTime, maxLI, sprintf('Mx:%.2f %.2fs', maxLI, maxTime), ...
+%     %         'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
+%     
+%     text(maxTime, maxLI, sprintf('%.2fs', maxTime), ...
+%         'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
+%     
+%     % Draw a vertical line at the max time
+%     line([maxTime maxTime], ylim, 'Color', customColors(net_idx,:), 'LineWidth', 1.5, 'LineStyle', '--');
     
     legendEntries{net_idx} = net_sel_mutiple_label{network_sel(net_idx)}; % Store legend entry
 end
@@ -75,7 +86,9 @@ set(gca, 'color', 'none');
 legend(plotHandles,legendEntries, 'Location', 'southoutside', 'NumColumns', 4, 'Orientation', 'horizontal');
 
 box off;
-set(gcf, 'Position', [800, 400, 500, 400]);
+% set(gcf, 'Position', [800, 400, 500, 400]);
+set(gcf, 'Position', [800, 400, 500, 800]);
+
 hold off; % Release the plot hold
 
 % Set up configuration for exporting the figure

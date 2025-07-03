@@ -25,14 +25,15 @@ for i = 1:length(LI_method_label)
         current_network = network_sel(net_idx); % Current network index
         
         % Prepare data to plot
-%         LI_values = squeeze(nanmean(LI_pt_val_new.(LI_method_label{i})(current_network, :, :), 2)); % Extract and average LI values for the current method and network
+        %         LI_values = squeeze(nanmean(LI_pt_val_new.(LI_method_label{i})(current_network, :, :), 2)); % Extract and average LI values for the current method and network
         LI_values = squeeze((LI_pt_val_new.(LI_method_label{i})(current_network, :, :))); % Extract and average LI values for the current method and network
         
         % Calculate mean across methods
         meanLI = nanmean(LI_values, 1);
+        midpoints = mean(wi, 2);
         % Plot the averaged LI values for the current network
-        plotHandles(net_idx) = plot(wi(:,1)', meanLI, 'LineWidth', 2, 'Color', colors(net_idx,:));
-%         plotHandles(net_idx) = AlphaLine(wi(:,1)',LI_values, colors(net_idx,:), 'LineWidth', 1.5);
+        plotHandles(net_idx) = plot(midpoints, meanLI, 'LineWidth', 2, 'Color', colors(net_idx,:));
+        %         plotHandles(net_idx) = AlphaLine(wi(:,1)',LI_values, colors(net_idx,:), 'LineWidth', 1.5);
         
         % Find the maximum LI value and its corresponding time
         [maxLI, idx] = max(meanLI);
@@ -42,8 +43,11 @@ for i = 1:length(LI_method_label)
         %     text(maxTime, maxLI, sprintf('Mx:%.2f %.2fs', maxLI, maxTime), ...
         %         'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
         
-        text(maxTime, maxLI, sprintf('%.2fs', maxTime), ...
-            'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
+        %         text(maxTime, maxLI, sprintf('%.2fs', maxTime), ...
+        %             'HorizontalAlignment', 'center', 'VerticalAlignment', 'bottom');
+        
+        text(maxTime, maxLI, sprintf('%.2f @ %.1fs', maxLI, maxTime), ...
+            'HorizontalAlignment','center','VerticalAlignment','bottom');
         
         % Draw a vertical line at the max time
         line([maxTime maxTime], ylim, 'Color', colors(net_idx,:), 'LineWidth', 1.5, 'LineStyle', '--');
@@ -62,6 +66,18 @@ for i = 1:length(LI_method_label)
     box off;
     set(gcf, 'Position', [800, 400, 500, 400]);
     hold off; % Release the plot hold
+    axis tight;
+    set(gca, 'LooseInset', max(get(gca, 'TightInset'), 0.05));  % Adjust to prevent clipping
+    
+    % Pick the ticks once and reuse them
+    tickIdx      = 1:3:numel(midpoints);    % every other midpoint, for example
+    tickPos      = midpoints(tickIdx);
+    tickLabels   = compose('%.1f',tickPos); % --> {'-0.5'  '0.0'  '0.5' }
+    % Apply to current axes (gca)  do this in both functions
+    set(gca,'XLim',midpoints([1 end]), ...   % identical range
+        'XTick',tickPos, ...
+        'XTickLabel',tickLabels, ...
+        'XAxisLocation','bottom');       % no surprises
     
     % Set up configuration for exporting the figure
     cfg = [];
@@ -72,6 +88,6 @@ for i = 1:length(LI_method_label)
     
     cd(save_dir); % Change back to the save directory
     
-%     close all, combined_path = fullfile(save_dir,[cfg.filename, ['.',figtype]]); web(combined_path, '-new');
+    close all, combined_path = fullfile(save_dir,[cfg.filename, ['.',figtype]]); web(combined_path, '-new');
     
 end

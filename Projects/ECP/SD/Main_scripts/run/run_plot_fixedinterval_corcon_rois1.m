@@ -9,12 +9,12 @@ baseColors = [
     112, 48, 160;
     84, 130, 53]/ 255;
 
-baseColors = [
-    0.96 0.49 0
-    0.22 0.56 0.24
-    0.69 0.71 0.17
-    0.48 0.12 0.66
-    ];
+% baseColors = [
+%     0.96 0.49 0
+%     0.22 0.56 0.24
+%     0.69 0.71 0.17
+%     0.48 0.12 0.66
+%     ];
 
 % Enhance color contrast
 contrastFactorMagnitude = 0.5;  % Higher factor for lighter colors in Magnitude
@@ -58,15 +58,15 @@ for metricIdx = 1:length(metricNames)
                     
                     
                     % Set x-ticks and labels for every other interval
-                    xticks(midpoints(1:3:end));  % x-ticks for every other midpoint
-                    xLabels = arrayfun(@(i) sprintf('%.1f - %.1f', wi(i, 1), wi(i, 2)), 1:length(midpoints), 'UniformOutput', false);
-                    xticklabels(xLabels(1:3:end));  % x-labels for every other interval
-                    xtickangle(45);  % Rotate labels by 45 degrees
+                    xticks(midpoints(1:end));  % x-ticks for every other midpoint
+%                     xLabels = arrayfun(@(i) sprintf('%.1f - %.1f', wi(i, 1), wi(i, 2)), 1:length(midpoints), 'UniformOutput', false);
+%                     xticklabels(xLabels(1:3:end));  % x-labels for every other interval
+                    xtickangle(90);  % Rotate labels by 45 degrees
                     
                     % Set font size for x-axis labels
                     ax = gca; % Get current axes
-                    ax.XAxis.FontSize = 8; % Set font size for x-axis only
-                    ax.YAxis.FontSize = 8; % Set font size for y-axis only
+                    ax.XAxis.FontSize = 5; % Set font size for x-axis only
+                    ax.YAxis.FontSize = 5; % Set font size for y-axis only
                     
                     [localMax, localMaxIndex] = max(dataToPlot);
                     if localMax > maxValue

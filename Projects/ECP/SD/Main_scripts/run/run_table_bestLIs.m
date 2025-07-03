@@ -1,5 +1,7 @@
 % Initialize a table to store the best results
 bestResultsTable = table();
+uniqueROIs = unique(summaryTable.ROI);
+
 
 % Loop through each ROI and select the best LI method based on highest Concordance
 for i = 1:length(uniqueROIs)
