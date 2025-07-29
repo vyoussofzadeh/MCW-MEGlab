@@ -396,7 +396,7 @@ run_sumLIs_fixedinterval
 run_plot_fixedinterval_corcon_LIsmethods
 
 %- plot_fixedinterval_corcon_rois1
-run_plot_fixedinterval_corcon_rois1
+run_plot_fixedinterval_corcon_rois3
 
 %- plot_fixedinterval_corcon_rois2
 % run_plot_fixedinterval_corcon_rois2
@@ -490,52 +490,6 @@ for i = 1:4
 
 end
 
-%% Optional 
-
-% close all
-% % Suppose your table is named "bestResultsTable" with columns:
-% %  - ROI
-% %  - Best_LI_Method
-% %  - MEG_LI  (each cell contains a [72 x 1] or [72 x T] numeric array)
-% %  - fMRI_LI (each cell contains a [72 x 1] or [72 x T] numeric array)
-% % etc.
-% 
-% for iRow = 1:height(bestResultsTable)
-%     
-%     % 1) Extract the ROI name and method (for labeling)
-%     currentROI    = bestResultsTable.ROI{iRow};
-%     currentMethod = bestResultsTable.Best_LI_Method{iRow};
-%     
-%     % 2) Extract the MEG_LI and fMRI_LI arrays
-%     %    Note: If these are [72 x 1], perfect; if they're bigger ([72 x 44]),
-%     %    you'll need to pick which column or reduce them somehow.
-%     megLI  = bestResultsTable.optMEG_LI{iRow};   % e.g., [72 x 1]
-%     fmriLI = bestResultsTable.fMRI_LI{iRow};  % e.g., [72 x 1]
-%     
-%     % 3) Generate subject labels (S1, S2, ...).
-%     %    Adjust if you have actual IDs in your data.
-%     nSubj  = size(megLI,1);  % e.g. 72
-%     subjectLabels = arrayfun(@(x) sprintf('S%d', x), 1:nSubj, 'UniformOutput', false);
-%     
-%     % 4) Create a new figure (optional)
-%     %     figure('Name', sprintf('BlandAltman: ROI=%s, Method=%s', currentROI, currentMethod));
-%     
-%     % 5) Call your BlandAltman plotting function.
-%     %    For example, if you want to label only outliers:
-%     ecpfunc_blandAltmanPlot(megLI, fmriLI, subjectLabels);
-%     [concordanceBA, outlierIdx] = ecpfunc_blandAltmanConcordance(megLI, fmriLI);
-%     disp([currentROI, '-', currentMethod])
-%     fprintf('Concordance = %.1f%%\n', 100*concordanceBA);
-%     fprintf('Outlier subjects: %s\n', num2str(outlierIdx'));
-%     
-%     % 6) (Optional) Adjust the plot title or save it
-%     title(sprintf('Bland-Altman Plot: %s (Method: %s)', currentROI, currentMethod));
-%     
-%     %    If you want to save automatically:
-%     %    saveas(gcf, sprintf('BlandAltman_%s_%s.png', currentROI, currentMethod));
-% end
-
-
 %% Task and epil. measures
 %- Response (reaction) time
 run_responsereaction
@@ -621,7 +575,7 @@ ecp_plot_noiseSNRCombined(final_combined_snr, plot_option, save_dir_test)
 clc
 close all
 
-for roi = 1:4
+for roi = 3:3
     cfg = [];
     cfg.roi_sel = roi; %lateral, n=3
     cfg.wi = wi;

@@ -26,6 +26,7 @@ Data_hcp_atlas = ecpfunc_hcp_atlas4(cfg);
 
 %% Plotting using Conn toolbox
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/brewermap')
+cd('/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/neurovault_MMP/MMP 1.0 MNI projections')
 
 % SPM
 spmpath = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/SPM/spm12_2021/spm12';
@@ -98,11 +99,23 @@ disp(idx_rois{3})
 disp('lateral:')
 disp(idx_rois{4})
 
-cd('/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm/neurovault_MMP/MMP 1.0 MNI projections')
 conn_mesh_display('MMP_in_MNI_symmetrical.nii');
 
 hcp_atlas_ft = ft_read_mri('MMP_in_MNI_symmetrical.nii');
 unique(hcp_atlas_ft.anatomy)
+
+%%
+ang = [16    17   141   143   145   150   151   152];
+front = [72    65    88    91    92    32    58    74    75    84    76    66    94    12    68    67    70    63  73    86    87    69    71   111   169    79    80    82    81    26    89   179    77    85    62    97 170   171    83   165    98];
+temp = [18   118   119   120   122   123   125   126   127   128   129   130   131   132   133   134   135   136 137   138   155   163   172   176   177];
+lateral = [11    16    17    46    50    66    67    73    74    75    76    77    79    80    81    82    83    92 94    97   111   112   123   125   128   129   130   131   132   133   134   136   137   138   141   143 145   146   150   151   169   171   172   176   177];
+
+ang_frontal_temp =  [16    17   141   143   145   150   151   152 ...
+72    65    88    91    92    32    58    74    75    84    76    66   ...
+94    12    68    67    70    63  73    86    87    69    71   111  ...
+169    79    80    82    81    26    89   179    77    85   ...
+62    97 170   171    83   165    98 18   118   119   120   122   123   ...
+125   126   127   128   129   130   131   132   133   134   135   136 137   138   155   163   172   176   177];
 
 
 %% 1) Load the old and new HCP data
@@ -149,6 +162,66 @@ hcp_color = colorMapMatrix(1:180,:);
 save('hcp_color_for_conn.mat', 'hcp_color');
 save('scout_mmp_in_mni_corr_updated.nii_362_newColor.mat','-struct', 'hcp_old')
 
+%% --------------------------------------------------------------
+% Define your four fixed colours (0255 ? 01)
+colAngular  = [  0 114 188]/255;     % teal
+colFrontal  = [216  83  25]/255;     % orange
+colTemporal = [127  96   0]/255;     % brown
+colLateral  = [126  47 141]/255;     % purple
+
+% --------------------------------------------------------------
+% ROI index lists (1180 only)
+idxAngular  = idx_rois{1};
+idxFrontal  = idx_rois{2};
+idxTemporal = idx_rois{3};
+idxLateral  = idx_rois{4};
+
+% --------------------------------------------------------------
+% 1) Colour-map for **lateral only**
+cmapLat = zeros(180,3);                        % start black
+cmapLat(idxLateral,:) = repmat(colLateral, numel(idxLateral), 1);
+
+% --------------------------------------------------------------
+% 2) Colour-map for **combined other regions**
+cmapOther = zeros(180,3);
+cmapOther(idxAngular ,:) = repmat(colAngular , numel(idxAngular ), 1);
+cmapOther(idxFrontal ,:) = repmat(colFrontal , numel(idxFrontal ), 1);
+cmapOther(idxTemporal,:) = repmat(colTemporal, numel(idxTemporal), 1);
+% Lateral rows stay black ? easy to spot absence
+
+% --------------------------------------------------------------
+% (Optional) update atlas colours in-memory
+paint = @(idx,rgb) arrayfun(@(ii)setfield(hcp_old.Scouts(ii),'Color',rgb),idx);
+
+% if you want the atlas itself to show these same colours:
+paint(idxAngular , colAngular );
+paint(idxFrontal , colFrontal );
+paint(idxTemporal, colTemporal);
+paint(idxLateral , colLateral );
+
+% --------------------------------------------------------------
+% Save colour maps for CONN / custom scripts
+atlasDir = '/data/MEG/Vahab/Github/MCW_MEGlab/tools/Atlas/HCP/HCP atlas for Brainstorm';
+cd(atlasDir)
+
+save('hcp_cmap_lateral.mat' , 'cmapLat');
+save('hcp_cmap_other.mat'   , 'cmapOther');
+
+%% fixed colour
+% [0,114,188] -> angular
+% [216,83,25] -> frontal
+% [126,47,141] -> lateral
+% [127,96,0] -> temporal
+
+
+%%
+view([-90,0])
+view([180,0])
+view([180,-90])
+view([90,0])
+view([0,90])
+
+view([-120,20])
 
 
 
