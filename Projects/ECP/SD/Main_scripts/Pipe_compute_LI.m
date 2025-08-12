@@ -92,6 +92,20 @@ if flags.plot_atlasnetworks == 1
     end
 end
 
+%% Define ROIs from HCP atlas
+% Extract specific region labels from the left hemisphere
+ang      = Data_hcp_atlas.glass_net_L_label{1,  1};  % Angular gyrus
+frontal  = Data_hcp_atlas.glass_net_L_label{1,  2};  % Frontal region
+temporal = Data_hcp_atlas.glass_net_L_label{1,  6};  % Temporal region
+lateral  = Data_hcp_atlas.glass_net_L_label{1, 11};  % Lateral region
+
+% Display the extracted ROIs
+% clc;
+disp('Angular gyrus:'), disp(ang);
+disp('Frontal region:'), disp(frontal);
+disp('Temporal region:'), disp(temporal);
+disp('Lateral region:'), disp(lateral);
+
 %% BS
 bs_path = '/opt/matlab_toolboxes/Brainstorm/Brainstorm3_2022/brainstorm3';
 
