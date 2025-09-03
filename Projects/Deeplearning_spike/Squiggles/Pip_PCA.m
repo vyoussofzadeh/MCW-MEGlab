@@ -22,9 +22,9 @@ addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/helper')
 % ft_path ='/opt/matlab_toolboxes/ft_packages/latest/fieldtrip-master';
 % addpath(ft_path);
 % ft_defaults
-% 
+%
 % addpath('/data/MEG/Research/awang/Scripts/func')
-% 
+%
 datadir = '/data/MEG/Research/SpikeDectection/Epil_annotated_data/annotated_data_anonymized';
 
 % if exist(savedir, 'file') == 0, mkdir(savedir);  end
@@ -106,65 +106,70 @@ for i= 1: length(d)
     [pathstr, name] = fileparts(d(i).name);
     A = load(d(i).name);
     
-%     ft_progress(i/length(d), 'Processing thresholded time windows %d from %d', i, length(d))  % show string, x=i/N
-%     pca_all = zeros(1,68);
-    for j=1:length(A.anot_data_all)
+    if isfield(A,'anot_data_all')
         
-%         disp([num2str(j), '/', num2str(length(anot_data_all))])
-        anot_data = A.anot_data_all{j};
+        %     ft_progress(i/length(d), 'Processing thresholded time windows %d from %d', i, length(d))  % show string, x=i/N
+        %     pca_all = zeros(1,68);
+        for j=1:length(A.anot_data_all)
+            
+            %         disp([num2str(j), '/', num2str(length(anot_data_all))])
+            anot_data = A.anot_data_all{j};
+            
+            %         cfg = [];
+            %         cfg.channel = 'EEG*';
+            %         eeg = ft_selectdata(cfg, anot_data);
+            %         %         figure, plot(smooth(mean(eeg.trial{:},1)))
+            %
+            %         cfg = [];
+            %         cfg.channel = 'MEG*';
+            %         meg = ft_selectdata(cfg, anot_data);
+            %         figure, plot(smooth(mean(meg.trial{:},1)))
+            
+            %         avg_eeg(j,:) = zeros(1,68); D_eeg = smooth(mean(eeg.trial{:},1)); avg_eeg(j,1:length(D_eeg)) = D_eeg;
+            %         avg_meg(j,:) = zeros(1,68); D_meg = smooth(mean(meg.trial{:},1)); avg_meg(j,1:length(D_meg)) = D_meg;
+            
+            %         pca_eeg(j,:) = zeros(1,68); D_eeg = smooth(smooth(do_pca(eeg.trial{:},1))); pca_eeg(j,1:length(D_eeg)) = D_eeg;
+            %         pca_meg(j,:) = zeros(1,68); D_meg = smooth(smooth(do_pca(meg.trial{:},1))); pca_meg(j,1:length(D_meg)) = D_meg;
+            %         pca_all(j,:) = zeros(1,68);
+            D_all = smooth(smooth(do_pca(abs(anot_data.trial{:}),1)));
+            pca_all(j,1:length(D_all)) = D_all;
+            
+            %         pca_eeg(j,:) = smooth(smooth(do_pca(eeg.trial{:}, 1)));
+            %         pca_meg(j,:) = smooth(smooth(do_pca(meg.trial{:}, 1)));
+            
+            
+            %         cfg            = [];
+            %         cfg.method     = 'runica';
+            %         cfg.numcomponent = 5;       % specify the component(s) that should be plotted
+            %         comp           = ft_componentanalysis(cfg, eeg);
+            %         figure, plot(smooth(abs(comp.trial{1}(1,:))))
+            
+            %         cfg = [];
+            %         cfg.blocksize = anot_data.time{1}(end) - anot_data.time{1}(1);
+            %         cfg.viewmode = 'vertical'; %butterfly';
+            %         cfg.continuous = 'yes';
+            %         cfg.axisfontsize = 7;
+            %         cfg.fontsize = 7;
+            %         cfg.channel = 'EEG*';
+            %         cfg.preproc.demean = 'yes';
+            %         cfg.position = [300   900   500   1500];
+            %         ft_databrowser(cfg, anot_data);
+            %         cfg.channel = 'MEG*';
+            %         cfg.position = [850   900   500   1500];
+            %         ft_databrowser(cfg, anot_data);
+            
+            %         pause,
+            %         close all,
+        end
+        %     avg_eeg_sub {i} = avg_eeg(j,:);
+        %     avg_meg_sub {i} = avg_meg(j,:);
         
-%         cfg = [];
-%         cfg.channel = 'EEG*';
-%         eeg = ft_selectdata(cfg, anot_data);
-%         %         figure, plot(smooth(mean(eeg.trial{:},1)))
-%         
-%         cfg = [];
-%         cfg.channel = 'MEG*';
-%         meg = ft_selectdata(cfg, anot_data);
-        %         figure, plot(smooth(mean(meg.trial{:},1)))
-        
-%         avg_eeg(j,:) = zeros(1,68); D_eeg = smooth(mean(eeg.trial{:},1)); avg_eeg(j,1:length(D_eeg)) = D_eeg;
-%         avg_meg(j,:) = zeros(1,68); D_meg = smooth(mean(meg.trial{:},1)); avg_meg(j,1:length(D_meg)) = D_meg;
-        
-%         pca_eeg(j,:) = zeros(1,68); D_eeg = smooth(smooth(do_pca(eeg.trial{:},1))); pca_eeg(j,1:length(D_eeg)) = D_eeg;
-%         pca_meg(j,:) = zeros(1,68); D_meg = smooth(smooth(do_pca(meg.trial{:},1))); pca_meg(j,1:length(D_meg)) = D_meg;
-%         pca_all(j,:) = zeros(1,68); 
-        D_all = smooth(smooth(do_pca(abs(anot_data.trial{:}),1))); 
-        pca_all(j,1:length(D_all)) = D_all;
-        
-        %         pca_eeg(j,:) = smooth(smooth(do_pca(eeg.trial{:}, 1)));
-        %         pca_meg(j,:) = smooth(smooth(do_pca(meg.trial{:}, 1)));
-        
-        
-        %         cfg            = [];
-        %         cfg.method     = 'runica';
-        %         cfg.numcomponent = 5;       % specify the component(s) that should be plotted
-        %         comp           = ft_componentanalysis(cfg, eeg);
-        %         figure, plot(smooth(abs(comp.trial{1}(1,:))))
-        
-        %         cfg = [];
-        %         cfg.blocksize = anot_data.time{1}(end) - anot_data.time{1}(1);
-        %         cfg.viewmode = 'vertical'; %butterfly';
-        %         cfg.continuous = 'yes';
-        %         cfg.axisfontsize = 7;
-        %         cfg.fontsize = 7;
-        %         cfg.channel = 'EEG*';
-        %         cfg.preproc.demean = 'yes';
-        %         cfg.position = [300   900   500   1500];
-        %         ft_databrowser(cfg, anot_data);
-        %         cfg.channel = 'MEG*';
-        %         cfg.position = [850   900   500   1500];
-        %         ft_databrowser(cfg, anot_data);
-        
-        %         pause,
-        %         close all,
+        %     pca_eeg_sub {i} = pca_eeg;
+        %     pca_meg_sub {i} = pca_meg;
+        pca_all_sub {i} = pca_all;
+    else
+        disp('skipped')
     end
-    %     avg_eeg_sub {i} = avg_eeg(j,:);
-    %     avg_meg_sub {i} = avg_meg(j,:);
-    
-%     pca_eeg_sub {i} = pca_eeg;
-%     pca_meg_sub {i} = pca_meg;
-    pca_all_sub {i} = pca_all;
 end
 
 % figure,plot(mean((pca_all_sub {1}(:,1:67)),1))
@@ -195,7 +200,7 @@ figure
 for i = 1:20
     %     nexttile
     subplot(4,5,i)
-    plot(data_pca(i,:))   
+    plot(data_pca(i,:))
     xlabel("Time Step")
 end
 
@@ -281,15 +286,15 @@ numTrainingFiles = 750;
 %     disp([num2str(i),'/',num2str(length(d))])
 %     [pathstr, name] = fileparts(d(i).name);
 %     load(d(i).name);
-%     
+%
 %     outsum = [];
 %     for j=1:length(anot_data_all)
 %         anot_data = anot_data_all{j};
-%         
+%
 %         cfg = [];
 %         cfg.plot = 0;
 %         outsum(j,:,:) = do_conn(cfg,anot_data.trial{1});
-%         
+%
 %         %         cfg = [];
 %         %         cfg.blocksize = anot_data.time{1}(end) - anot_data.time{1}(1);
 %         %         cfg.viewmode = 'vertical'; %butterfly';
@@ -338,7 +343,7 @@ numTrainingFiles = 750;
 % params.modParams.nLearners = 100;
 % params.modParams.LearnRate = 1;
 % params.modParams.MaxNumSplits = 20;
-% 
+%
 % % Run train function
 % [SVMg, RBTg] = trainModels(featuresTrain, params);
 

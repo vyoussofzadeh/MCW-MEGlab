@@ -509,10 +509,58 @@ T_snr = ecp_func_noiseSNRAnalysis2(plot_option, snrDataDir, save_dir_snr);
 disp(T_snr);
 
 %% Combine all variables
-combined1 = outerjoin(T_patn_MEGfMRI, accuracyResults_updt, 'Keys', 'SubjectID', 'MergeKeys', true);
+% combined1 = outerjoin(T_patn_MEGfMRI, accuracyResults_updt, 'Keys', 'SubjectID', 'MergeKeys', true);
 
+% 1) Make key types match
+T_patn_MEGfMRI.SubjectID      = strtrim(string(T_patn_MEGfMRI.SubjectID));
+accuracyResults_updt.SubjectID = strtrim(string(accuracyResults_updt.SubjectID));
+
+% 2) Join (keep all rows from RT table; add accuracy where available)
+combined1 = outerjoin( ...
+    T_patn_MEGfMRI, accuracyResults_updt, ...
+    'Keys','SubjectID', ...
+    'MergeKeys', true, ...
+    'Type','left', ...                                 % keep RT rows/order
+    'RightVariables', {'Animal_ACC','Symbol_ACC'} );   % only bring needed cols
+
+% 3) Quick sanity check
+fprintf('Rows with no accuracy matched: %d\n', ...
+    sum(ismissing(combined1.Animal_ACC) & ismissing(combined1.Symbol_ACC)));
+
+disp(combined1(1:min(10,height(combined1)),:))
+
+%%
+% 1) Harmonize key types/format
+combined1.SubjectID        = upper(strtrim(string(combined1.SubjectID)));
+T1_epil_measures.SubjectID = upper(strtrim(string(T1_epil_measures.SubjectID)));
+
+% 2) Deduplicate right table by SubjectID (keep first)
+[~, keepIdx] = unique(T1_epil_measures.SubjectID, 'stable');
+T1_epi_unique = T1_epil_measures(keepIdx, :);
+
+% 3) Rename any variables that would collide with left table (except the key)
+leftVars = combined1.Properties.VariableNames;
+rightVars = setdiff(T1_epi_unique.Properties.VariableNames, {'SubjectID'});        % candidates to add
+collide  = intersect(rightVars, leftVars);                                         % names present on both sides
+for k = 1:numel(collide)
+    T1_epi_unique.Properties.VariableNames{collide{k}} = [collide{k}, '_epi'];     % append suffix manually
+end
+
+% 4) Left-join (keeps combined1 order/rows)
+final_combined = outerjoin( ...
+    combined1, T1_epi_unique, ...
+    'LeftKeys','SubjectID', 'RightKeys','SubjectID', ...
+    'MergeKeys', true, ...
+    'Type','left');
+
+% 5) Quick sanity checks
+fprintf('Rows with no epi measures matched: %d\n', sum(~ismember(final_combined.SubjectID, T1_epi_unique.SubjectID)));
+head(final_combined)
+
+
+%%
 % Merge the result with T1_epil_measures_tbl
-final_combined = outerjoin(combined1, T1_epil_measures, 'LeftKeys', 'SubjectID', 'RightKeys', 'SubjectID', 'MergeKeys', true);
+% final_combined = outerjoin(combined1, T1_epil_measures, 'LeftKeys', 'SubjectID', 'RightKeys', 'SubjectID', 'MergeKeys', true);
 [commonSubs, idxFinal, idxPt] = intersect(final_combined.SubjectID, Pt_ID);
 final_combined_updt       = final_combined(idxFinal,:);
 

@@ -60,13 +60,13 @@ for subj = 1:numSubjects
 
     % Optional plotting for selected subjects
     if ~isempty(subjectsForPlot) && ismember(subj, subjectsForPlot)
-        plotSubjectData(subj, subjectsForPlot, timePoints(:,1), rSNR_left(subj, :), rSNR_right(subj, :), abs_diff(subj, :), optimalIndices(subj), timePoints(bounds(subj, 1), 1), timePoints(bounds(subj, 2), 1));
+        plotSubjectData(subj, subjectsForPlot, timePoints(:,1), rSNR_left(subj, :), rSNR_right(subj, :), abs_diff(subj, :), optimalIndices(subj), timePoints(bounds(subj, 1), 1), timePoints(bounds(subj, 2), 1), thresholds(subj));
     end
 end
 
 end
 
-function plotSubjectData(subj, subjectsForPlot, timePointMid, rSNR_left, rSNR_right, abs_diff, optimalIdx, lowerBound, upperBound)
+function plotSubjectData(subj, subjectsForPlot, timePointMid, rSNR_left, rSNR_right, abs_diff, optimalIdx, lowerBound, upperBound, thresholds)
 subplot(ceil(length(subjectsForPlot) / 2), 2, find(subjectsForPlot == subj));
 set(gcf, 'Position', [200, 400, 800, 400]);
 %     yyaxis left;
@@ -75,6 +75,8 @@ hold on;
 plot(timePointMid, rSNR_right, 'r-', 'DisplayName', 'rSNR Right');
 xline(lowerBound, '--k', 'DisplayName', 'Lower Bound');
 xline(upperBound, '--k', 'DisplayName', 'Upper Bound');
+
+yline(thresholds)
 
 %     yyaxis right;
 plot(timePointMid, abs_diff, 'k-', 'DisplayName', 'Absolute Difference', 'LineWidth', 2);
