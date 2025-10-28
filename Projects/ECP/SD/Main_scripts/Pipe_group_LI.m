@@ -18,6 +18,8 @@ Run_setpath
 
 addpath('/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/FT_fucntions/External/other/');
 
+%%
+flag.skip_plots = 1;
 
 %%
 MEG_thre = 10; % MEG threshold
@@ -381,34 +383,43 @@ for i = 1:size(rSNR_new.Magnitude, 1)
 end
 
 %% Plot MEG LI for selected network ROIs
-run_plot_MEGLIs
+network_sel = [1, 2, 6, 11]; % Define the networks to include in the plot
 
-run_plot_MEGLIs_ver2
-
-%%
-run_plot_MEGsnr
+if flag.skip_plots == 0
+    run_plot_MEGLIs
+    run_plot_MEGLIs_ver2
+    run_plot_MEGsnr
+end
 
 %% Fixed interval analysis
 %- Summerize LIs_fixedinterva
 run_sumLIs_fixedinterval
 
-%- plot_fixedinterval_corcon_LIsmethods
-run_plot_fixedinterval_corcon_LIsmethods
+%%
+LI_method_labels = LI_method_label;
+metricNames = {'Correlation', 'Concordance'};
+roi_labels = {'Ang', 'Front', 'Temp', 'Lat'};
 
-%- plot_fixedinterval_corcon_rois1
-run_plot_fixedinterval_corcon_rois3
 
+if flag.skip_plots == 0
+    %- plot_fixedinterval_corcon_LIsmethods
+    run_plot_fixedinterval_corcon_LIsmethods
+    %- plot_fixedinterval_corcon_rois1
+    run_plot_fixedinterval_corcon_rois3
+    run_plot_fixedinterval_rois
+end
 %- plot_fixedinterval_corcon_rois2
 % run_plot_fixedinterval_corcon_rois2
 
 %- plot_fixedinterval_rois
-run_plot_fixedinterval_rois
 
 %- table_fixedinterval
 run_table_fixedinterval
 
-%- plot_fixedinterval
-run_plot_fixedinterval
+if flag.skip_plots == 0 
+    %- plot_fixedinterval
+    run_plot_fixedinterval
+end
 
 %% Dynamic interval analysis
 plot_indiv_LI = 0; plot_rSNR = 0; plot_rSNR_LI = 0;
@@ -447,18 +458,21 @@ end
 
 
 %%
-%- plot_compare_fixed_opt_methods
-run_plot_compare_fixed_opt_methods
-
-%- plot_compare_fixed_opt_rois
-run_plot_compare_fixed_opt_rois
-
-%- Plot_compare_fixed_opt
-run_plot_compare_fixed_opt
-
-%- plot_compare_fixed_opt_rois_summ
-run_plot_compare_fixed_opt_rois_summ
-run_plot_compare_fixed_opt_gsum
+if flag.skip_plots == 0
+    
+    %- plot_compare_fixed_opt_methods
+    run_plot_compare_fixed_opt_methods
+    
+    %- plot_compare_fixed_opt_rois
+    run_plot_compare_fixed_opt_rois
+    
+    %- Plot_compare_fixed_opt
+    run_plot_compare_fixed_opt
+    
+    %- plot_compare_fixed_opt_rois_summ
+    run_plot_compare_fixed_opt_rois_summ
+    run_plot_compare_fixed_opt_gsum
+end
 
 %% Pick the Best Results Out of 3 LI Methods for Discordant Analyses
 run_table_bestLIs
@@ -557,7 +571,6 @@ final_combined = outerjoin( ...
 fprintf('Rows with no epi measures matched: %d\n', sum(~ismember(final_combined.SubjectID, T1_epi_unique.SubjectID)));
 head(final_combined)
 
-
 %%
 % Merge the result with T1_epil_measures_tbl
 % final_combined = outerjoin(combined1, T1_epil_measures, 'LeftKeys', 'SubjectID', 'RightKeys', 'SubjectID', 'MergeKeys', true);
@@ -614,7 +627,11 @@ save_dir_test = '/path/to/export';
 
 % ecp_plot_noiseSNR(final_combined_snr, plot_option, save_dir);
 
-ecp_plot_noiseSNRCombined(final_combined_snr, plot_option, save_dir_test)
+if flag.skip_plots == 0
+    
+    ecp_plot_noiseSNRCombined(final_combined_snr, plot_option, save_dir_test)
+    
+end
 
 % plot_option = 1;
 % run_plotSNR

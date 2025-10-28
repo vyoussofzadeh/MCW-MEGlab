@@ -101,8 +101,11 @@ for iRow = 1:height(bestResultsTable)
     grossDiscordSubs = find( (MEG_LI_tern==1 & fMRI_LI_tern==-1) | ...
         (MEG_LI_tern==-1 & fMRI_LI_tern==1) );
     
+    DiscordSubs = find( (MEG_LI_tern ~= fMRI_LI_tern));
+    
     % Store these subject indices in the new column
     bestResultsTable.Gross_Discord_Subs{iRow} = grossDiscordSubs;
+%     bestResultsTable.Gross_Discord_Subs{iRow} = DiscordSubs;
     
     % (Optional) Print them
     %     fprintf('ROI #%d = %s: #GrossDiscord = %d\n', iRow, bestResultsTable.ROI{iRow}, length(grossDiscordSubs));
