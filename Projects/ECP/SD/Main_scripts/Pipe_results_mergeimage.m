@@ -7,7 +7,6 @@ outputFile = 'merge_wholebrain_lateral.png';
 
 do_combine_images(folderPath, outputFile)
 
-
 %% Fig 2 - group source source maps, parcels
 folderPath = '/data/MEG/Research/ECP/Semantic_Decision/Results_prestim/DICS_directcontrast_localthresh/results/parc_lat';
 outputFile = 'merge_parc_lateral.png';
@@ -42,6 +41,13 @@ do_combine_images(folderPath, outputFile, 'column')
 
 %%
 folderPath = '/data/MEG/Research/ECP/Semantic_Decision/Results/Group_source/Anim';
+outputFile = 'merge_contrast_HCP_ROIs.png';
+
+do_combine_images(folderPath, outputFile, 'column')
+
+
+%%
+folderPath = '/data/MEG/Research/ECP/Semantic_Decision/Results/Group_source/Anim/ver2';
 outputFile = 'merge_contrast_HCP_ROIs.png';
 
 do_combine_images(folderPath, outputFile, 'column')

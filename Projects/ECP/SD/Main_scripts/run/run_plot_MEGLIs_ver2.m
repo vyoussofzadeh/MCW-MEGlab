@@ -68,6 +68,8 @@ for i = 1:length(LI_method_label)
     hold off; % Release the plot hold
     axis tight;
     set(gca, 'LooseInset', max(get(gca, 'TightInset'), 0.05));  % Adjust to prevent clipping
+    ylim([-10,70])
+
     
     % Pick the ticks once and reuse them
     tickIdx      = 1:3:numel(midpoints);    % every other midpoint, for example

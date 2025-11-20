@@ -17,6 +17,7 @@ for i=1:length(LI_method_label)
     cfg.idx = IB_megfmri;
     cfg.title = LI_method_label{i};
     do_MEG_fMRI_corr_contrast_rois(cfg);
+    ylim([-0.2,0.7])
     
     % - export figs
     cfg = []; cfg.outdir = save_dir; filename = ['corr ROIs_', LI_method_label{i}]; cfg.filename = filename; cfg.type = 'svg'; do_export_fig(cfg)

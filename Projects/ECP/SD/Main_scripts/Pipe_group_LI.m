@@ -626,11 +626,8 @@ plot_option = 1;
 save_dir_test = '/path/to/export';
 
 % ecp_plot_noiseSNR(final_combined_snr, plot_option, save_dir);
-
 if flag.skip_plots == 0
-    
     ecp_plot_noiseSNRCombined(final_combined_snr, plot_option, save_dir_test)
-    
 end
 
 % plot_option = 1;
@@ -655,7 +652,29 @@ for roi = 3:3
         case 4
             cfg.bestResultsTable = bestResultsTable_fixed;
     end
-    ecpfunc_assess_gross_discondances2(cfg)
+    ecpfunc_assess_gross_discondances3(cfg)
+end
+
+%% marginal-discordance
+clc
+close all
+
+for roi = 1:1
+    cfg = [];
+    cfg.roi_sel = roi; %lateral, n=3
+    cfg.wi = wi;
+    cfg.bounds = bounds;
+    cfg.plot_option  = 1;
+    cfg.save_dir = save_dir;
+    cfg.final_combined_updt = final_combined_snr;
+    cfg.T1_epil_measures = T1_epil_measures;
+    switch opt_sel
+        case 1
+            cfg.bestResultsTable = bestResultsTable;
+        case 4
+            cfg.bestResultsTable = bestResultsTable_fixed;
+    end
+    ecpfunc_assess_gross_discondances_marginal(cfg)
 end
 
 %% Beta
@@ -683,11 +702,8 @@ T1_epil_measures_upted.IQcat        = defineIQbins(final_combined_updt.NP1WASI_F
 T1_epil_measures_upted.TLEside      = defineTLEside(final_combined_updt.TLEside);
 T1_epil_measures_upted.AEDcat       = defineAEDbins(final_combined_updt.AEDCount);
 T1_epil_measures_upted.LTGTCcat     = defineLTGTCbins(final_combined_updt.LTGTC);
-
 T1_epil_measures_upted.SGcat        = defineSGfreqbins(final_combined_updt.SG_freq);
-
 T1_epil_measures_upted.cp_freq_cat  = defineCPfreqbins(final_combined_updt.CP_freq);
-
 T1_epil_measures_upted.AnimalRTcat   = defineRTbins(final_combined_updt.Animal_RT);
 T1_epil_measures_upted.SymbolRTcat   = defineRTbins(final_combined_updt.Symbol_RT);
 T1_epil_measures_upted.AnimalACCcat  = defineACCbins(final_combined_updt.Animal_ACC);
