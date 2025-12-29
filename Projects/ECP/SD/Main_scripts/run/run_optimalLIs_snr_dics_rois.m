@@ -112,7 +112,7 @@ disp(summaryTableDynamic_save)
 
 %% Plot rSNR
 if plot_rSNR == 1
-    for j = 4:4 %length(network_sel)
+    for j = 3:3 %length(network_sel)
         fMRI_LI = fmri_LIs_ROIs(:, j);
         for methodIdx = 1:length(LI_method_label)
             MEG_LI = squeeze(LI_pt_val_new.(LI_method_label{methodIdx})(network_sel(j), :, :));
@@ -141,7 +141,7 @@ end
 
 %% Plot rSNR+LI
 if plot_rSNR_LI == 1
-    for j = 4:4 %length(network_sel)
+    for j = 3:3 %length(network_sel)
         fMRI_LI = fmri_LIs_ROIs(:, j);
         for methodIdx = 1:length(LI_method_label)
             

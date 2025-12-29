@@ -655,6 +655,103 @@ for roi = 3:3
     ecpfunc_assess_gross_discondances3(cfg)
 end
 
+%% Cross-ROI dominance switches (MEG vs fMRI)
+clc
+roiNames = bestResultsTable.ROI;
+nROI     = numel(roiNames);
+
+% Assume same N across ROIs
+N = numel(bestResultsTable.MEG_LI_tern{1});
+
+MEG_tern  = nan(N, nROI);
+fMRI_tern = nan(N, nROI);
+
+for r = 1:nROI
+    MEG_tern(:,r)  = bestResultsTable.MEG_LI_tern{r};
+    fMRI_tern(:,r) = bestResultsTable.fMRI_LI_tern{r};
+end
+
+% Helper: any left/right across ROIs (ignoring bilateral = 0)
+hasLeft_MEG   = any(MEG_tern  ==  1, 2);
+hasRight_MEG  = any(MEG_tern  == -1, 2);
+hasLeft_fMRI  = any(fMRI_tern ==  1, 2);
+hasRight_fMRI = any(fMRI_tern == -1, 2);
+
+% Reversal = patient has at least one left-dominant ROI and one right-dominant ROI
+rev_MEG  = hasLeft_MEG  & hasRight_MEG;
+rev_fMRI = hasLeft_fMRI & hasRight_fMRI;
+
+% Proportions
+prop_rev_MEG  = mean(rev_MEG)  * 100;
+prop_rev_fMRI = mean(rev_fMRI) * 100;
+
+fprintf('\nCross-ROI L-R reversals:\n');
+fprintf('  MEG : %d/%d (%.1f%%)\n',  sum(rev_MEG),  N, prop_rev_MEG);
+fprintf('  fMRI: %d/%d (%.1f%%)\n',  sum(rev_fMRI), N, prop_rev_fMRI);
+
+% Optional: restrict to subjects with =2 non-neutral ROIs (to avoid noisy cases)
+active_MEG  = sum(MEG_tern  ~= 0, 2) >= 2;
+active_fMRI = sum(fMRI_tern ~= 0, 2) >= 2;
+
+prop_rev_MEG_active  = mean(rev_MEG(active_MEG))   * 100;
+prop_rev_fMRI_active = mean(rev_fMRI(active_fMRI)) * 100;
+
+fprintf('\nReversals among subjects with =2 non-neutral ROIs:\n');
+fprintf('  MEG : %d/%d (%.1f%%)\n',  sum(rev_MEG & active_MEG),   sum(active_MEG),   prop_rev_MEG_active);
+fprintf('  fMRI: %d/%d (%.1f%%)\n',  sum(rev_fMRI & active_fMRI), sum(active_fMRI), prop_rev_fMRI_active);
+
+% McNemar test: does MEG have more reversals than fMRI?
+tbl = [ sum(rev_MEG & rev_fMRI),      sum(~rev_MEG & rev_fMRI); ...
+        sum(rev_MEG & ~rev_fMRI),     sum(~rev_MEG & ~rev_fMRI) ];
+
+% [~,p_mcn] = mcnemar(tbl);
+% fprintf('\nMcNemar test for difference in reversal frequency: p = %.4f\n', p_mcn);
+% disp(tbl);
+[p_mcn, chi2_mcn] = mcnemar_chi2(tbl, true);
+fprintf('\nMcNemar test for difference in reversal frequency: p = %.4f (chi2 = %.3f, df = 1)\n', ...
+    p_mcn, chi2_mcn);
+disp(tbl);
+
+%% Within-modality cross-ROI LI correlations (MEG / fMRI)
+
+MEG_LI_mat  = nan(N, nROI);
+fMRI_LI_mat = nan(N, nROI);
+
+for r = 1:nROI
+    MEG_LI_mat(:,r)  = bestResultsTable.optMEG_LI{r}(:);   % N×1
+    fMRI_LI_mat(:,r) = bestResultsTable.fMRI_LI{r}(:);     % N×1
+end
+
+% Correlation matrices (subjects × ROI)
+R_meg  = corr(MEG_LI_mat,  'rows','pairwise');
+R_fmri = corr(fMRI_LI_mat, 'rows','pairwise');
+
+disp('MEG cross-ROI LI correlations:');  disp(array2table(R_meg,  'VariableNames',roiNames,'RowNames',roiNames));
+disp('fMRI cross-ROI LI correlations:'); disp(array2table(R_fmri, 'VariableNames',roiNames,'RowNames',roiNames));
+
+% Summarize with mean off-diagonal correlation
+mask          = triu(true(nROI),1);
+r_meg_vec     = R_meg(mask);
+r_fmri_vec    = R_fmri(mask);
+
+z_meg         = atanh(r_meg_vec);
+z_fmri        = atanh(r_fmri_vec);
+
+mean_z_meg    = mean(z_meg);
+mean_z_fmri   = mean(z_fmri);
+
+mean_r_meg    = tanh(mean_z_meg);
+mean_r_fmri   = tanh(mean_z_fmri);
+
+fprintf('\nMean off-diagonal ROIROI r (MEG):  %.2f\n', mean_r_meg);
+fprintf('Mean off-diagonal ROIROI r (fMRI): %.2f\n', mean_r_fmri);
+
+% Optional paired test across ROI-pairs
+[~,p_rdiff] = ttest(z_meg, z_fmri);
+fprintf('Paired test on Fisher-z (MEG vs fMRI ROI-pair correlations): p = %.4f\n', p_rdiff);
+
+
+
 %% marginal-discordance
 clc
 close all
