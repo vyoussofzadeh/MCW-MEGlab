@@ -54,7 +54,7 @@ Jobs = Rows(uix, :);
 % Ensure reviewer folders exist
 reviewers = unique(Jobs.Reviewer);
 for r = 1:numel(reviewers)
-    rdir = fullfile(destRoot, reviewers(r));
+    rdir = fullfile(destRoot, 'tmp', reviewers(r));
     if ~exist(rdir, 'dir'), mkdir(rdir); end
 end
 
@@ -73,7 +73,7 @@ for k = 1:height(Jobs)
 
     % where to drop them
 %     dstBase = fullfile(destRoot, rev, subj);
-    dstBase = fullfile(destRoot, rev, 'sss/MEG_data');
+    dstBase = fullfile(destRoot, 'tmp', rev, 'sss/MEG_data');
     if byRunSubfolder
         dstBase = fullfile(dstBase, sprintf('Run%02d', runN));
     end
