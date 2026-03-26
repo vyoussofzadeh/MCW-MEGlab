@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+#acqfolder=/MEG_acq/epilepsy
+acqfolder="/MEG_data/neuro-data/epilepsy"
+destroot="/MEG_data/epilepsy"
+
+echo "Available in: $acqfolder"
+ls -1 "$acqfolder" || true
+echo ""
+
+read -r -p "Enter Input folder (e.g., 240612_ABC): " subjid
+read -r -p "Enter Output folder name (will be placed in $destroot): " outputfold
+read -r -p "Do you want to perform tSSS on spontaneous data (VNS or Dental) (Y/N): " tSSS_spont
+
+# Normalize user input
+tSSS_spont="$(echo "$tSSS_spont" | tr '[:lower:]' '[:upper:]')"
+if [[ "$tSSS_spont" != "Y" && "$tSSS_spont" != "N" ]]; then
+  echo "ERROR: Please answer Y or N."
+  exit 1
+fi
+
+src="$acqfolder/$subjid"
+subj_meg_folder="$destroot/$outputfold"
+
+if [[ ! -d "$src" ]]; then
+  echo "ERROR: Input folder not found: $src"
+  exit 1
+fi
+
+mkdir -p "$subj_meg_folder"
+
+echo "Copying $src -> $subj_meg_folder"
+cp -R "$src"/* "$subj_meg_folder"/
+
+chmod -R 2775 "$subj_meg_folder"
+chmod -R g+s "$subj_meg_folder"
+
+# Detect dataset folder inside the output folder (first directory level)
+# (Adjust this logic if you have multiple runs and want all of them)
+datasetfolder="$(find "$subj_meg_folder" -mindepth 1 -maxdepth 1 -type d | head -n 1)"
+if [[ -z "${datasetfolder:-}" ]]; then
+  echo "ERROR: Could not find dataset folder under: $subj_meg_folder"
+  exit 1
+fi
+echo "Detected dataset folder: $datasetfolder"
+
+# Create Brainstorm folders
+mkdir -p "$subj_meg_folder/brainstorm_db/anat" "$subj_meg_folder/brainstorm_db/data"
+chmod -R 2775 "$subj_meg_folder/brainstorm_db"
+chmod -R g+s "$subj_meg_folder/brainstorm_db"
+
+###############################################################################
+# Run MaxFilter + SSP cleanup via MATLAB batch function (replaces meg_clinic call)
+###############################################################################
+MATLAB_BIN="/usr/local/MATLAB/R2018a/bin/matlab"
+MATLAB_FUNC_DIR="/MEG_data/MCW_pipeline/Preprocess"
+
+inDir="$datasetfolder"
+outDir="$datasetfolder"   # or "$subj_meg_folder" if you want outputs at subject root
+
+"$MATLAB_BIN" -nodisplay -nosplash -nodesktop \
+  -r "try, addpath('$MATLAB_FUNC_DIR'); cleanup_MaxFilter_tSSS_forWrapper_ver2('$inDir','$outDir'); catch ME, disp(getReport(ME,'extended')); exit(1); end; exit(0);"
+
+###############################################################################
+# Continue your pipeline
+###############################################################################
+echo "Running preproc_cmd.py (tSSS on spont = $tSSS_spont)..."
+/MEG_data/MCW_pipeline/Preprocess/preproc_cmd.py -s "$outputfold" --clean_spont "$tSSS_spont"
+
+echo "Running movement assessment..."
+/MEG_data/MCW_pipeline/Preprocess/calc_movement.py -s "$outputfold" --all
+
+chmod -R 2775 "$subj_meg_folder"
+chmod -R g+s "$subj_meg_folder"
+
+echo "Done."
