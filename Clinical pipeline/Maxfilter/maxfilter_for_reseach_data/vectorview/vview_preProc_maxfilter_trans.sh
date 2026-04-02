@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+
+set -u
+shopt -s nullglob
+
+if [[ $# -lt 2 ]]; then
+    echo "Usage: $0 <baseline_raw_file> <output_folder_name>"
+    exit 1
+fi
+
+baseline="$1"
+out_name="$2"
+
+base="$PWD"
+orig_dir="${base}/orig"
+tsss_dir="${base}/${out_name}"
+
+mkdir -p "$orig_dir" "$tsss_dir"
+
+# Move raw files into orig/ if they are still in the current folder
+rawfiles=( *raw*fif* )
+if (( ${#rawfiles[@]} > 0 )); then
+    mv "${rawfiles[@]}" "$orig_dir"/
+fi
+
+cd "$orig_dir" || {
+    echo "ERROR: Cannot access $orig_dir"
+    exit 1
+}
+
+baseline_file="${orig_dir}/${baseline}"
+
+if [[ ! -e "$baseline_file" ]]; then
+    echo "ERROR: baseline file not found: $baseline_file"
+    exit 1
+fi
+
+echo "Using baseline for -trans: $baseline_file"
+
+runs=( *raw*fif* )
+
+if (( ${#runs[@]} == 0 )); then
+    echo "No raw FIF files found in $orig_dir"
+    exit 1
+fi
+
+for run in "${runs[@]}"; do
+    echo "Running: $run"
+    stem="${run%.fif}"
+    hpfile="${tsss_dir}/${stem}_headpos.txt"
+    outfile="${tsss_dir}/${run}"
+
+    if [[ -s "$outfile" ]]; then
+        echo "Skipping already processed: $run"
+        continue
+    fi
+
+    /neuro/bin/util/maxfilter \
+        -f "$run" \
+        -o "$outfile" \
+        -ctc /neuro/databases/Elekta_Orig_Files/ctc/ct_sparse.fif \
+        -cal /neuro/databases/Elekta_Orig_Files/sss-oldElekta/sss_cal.dat \
+        -autobad off \
+        -st 10 \
+        -corr .9 \
+        -trans "$baseline_file" \
+        -force
+done

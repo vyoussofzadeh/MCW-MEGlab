@@ -239,7 +239,7 @@ Fs = mode(Fs_list(~isnan(Fs_list)));
 if isempty(Fs), Fs = Fs_default; end
 t = (0:size(allX,3)-1)/Fs;
 
-% trial = 1;
+trial = 1;
 % figure; plot(t, squeeze(allX(trial,1,:)));
 % xlabel('Time (s)'); ylabel('Amplitude');
 % title(sprintf('Trial %d, Channel 1, y=%d', trial, ally(trial)));
