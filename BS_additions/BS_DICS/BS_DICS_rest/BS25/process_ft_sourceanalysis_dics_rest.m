@@ -1,17 +1,28 @@
 function varargout = process_ft_sourceanalysis_dics_rest(varargin)
-% PROCESS_FT_SOURCEANALYSIS_DICS_REST_IMPROVED
-% DICS source analysis for resting/task spectral windows with optional
-% projected-noise normalization (NAI).
+% PROCESS_FT_SOURCEANALYSIS_DICS_REST
+% FieldTrip DICS beamformer for resting-state / single-window spectral
+% source analysis in Brainstorm.
 %
-% Main changes vs the original version:
-%   1) adds projected-noise normalization (recommended default for rest /
-%      single-condition maps)
-%   2) removes per-map max-normalization before contrast
-%   3) fixes several robustness issues (single-file handling, bad-channel loop,
-%      undefined savepath, incorrect freq axis output, sensor-info propagation)
-%   4) avoids using an arbitrary control frequency unless explicitly requested
+% This custom process supports optional normalization using:
+%   1) projected noise / neural activity index (NAI),
+%   2) background-noise estimates, or
+%   3) an alternate frequency band as reference.
 %
-% Authors: Vahab YoussofZadeh, Francois Tadel, 2021
+% Intended use:
+%   - Primarily for resting-state or single-window spectral mapping, where
+%     no true prestimulus baseline is available.
+%   - For task-based analyses, an active-vs-baseline contrast with a common
+%     spatial filter is generally preferable.
+%
+% Main updates relative to the original version:
+%   1) Added projected-noise normalization (recommended default for rest).
+%   2) Added optional background-noise and alternate-frequency references.
+%   3) Removed per-map max-normalization before source contrast.
+%   4) Improved robustness in trial loading, bad-channel handling,
+%      sensor-information propagation, time-window usage, and output generation.
+%
+% Authors: Vahab Youssof Zadeh
+% Updated: 2026
 
 eval(macro_method);
 end
