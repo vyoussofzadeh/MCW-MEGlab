@@ -1,4 +1,5 @@
-function varargout = process_ft_sourceanalysis_dics_rest(varargin)
+function varargout = process_ft_sourceanalysis_dics_rest
+(varargin)
 % PROCESS_FT_SOURCEANALYSIS_DICS_REST
 % FieldTrip DICS beamformer for resting-state / single-window spectral
 % source analysis in Brainstorm.
@@ -47,15 +48,6 @@ sProcess.options.sensortype.Type    = 'combobox_label';
 sProcess.options.sensortype.Value   = {'MEG', {'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'; ...
     'MEG', 'MEG GRAD', 'MEG MAG', 'EEG', 'SEEG', 'ECOG'}};
 
-% Label: Time
-sProcess.options.label1.Comment = '<BR><B>Time of interest:</B>';
-sProcess.options.label1.Type    = 'label';
-
-% Active time window
-sProcess.options.poststim.Comment = 'Window of interest:';
-sProcess.options.poststim.Type    = 'poststim';
-sProcess.options.poststim.Value   = [];
-
 % Label: Frequency
 sProcess.options.label2.Comment = '<BR><B>Frequency of interest:</B>';
 sProcess.options.label2.Type    = 'label';
@@ -80,6 +72,10 @@ sProcess.options.normmode.Value   = 'noise';
 sProcess.options.ctrlfoi.Comment = 'Control freq (only if using other-frequency mode):';
 sProcess.options.ctrlfoi.Type    = 'value';
 sProcess.options.ctrlfoi.Value   = {15, 'Hz', 0};
+
+sProcess.options.ctrltpr.Comment = 'Control tapering freq:';
+sProcess.options.ctrltpr.Type    = 'value';
+sProcess.options.ctrltpr.Value   = {12, 'Hz', 0};
 
 sProcess.options.lambda.Comment = 'DICS lambda:';
 sProcess.options.lambda.Type    = 'value';
@@ -137,26 +133,29 @@ if ~isInstalled
     return;
 end
 
+
 % ===== GET OPTIONS =====
-Method        = sProcess.options.method.Value;
-Modality      = sProcess.options.sensortype.Value{1};
-ShowTfr       = sProcess.options.showtfr.Value;
-MaxFreq       = sProcess.options.maxfreq.Value{1};
-PostStim      = sProcess.options.poststim.Value{1};
-FOI           = sProcess.options.foi.Value{1};
-TprFreq       = sProcess.options.tpr.Value{1};
+Method     = sProcess.options.method.Value;
+Modality   = sProcess.options.sensortype.Value{1};
+ShowTfr    = sProcess.options.showtfr.Value;
+MaxFreq    = sProcess.options.maxfreq.Value{1};
+FOI        = sProcess.options.foi.Value{1};
+TprFreq    = sProcess.options.tpr.Value{1};
 NormMode      = sProcess.options.normmode.Value;
 CtrlFOI       = sProcess.options.ctrlfoi.Value{1};
 LambdaPct     = sProcess.options.lambda.Value{1};
 UseRealFilter = sProcess.options.realfilter.Value;
 TmpDir        = bst_get('BrainstormTmpDir');
+CtrlTprFreq = sProcess.options.ctrltpr.Value{1};
 
-% Progress bar
 bst_progress('start', 'ft_sourceanalysis', 'Loading input files...', 0, 2*length(sInputs));
-bst_progress('text', 'Loading input files...');
 
 % ===== LOAD: CHANNEL FILE =====
+bst_progress('text', 'Loading input files...');
+
+% Load channel file
 ChannelMat = in_bst_channel(sInputs(1).ChannelFile);
+% Get selected sensors
 iChannels = channel_find(ChannelMat.Channel, Modality);
 if isempty(iChannels)
     bst_report('Error', sProcess, sInputs, ['Channels "' Modality '" not found in channel file.']);
@@ -164,61 +163,66 @@ if isempty(iChannels)
 end
 
 % ===== LOAD: BAD CHANNELS =====
+% Load bad channels from all the input files
 isChannelGood = [];
 for iInput = 1:length(sInputs)
-    DataFile = sInputs(iInput).FileName;
-    DataMat  = load(file_fullpath(DataFile), 'ChannelFlag');
+    DataFile = sInputs(1).FileName;
+    DataMat = load(file_fullpath(DataFile), 'ChannelFlag');
     if isempty(isChannelGood)
         isChannelGood = (DataMat.ChannelFlag == 1);
-    elseif (length(DataMat.ChannelFlag) ~= length(isChannelGood)) || ...
-           (length(DataMat.ChannelFlag) ~= length(ChannelMat.Channel))
+    elseif (length(DataMat.ChannelFlag) ~= length(isChannelGood)) || (length(DataMat.ChannelFlag) ~= length(ChannelMat.Channel))
         bst_report('Error', sProcess, sInputs, 'All the input files must have the same number of channels.');
         return;
     else
         isChannelGood = isChannelGood & (DataMat.ChannelFlag == 1);
     end
 end
-
+% Remove bad channels
 iChannelsData = intersect(iChannels, find(isChannelGood'));
+% Error: All channels tagged as bad
 if isempty(iChannelsData)
     bst_report('Error', sProcess, sInputs, 'All the selected channels are tagged as bad.');
     return;
 elseif any(~isChannelGood)
-    bst_report('Info', sProcess, sInputs, ['Found ' num2str(length(find(~isChannelGood))) ...
-        ' bad channels: ' sprintf('%s ', ChannelMat.Channel(find(~isChannelGood)).Name)]);
+    bst_report('Info', sProcess, sInputs, ['Found ' num2str(length(find(~isChannelGood))) ' bad channels: ', sprintf('%s ', ChannelMat.Channel(find(~isChannelGood)).Name)]);
 end
 
 % ===== LOAD: HEADMODEL =====
+% Get the study
 sStudyChan = bst_get('ChannelFile', sInputs(1).ChannelFile);
+% Error if there is no head model available
 if isempty(sStudyChan.iHeadModel)
     bst_report('Error', sProcess, [], ['No head model available in folder: ' bst_fileparts(sStudyChan.FileName)]);
     return;
 end
+% Load head model
 HeadModelFile = sStudyChan.HeadModel(sStudyChan.iHeadModel).FileName;
-HeadModelMat  = in_bst_headmodel(HeadModelFile);
+HeadModelMat = in_bst_headmodel(HeadModelFile);
+% Convert head model to FieldTrip format
 [ftHeadmodel, ftLeadfield, iChannelsData] = out_fieldtrip_headmodel(HeadModelMat, ChannelMat, iChannelsData, 1);
 
 % ===== LOAD: DATA =====
-ftData       = out_fieldtrip_data(sInputs(1).FileName, ChannelMat, iChannelsData, 1);
-ftData.trial = cell(1, length(sInputs));
-ftData.time  = cell(1, length(sInputs));
+% Template FieldTrip structure for all trials
+ftData = out_fieldtrip_data(sInputs(1).FileName, ChannelMat, iChannelsData, 1);
+ftData.trial = cell(1,length(sInputs));
+ftData.time = cell(1,length(sInputs));
+% Load all the trials
 
+AllChannelFiles = unique({sInputs.ChannelFile});
+iChanInputs = find(ismember({sInputs.ChannelFile}, AllChannelFiles{1}));
 for iInput = 1:length(sInputs)
-    DataFile = sInputs(iInput).FileName;
-    DataMat  = in_bst_data(DataFile);
+    DataFile = sInputs(iChanInputs(iInput)).FileName;
+    DataMat = in_bst_data(DataFile);
     ftData.trial{iInput} = DataMat.F(iChannelsData,:);
-    ftData.time{iInput}  = DataMat.Time;
+    ftData.time{iInput} = DataMat.Time;
 end
 
-if length(ftData.time) > 1
-    TI = ftData.time{2}(1) - ftData.time{1}(1);
-else
-    TI = 0;
-end
+%- checking inter-trial time-intervals
+TI = ftData.time{2}(1) - ftData.time{1}(1);
 
-% ===== FIELDTRIP: ft_freqanalysis (inspection only) =====
+% ===== FIELDTRIP: ft_freqanalysis =====
 bst_progress('text', 'Calling FieldTrip function: ft_freqanalysis...');
-
+% Compute tfr-decomposition
 cfg = [];
 cfg.output     = 'pow';
 cfg.channel    = 'all';
@@ -228,45 +232,44 @@ cfg.foi        = 1:2:MaxFreq;
 cfg.keeptrials = 'yes';
 cfg.t_ftimwin  = 3 ./ cfg.foi;
 cfg.tapsmofrq  = 0.8 * cfg.foi;
+%     cfg.toi        = Baseline(1):0.05:PostStim(2);
 cfg.toi        = ftData.time{1}(1):0.05:ftData.time{1}(end);
 tfr            = ft_freqanalysis(cfg, ftData);
+if TI ~= 0, tfr.time = linspace(0, ftData.time{1}(end) - ftData.time{1}(1), length(cfg.toi)); end
 
-if TI ~= 0
-    tfr.time = linspace(0, ftData.time{1}(end) - ftData.time{1}(1), length(cfg.toi));
-end
-
-if isfield(tfr, 'powspctrm')
-    tfr.powspctrm(isnan(tfr.powspctrm)) = 0;
-end
+tfr.powspctrm(isnan(tfr.powspctrm))=0;
 tfr.time = linspace(0, tfr.time(end) - tfr.time(1), length(tfr.time));
 
+% Plot TFR
 cfg = [];
 cfg.savepath = 1;
-cfg.savefile = fullfile(TmpDir, 'tfr');
-cfg.fmax     = MaxFreq;
-cfg.toi      = [tfr.time(1), tfr.time(end)];
-cfg.bslcorr  = 2;
+cfg.savefile = fullfile(savepath,'tfr');
+cfg.fmax = MaxFreq;
+cfg.toi = [tfr.time(1), tfr.time(end)];
+cfg.bslcorr = 2;
 cfg.plotflag = ShowTfr;
-[time_of_interest, freq_of_interest] = do_tfr_plot(cfg, tfr);
-disp(['Global max: time: ' num2str(time_of_interest) ' sec']);
-disp(['Global max: freq: ' num2str(freq_of_interest) ' Hz']);
+%     cfg.effect = 1; % postive = 1, negative = 2; both = 3;
+[time_of_interest,freq_of_interest] = do_tfr_plot(cfg, tfr);
+disp(['Global max: time:',num2str(time_of_interest),'sec']);
+disp(['Global max: freq:',num2str(freq_of_interest),'Hz']);
 
-% ===== PREPARE EPOCH DATA =====
+
+%%
 datain = ftData;
-for i = 1:length(datain.time)
+
+for i=1:length(datain.time)
     datain.time{i} = linspace(0, ftData.time{1}(end) - ftData.time{1}(1), length(ftData.time{1}));
 end
-warning(['Maximum trial length:[' num2str(datain.time{1}(1)) ',' num2str(datain.time{1}(end)) ']']);
+warning(['Maximum trial length:[', num2str(datain.time{1}(1)), ',', num2str(datain.time{1}(end)),']']);
 
 cfg = [];
-if ~isempty(PostStim) && numel(PostStim) == 2 && all(isfinite(PostStim)) && (PostStim(2) > PostStim(1))
-    cfg.toilim = PostStim;
-    WindowSel  = PostStim;
-else
-    cfg.toilim = [datain.time{1}(1), datain.time{1}(end)];
-    WindowSel  = cfg.toilim;
-end
+cfg.toilim = [datain.time{1}(1), datain.time{1}(end)];
 ep_data = ft_redefinetrial(cfg, datain);
+
+
+% % Always use the full local epoch for resting-state blocks
+epochEnd   = min(cellfun(@(t) t(end), ftData.time));
+TimeWindow = [0, epochEnd];
 
 cfg = [];
 cfg.resamplefs = 500;
@@ -286,7 +289,7 @@ if strcmpi(NormMode, 'otherfreq')
     ctrlCfg = [];
     ctrlCfg.foilim    = [CtrlFOI CtrlFOI];
     ctrlCfg.taper     = pick_taper(CtrlFOI);
-    ctrlCfg.tapsmofrq = pick_tapsmofrq(CtrlFOI, TprFreq);
+    ctrlCfg.tapsmofrq = pick_tapsmofrq(CtrlFOI, CtrlTprFreq);
     [f_data.ctrl, ~, ~, ~] = do_fft(ctrlCfg, ep_data);
     f_data.ctrl = copy_sensorinfo(f_data.ctrl, ep_data);
 end
@@ -306,10 +309,10 @@ switch Method
             case 'otherfreq'
                 s_foi  = compute_dics_source(ftLeadfield, ftHeadmodel, f_data.foi,  LambdaPct, UseRealFilter, false, false);
                 s_ctrl = compute_dics_source(ftLeadfield, ftHeadmodel, f_data.ctrl, LambdaPct, UseRealFilter, false, false);
-
-                denom = s_foi.avg.pow + s_ctrl.avg.pow;
-                denom = max(denom, eps);
-                outputMap = (s_foi.avg.pow - s_ctrl.avg.pow) ./ denom;
+                
+                tmp = s_foi.avg.pow; tmp(isnan(tmp))=0; tmp = tmp./max(tmp);s_foi.avg.pow = tmp;
+                tmp =s_ctrl.avg.pow; tmp(isnan(tmp))=0; tmp = tmp./max(tmp); s_ctrl.avg.pow = tmp;
+                outputMap = (s_foi.avg.pow - s_ctrl.avg.pow)./(s_foi.avg.pow + s_ctrl.avg.pow);
                 sourceOut = s_foi;
 
                 switch sProcess.options.erds.Value
@@ -382,9 +385,12 @@ ResultsMat.nAvg          = DataMat.nAvg;
 ResultsMat.Leff          = DataMat.Leff;
 
 if strcmpi(NormMode, 'noise')
-    ResultsMat.Comment = ['DICS-rest NAI: ' num2str(FOI) 'Hz ' sprintf('%1.3fs-%1.3fs', WindowSel(1), WindowSel(2))];
+    ResultsMat.Comment = ['DICS-rest NAI: ' num2str(FOI) 'Hz ' sprintf('%1.3fs-%1.3fs', TimeWindow(1), TimeWindow(2))];
 else
-    ResultsMat.Comment = ['DICS-rest: ' num2str(FOI) 'Hz vs ' num2str(CtrlFOI) 'Hz ' sprintf('%1.3fs-%1.3fs', WindowSel(1), WindowSel(2))];
+%     ResultsMat.Comment = ['DICS-rest: ' num2str(FOI) 'Hz vs ' num2str(CtrlFOI) 'Hz ' sprintf('%1.3fs-%1.3fs', WindowSel(1), WindowSel(2))];
+    ResultsMat.Comment = ['DICS-rest: ' num2str(FOI) 'Hz vs ' ...
+    num2str(CtrlFOI) '±' num2str(CtrlTprFreq) 'Hz ' ...
+    sprintf('%1.3fs-%1.3fs', TimeWindow(1), TimeWindow(2))];
 end
 
 switch lower(ResultsMat.HeadModelType)
