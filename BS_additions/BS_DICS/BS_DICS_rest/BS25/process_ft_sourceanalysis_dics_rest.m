@@ -1,5 +1,4 @@
-function varargout = process_ft_sourceanalysis_dics_rest
-(varargin)
+function varargout = process_ft_sourceanalysis_dics_rest (varargin)
 % PROCESS_FT_SOURCEANALYSIS_DICS_REST
 % FieldTrip DICS beamformer for resting-state / single-window spectral
 % source analysis in Brainstorm.
