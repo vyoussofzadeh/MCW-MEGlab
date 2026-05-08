@@ -1,10 +1,3 @@
-a = load('/home/vyoussof/.brainstorm/brainstorm.mat');
-
-P = a.ProtocolsListInfo;
-
-disp(fieldnames(P))
-
-%%
 bstUserFile = '/home/vyoussof/.brainstorm/brainstorm.mat';
 
 a = load(bstUserFile);
