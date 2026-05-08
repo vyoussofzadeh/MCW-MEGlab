@@ -310,7 +310,7 @@ switch Method
                 s_ctrl = compute_dics_source(ftLeadfield, ftHeadmodel, f_data.ctrl, LambdaPct, UseRealFilter, false, false);
                 
                 tmp = s_foi.avg.pow; tmp(isnan(tmp))=0; tmp = tmp./max(tmp);s_foi.avg.pow = tmp;
-                tmp =s_ctrl.avg.pow; tmp(isnan(tmp))=0; tmp = tmp./max(tmp); s_ctrl.avg.pow = tmp;
+                tmp = s_ctrl.avg.pow; tmp(isnan(tmp))=0; tmp = tmp./max(tmp); s_ctrl.avg.pow = tmp;
                 outputMap = (s_foi.avg.pow - s_ctrl.avg.pow)./(s_foi.avg.pow + s_ctrl.avg.pow);
                 sourceOut = s_foi;
 
