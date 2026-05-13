@@ -88,7 +88,7 @@ for run in "${runs[@]}"; do
     -movecomp inter \
     -hpistep 200 \
     -hpicons \
-    -hpisubt amp \.
+    -hpisubt amp \
     -hp "$hpfile" \
     -force
     
