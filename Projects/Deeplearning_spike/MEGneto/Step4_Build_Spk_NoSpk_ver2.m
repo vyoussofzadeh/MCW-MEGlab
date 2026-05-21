@@ -30,11 +30,27 @@ opts.root = '/MEG_data/AHW_SpikeAnalysis/Processed/Spike-NoSpike_Mat_files';
 
 opts.raters = {'Adi','Josh','Manoj','Pradeep'};
 
-opts.outFile = fullfile(opts.root, 'dataset_DL_ready.mat');
+% opts.outFile = fullfile(opts.root, 'dataset_DL_ready.mat');
+opts.outFile = fullfile(opts.root, 'dataset_DL_ready_win_m250_p500.mat');
 
 % Expected epoch dimensions
 opts.cropSamp = 1:306;        % time samples to keep
-opts.expectedNTime = 306;
+% opts.expectedNTime = 306;
+%%
+Fs = 200;
+origWinSec = [-0.500 1.025];
+desiredWinSec = [-0.250 0.500];
+
+tOrig = origWinSec(1):1/Fs:origWinSec(2);
+
+opts.cropSamp = find(tOrig >= desiredWinSec(1) & tOrig <= desiredWinSec(2));
+opts.expectedNTime = numel(opts.cropSamp);
+opts.expectedNChan = 306;
+
+fprintf('Using crop window %.3f to %.3f sec: %d samples\n', ...
+    desiredWinSec(1), desiredWinSec(2), opts.expectedNTime);
+
+%%
 opts.expectedNChan = 306;
 
 opts.Fs_default = 200;

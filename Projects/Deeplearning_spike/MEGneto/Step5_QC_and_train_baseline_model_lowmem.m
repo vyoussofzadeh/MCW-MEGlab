@@ -8,7 +8,8 @@
 
 clc; clear;
 
-datasetFile = '/MEG_data/AHW_SpikeAnalysis/Processed/Spike-NoSpike_Mat_files/dataset_DL_ready.mat';
+% datasetFile = '/MEG_data/AHW_SpikeAnalysis/Processed/Spike-NoSpike_Mat_files/dataset_DL_ready.mat';
+datasetFile = '/MEG_data/AHW_SpikeAnalysis/Processed/Spike-NoSpike_Mat_files/dataset_DL_ready_win_m250_p500.mat';
 
 %% ---- Inspect saved variables -------------------------------------------
 
