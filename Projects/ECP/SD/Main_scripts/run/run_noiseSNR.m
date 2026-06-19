@@ -1,6 +1,6 @@
 %% MEG noise-SNR
 % Load Data and Compute med_snr_mag / med_snr_grad
-cd('/data/MEG/Research/MEGIN project/Scripts/SNR/SNR_Data')
+cd('/MEG_data/LAB_MEMBERS/Vahab/ECP/BS_rupesh/SNR_Data')
 [all_snr_grad, all_snr_mag] = ecpfunc_read_noiseSNR();
 
 snr_MEGnetvstSSS  = [all_snr_mag(1).snr_value,  all_snr_grad(1).snr_value];

@@ -44,7 +44,7 @@ cfg.nslices       = cfg_main.nslices;
 % cfg.slicerange    = [10,60];
 cfg.slicedim      = 3;
 cfg.opacitymap    = 'rampup';
-cfg.funcolormap =  brewermap(256, '*RdYlBu');
+% cfg.funcolormap =  brewermap(256, '*RdYlBu');
 ft_sourceplot(cfg, source_int1);
 colorbar off
 set(gcf,'Color','k')

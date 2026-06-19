@@ -16,7 +16,7 @@ cfg.plotflag = 1;
 [mri_realigned,individual_headmodel,headshape, individual_grid_8mm, individual_grid_10mm] = do_anatomy(cfg);
 
 %- Choosing mesh (as needed for source modelling)
-flag.meshgrid_sel = 1;
+flag.meshgrid_sel = 2;
 choose_grid = 2;
 switch choose_grid
     case 1

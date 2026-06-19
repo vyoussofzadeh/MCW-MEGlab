@@ -5,15 +5,32 @@ function vy_mri_inspection(cfg, ~)
 switch cfg.mtd
     case 'vol'
         %%
+                %%
         figure;
-        ft_plot_vol(cfg.headmodel, 'facecolor', 'cortex', 'edgecolor', 'none');alpha 0.5; camlight;
+        ft_plot_headmodel(cfg.headmodel, 'facecolor', 'cortex', 'edgecolor', 'none'); alpha 0.5; camlight;
+%         camlight;
+%         lighting gouraud;
+%         view(3);
+%         axis equal;
+        
+%         figure;
+%         ft_plot_vol(cfg.headmodel, 'facecolor', 'cortex', 'edgecolor', 'none');alpha 0.5; camlight;
         hold on;
         ft_plot_headshape(cfg.headshape);
         ft_plot_mesh(cfg.leadfield.pos(cfg.leadfield.inside, :));
         view ([0 90])
+
+        
+        
+%         figure;
+%         ft_plot_vol(cfg.headmodel, 'facecolor', 'cortex', 'edgecolor', 'none');alpha 0.5; camlight;
+%         hold on;
+%         ft_plot_headshape(cfg.headshape);
+%         ft_plot_mesh(cfg.leadfield.pos(cfg.leadfield.inside, :));
+%         view ([0 90])
         if ~isempty(cfg.saveflag)
             savepath = fullfile(cfg.outputmridir,'headshape');
-            hcp_write_figure([savepath,'.png'], gcf, 'resolution', 300);
+%             hcp_write_figure([savepath,'.png'], gcf, 'resolution', 300);
         end
         
     case 'surf'

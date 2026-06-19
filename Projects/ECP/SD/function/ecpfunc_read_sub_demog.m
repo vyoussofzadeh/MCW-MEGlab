@@ -8,7 +8,7 @@ sFiles_3 = cfg.sFiles_3;
 sFiles_2 = cfg.sFiles_2;
 
 %%
-ECP_scriptdir = '/data/MEG/Research/ECP/Behavioural/processed';
+ECP_scriptdir = '/MEG_data/LAB_MEMBERS/Vahab/ECP/BS_rupesh/Behavioural/processed';
 load(fullfile(ECP_scriptdir,'sub_demog.mat'));
 
 k=1; ib_3 = [];

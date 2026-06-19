@@ -50,7 +50,7 @@ for j = 1:length(uniqueMethods)
 end
 b = bar(categorical(uniqueMethods), barData, 'BarWidth', 0.4);
 b(1).FaceColor = [.6 .6 .6];%'b';
-b(2).FaceColor = rgb(66, 165, 245) ; %'r';
+b(2).FaceColor = 'r';
 title('Correlation');
 ylabel('Corr');
 ylim([0, 1]);
@@ -70,7 +70,7 @@ for j = 1:length(uniqueMethods)
 end
 b = bar(categorical(uniqueMethods), barData, 'BarWidth', 0.4);
 b(1).FaceColor = [.6 .6 .6];%'b';
-b(2).FaceColor = rgb(66, 165, 245) ; %'r';
+b(2).FaceColor = 'r';
 title('Concordance');
 ylabel('Concordance');
 ylim([0, 100]);

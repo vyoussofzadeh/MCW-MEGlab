@@ -1,0 +1,17 @@
+%%
+addpath('/usr/local/MATLAB_Tools/brainstorm3/external/mne/matlab')
+
+%% GOOD DATA
+datafile = '/MEG_data/epilepsy/pordon_amanda/250515/sss/Run04_spont_supine/Run04_spont_supine_raw_t_sss_ecgClean_raw.fif';
+[info] = fiff_read_meas_info(datafile);
+trans=info.dev_head_t.trans;
+
+
+datafile = '/MEG_data/epilepsy/magolan_thomas/250521/sss/Run03_spont_supine/Run03_spont_supine_ic_raw_t_sss_ecgClean_raw.fif';
+[info] = fiff_read_meas_info(datafile);
+trans=info.dev_head_t.trans;
+
+
+datafile = '/MEG_data/epilepsy/magolan_thomas/250521/sss/Run03_spont_supine/Run03_spont_supine_raw_t_sss_ecgClean_raw.fif';
+[info] = fiff_read_meas_info(datafile);
+trans=info.dev_head_t.trans;

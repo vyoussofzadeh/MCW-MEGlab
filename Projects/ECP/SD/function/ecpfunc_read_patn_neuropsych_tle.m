@@ -42,6 +42,6 @@ opts.ExtraColumnsRule = "ignore";
 opts.EmptyLineRule = "read";
 
 % Import the data
-patn_neuropsych_data_tle = readtable("/data/MEG/Research/ECP/Behavioural/update_pshah_060922/forR_ECP_Zscore_brief2_LisaConant.csv", opts);
+patn_neuropsych_data_tle = readtable("/MEG_data/LAB_MEMBERS/Vahab/ECP/BS_rupesh/Behavioural/update_pshah_060922/forR_ECP_Zscore_brief2_LisaConant.csv", opts);
 
 clear opts

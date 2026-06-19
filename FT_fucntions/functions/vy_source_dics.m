@@ -43,12 +43,13 @@ if ask==1
     %% Nagative effects
     cfg = [];
     cfg.parameter = 'pow';
-    cfg.operation = '(x1-x2)/(x1+x2)';
+    cfg.operation = 'log10(x1/x2)';
     source_diff_dics = ft_math(cfg,s_data_dics.pst,s_data_dics.bsl);
     source_diff_dics.pos     = cfg_main.template_grid.pos;
     source_diff_dics.dim     = cfg_main.template_grid.dim;
     source_diff_dics.inside  = cfg_main.template_grid.inside;
     source_diff_dics.pow(isnan(source_diff_dics.pow))=0;
+    source_diff_dics.pow(source_diff_dics.pow>0)=0;
     
     
     
@@ -141,14 +142,14 @@ if ask==1
         
         disp('1: Yes')
         disp('2: No');
-%         surask = 2;
-        surask = input('Surface map:');
+        surask = 1;
+%         surask = input('Surface map:');
         switch surask
             case 1
                 cfg = [];
                 cfg.subj = cfg_main.subj;
                 cfg.mask = 'pow';
-                cfg.thre = 0.6;
+                cfg.thre = 0;
                 cfg.savepath = savepath;
                 cfg.colorbar = 2;
                 cfg.saveflag = 2;

@@ -55,7 +55,7 @@
 
 %%
 % Load run-averaged RTs (assumes struct 'rt' with fields: sub_ID, animal, symbol, [both])
-load('/data/MEG/Research/ECP/Semantic_Decision/process/RT_summary/ResponseTime_meanRuns.mat');
+load('/MEG_data/LAB_MEMBERS/Vahab/ECP/BS_rupesh/RT_summary/ResponseTime_meanRuns.mat');
 
 % Ensure compatible types
 sub_MF_pt = string(sub_MF_pt(:));

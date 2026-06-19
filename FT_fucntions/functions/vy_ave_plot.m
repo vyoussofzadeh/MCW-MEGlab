@@ -32,7 +32,7 @@ toi = data.time(idx);
 [~,idxm] = max(max(abs(data.avg(:,idx))));
 toi_mean_trial = toi(idxm);
 %%
-hcp_write_figure([cfg_main.savefile,'.png'], gcf, 'resolution', 300);
+% hcp_write_figure([cfg_main.savefile,'.png'], gcf, 'resolution', 300);
 
 %%
 cfg          = [];

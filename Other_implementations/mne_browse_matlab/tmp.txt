@@ -1,0 +1,21 @@
+% process_xfit_input.m
+% -------------------------------------------------------------------------
+% MEG_clinic utility
+%
+
+% Updated: 07/03/2025
+% Author: Vahab Youssofzadeh (VYZ)
+%
+% CHANGELOG
+% 07/03/2025 - VYZ
+%    ./megclinic/xfit/process_xfit_input.m 
+%   * Replaced call to nsi_fif2ctr with nsi_fif2ctr_edited
+%   * Purpose: Remove dependency on HPI coil information extraction
+%
+% -------------------------------------------------------------------------
+% Updated: 4/25/2025
+%    ./megclinic/xfit/process_xfit_input.m
+%   * Added constNoisePlanar and constNoiseAxial to process_xfit_input/writeCommandFile
+%   function
+%   * Purpose: Remove dependency on HPI coil information extraction
+% -------------------------------------------------------------------------

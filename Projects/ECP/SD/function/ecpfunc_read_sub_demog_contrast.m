@@ -6,7 +6,7 @@ subjs = cfg.subjs;
 sFiles = cfg.sFiles;
 
 %%
-ECP_scriptdir = '/data/MEG/Research/ECP/Behavioural/processed';
+ECP_scriptdir = '/MEG_data/LAB_MEMBERS/Vahab/ECP/BS_rupesh/Behavioural/processed';
 load(fullfile(ECP_scriptdir,'sub_demog.mat'));
 
 k=1; ib = [];

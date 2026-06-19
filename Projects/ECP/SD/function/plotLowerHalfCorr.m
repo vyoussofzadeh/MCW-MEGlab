@@ -12,7 +12,11 @@ nVars   = size(R,1);
 triMask = tril(true(nVars),-1);          % lower-triangle w/o diagonal
 pVec    = p(triMask);                    % vector of raw p-values
 
-qVec = mafdr(pVec,'BHFDR',true);         % q-values (needs Statistics TBX)
+% qVec = mafdr(pVec,'BHFDR',true);         % q-values (needs Statistics TBX)
+
+% pVec = pMat(maskLower);
+qVec = local_bhfdr(pVec);
+
 % --- fallback if mafdr is missing ---
 % [ps,idx] = sort(pVec); m=numel(ps);
 % qtmp = ps.*m./(1:m)'; qtmp = min(cummin(flipud(qtmp)),1);
@@ -134,4 +138,45 @@ bluetowhite = [linspace(0,1,half)', linspace(0,1,half)', ones(1,half)'];
 % White to red
 whitetored  = [ones(1, n-half)', linspace(1,0,n-half)', linspace(1,0,n-half)'];
 cmap = [bluetowhite; whitetored];
+end
+
+
+function q = local_bhfdr(p)
+% Benjamini-Hochberg FDR correction without Bioinformatics Toolbox.
+% Replacement for:
+% q = mafdr(p,'BHFDR',true)
+
+    originalSize = size(p);
+    p = p(:);
+
+    q = nan(size(p));
+
+    validIdx = ~isnan(p);
+    pv = p(validIdx);
+
+    if isempty(pv)
+        q = reshape(q, originalSize);
+        return
+    end
+
+    [ps, sortIdx] = sort(pv);
+    m = numel(ps);
+
+    % Raw BH q-values
+    qs = ps .* m ./ (1:m)';
+
+    % Enforce monotonicity from largest to smallest p-value
+    qs = flipud(cummin(flipud(qs)));
+
+    % Limit to 1
+    qs(qs > 1) = 1;
+
+    % Put back into original order
+    qv = nan(size(pv));
+    qv(sortIdx) = qs;
+
+    q(validIdx) = qv;
+
+    % Restore original shape
+    q = reshape(q, originalSize);
 end

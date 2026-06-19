@@ -1,4 +1,4 @@
-taskperf_datadir = '/data/MEG/Vahab/Github/MCW_MEGlab/MCW_MEGlab_git/Projects/ECP/SD/data/';
+taskperf_datadir = '/MEG_data/LAB_MEMBERS/Vahab/ECP/BS_rupesh/Script_RC/data';
 sub_MF_pt_num = cellfun(@(x) str2double(x(3:end)), sub_MF_pt);
 taskPerformanceDataPath = fullfile(taskperf_datadir, 'TaskPerformanceSD.mat');
 load(taskPerformanceDataPath);

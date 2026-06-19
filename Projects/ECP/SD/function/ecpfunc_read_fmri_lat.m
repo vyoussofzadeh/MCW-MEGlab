@@ -6,7 +6,9 @@ function fmri_LIs = ecpfunc_read_fmri_lat()
 
 %%
 % filename = '/group/jbinder/ECP/alternate/derivatives/laterality_indices/censor/all_volume_li.tsv'; % please replace with your actual path
-filename = '/group/jbinder/ECP/alternate/derivatives/laterality_indices/censor/all_cifti_li.tsv';
+% filename = '/group/jbinder/ECP/alternate/derivatives/laterality_indices/censor/all_cifti_li.tsv';
+filename = '/MEG_data/LAB_MEMBERS/Vahab/ECP/BS_rupesh/Script_RC/SubDemog_fMRILI/fMRI_LI_all_cifti_li.tsv';
+
 
 disp('task info')
 disp('Semantic task: storymath task'); 

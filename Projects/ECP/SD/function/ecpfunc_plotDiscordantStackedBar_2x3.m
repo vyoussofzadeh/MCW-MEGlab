@@ -100,7 +100,9 @@ else
 end
 
 % BenjaminiHochberg FDR
-qVals = mafdr(rawP,'BHFDR',true);   % Statistics Toolbox
+% qVals = mafdr(rawP,'BHFDR',true);   % Statistics Toolbox
+qVals = local_bhfdr(rawP);
+
 % --- fallback if mafdr absent ---
 % [ps,idx] = sort(rawP);
 % m       = numel(ps);
@@ -146,4 +148,44 @@ expected = (rowSum * colSum)/N;  % (2×1)*(1×3) => 2×3
 chi2stat = sum( (observed - expected).^2 ./ expected,'all');
 df       = (size(observed,1)-1)*(size(observed,2)-1); % => (2-1)*(3-1)=2
 pVal     = 1-chi2cdf(chi2stat, df);
+end
+
+function q = local_bhfdr(p)
+% Benjamini-Hochberg FDR correction without Bioinformatics Toolbox.
+% Replacement for:
+% q = mafdr(p,'BHFDR',true)
+
+    originalSize = size(p);
+    p = p(:);
+
+    q = nan(size(p));
+
+    validIdx = ~isnan(p);
+    pv = p(validIdx);
+
+    if isempty(pv)
+        q = reshape(q, originalSize);
+        return
+    end
+
+    [ps, sortIdx] = sort(pv);
+    m = numel(ps);
+
+    % Raw BH q-values
+    qs = ps .* m ./ (1:m)';
+
+    % Enforce monotonicity from largest to smallest p-value
+    qs = flipud(cummin(flipud(qs)));
+
+    % Limit to 1
+    qs(qs > 1) = 1;
+
+    % Put back into original order
+    qv = nan(size(pv));
+    qv(sortIdx) = qs;
+
+    q(validIdx) = qv;
+
+    % Restore original shape
+    q = reshape(q, originalSize);
 end

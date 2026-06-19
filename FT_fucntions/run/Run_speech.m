@@ -2,7 +2,8 @@ savepath = ('speech');
 if exist(savepath, 'file') == 0, mkdir(savepath), end
 
 %%
-load(['f_',subj,'.mat']);
+% load(['f_',subj,'.mat']);
+load(['ic_',subj,'.mat']);
 
 cfg                         = [];
 cfg.dataset                 = datafile;

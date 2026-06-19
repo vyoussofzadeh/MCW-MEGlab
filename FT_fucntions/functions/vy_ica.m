@@ -17,10 +17,10 @@ comp           = ft_componentanalysis(cfg, data);
 % set(gcf,'name',cfg_main.subj,'numbertitle','off')
 
 %%
-restoredefaultpath
-addpath(genpath(cfg_main.allpath.ft18));
-addpath(genpath(cfg_main.allpath.hcp_path));
-addpath(genpath(cfg_main.allpath.cd_org));
+% restoredefaultpath
+% addpath(genpath(cfg_main.allpath.ft18));
+% addpath(genpath(cfg_main.allpath.hcp_path));
+% addpath(genpath(cfg_main.allpath.cd_org));
 
 cfg = [];
 cfg.viewmode = 'component';
@@ -56,17 +56,30 @@ rptvect = 1:size(comp.topo,1);
 rptvect = padarray(rptvect, [0 tot-size(comp.topo,1)], 0,'post');
 rptvect = reshape(rptvect,n,Nfigs)';
 
+
 figure
 for r=1:n
-    cfg=[];
+    cfg = [];
     cfg.channel = rptvect(:,r);
-    subplot(nby1,nby2,r);set(gca,'color','none');
-    ft_singleplotER(cfg,freq);
+    subplot(nby1,nby2,r);
+    set(gca,'color','none');
+    plot(freq.freq, freq.powspctrm(r,:))
+    xlim([min(freq.freq), max(freq.freq)])
+    title(['IC', num2str(r)])
 end
-colormap(brewermap(256, '*RdYlBu'));
-set(gcf, 'Position', [800   600   800   500]);
-% title(cfg_main.subj)
-set(gcf,'name',cfg_main.subj,'numbertitle','off')
+
+
+% figure
+% for r=1:n
+%     cfg=[];
+%     cfg.channel = rptvect(:,r);
+%     subplot(nby1,nby2,r);set(gca,'color','none');
+%     ft_singleplotER(cfg,freq);
+% end
+% colormap(brewermap(256, '*RdYlBu'));
+% set(gcf, 'Position', [800   600   800   500]);
+% % title(cfg_main.subj)
+% set(gcf,'name',cfg_main.subj,'numbertitle','off')
 
 % if cfg_main.savefig == 1
 % %     print('ica/ica2','-depsc');
