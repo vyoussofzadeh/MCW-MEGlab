@@ -34,9 +34,12 @@ indir = '/MEG_data/Research_studies/Epil_annotated_data/annotated_info';
 outdir = '/MEG_data/Research_studies/Epil_annotated_data/annotated_data';
 
 %- Adding path
-cfg_init = [];
-cfg_init.path_tools = '/usr/local/MATLAB_Tools';
-[allpath, atlas] = vy_init(cfg_init);
+% cfg_init = [];
+% cfg_init.path_tools = '/usr/local/MATLAB_Tools';
+% [allpath, atlas] = vy_init(cfg_init);
+
+addpath('/MEG_data/MEG_Tools/fieldtrip/fieldtrip_2022')
+ft_defaults
 
 %%
 cd(indir)

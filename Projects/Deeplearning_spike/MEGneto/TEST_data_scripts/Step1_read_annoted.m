@@ -23,10 +23,13 @@ flag.analysis = 1;
 Datalog = [];
 
 %% Initial settings
-cd '/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab/FT';
-restoredefaultpath
-cd_org = cd;
-addpath(genpath(cd_org));
+% cd '/MEG_data/LAB_MEMBERS/Vahab/Github/MCW-MEGlab/FT';
+% restoredefaultpath
+% cd_org = cd;
+% addpath(genpath(cd_org));
+
+addpath('/MEG_data/MEG_Tools/fieldtrip/fieldtrip_2022')
+ft_defaults
 
 %- Input dir
 indir = '/MEG_data/epilepsy';
@@ -34,9 +37,9 @@ indir = '/MEG_data/epilepsy';
 savedir = '/MEG_data/Research_studies/Epil_annotated_data/annotated_info';
 
 %- Adding path
-cfg_init = [];
-cfg_init.path_tools = '/MEG_data/LAB_MEMBERS/Vahab/Github/tools';
-[allpath, atlas] = vy_init(cfg_init);
+% cfg_init = [];
+% cfg_init.path_tools = '/MEG_data/LAB_MEMBERS/Vahab/Github/tools';
+% [allpath, atlas] = vy_init(cfg_init);
 
 %%
 [~, ~, raw] = xlsread('/MEG_data/Research_studies/MEG_in_Epilepsy_Surgery/PRO00015813_Consented Patient Registry_8-17-2020.xls','Sheet1');
@@ -60,6 +63,7 @@ d = rdir([indir,['/*/','brainstorm_db','/**/*_spont*/dipoles_*.mat']]);
 % - Finding Dipole estimates
 clear subj run sub_run
 k=1;
+sub_idx = [];
 for i=1:length(d)
     [pathstr, name] = fileparts(d(i).name);
     tkz = tokenize(pathstr,'/');
@@ -71,6 +75,7 @@ for i=1:length(d)
         run{i} = tkz2{1};
         disp(subj{k})
         sub_run{k,:} = [subj{k}, '_', run{i}];
+        sub_idx = [sub_idx;i];
         k=k+1;
     end
 end
@@ -99,7 +104,7 @@ for i=1:length(sub_run_unq)
         
         T_int = []; D_name = []; k=1;
         for j=1:length(d2)
-            [pathstr, name] = fileparts(d2(j).name);
+            [~, name] = fileparts(d2(j).name);
             clear D
             D = load(name);
             if isfield(D,'History') && size(D.History,1) >2  && ~isnan(mean(str2num(D.History{3, 3}))) && ~contains(name, '_band')
