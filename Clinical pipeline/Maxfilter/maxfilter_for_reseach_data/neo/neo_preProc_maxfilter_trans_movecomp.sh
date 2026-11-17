@@ -12,7 +12,7 @@ baseline="$1"
 
 base="$PWD"
 orig_dir="${base}/orig"
-tsss_dir="${base}/tsss_tans_mvcomp"
+tsss_dir="${base}/tsss_trans_mvcomp"
 
 mkdir -p "$orig_dir" "$tsss_dir"
 

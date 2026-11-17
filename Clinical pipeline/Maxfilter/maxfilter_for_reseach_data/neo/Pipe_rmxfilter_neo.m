@@ -32,14 +32,11 @@ if exist(origDir, 'dir') ~= 7
     error('orig folder not found: %s', origDir);
 end
 
-% -------------------------------------------------------------------------
-% Select mode
-% -------------------------------------------------------------------------
-disp('---');
 disp('Select preprocessing mode:');
 disp('  1 = tSSS');
 disp('  2 = tSSS + trans');
 disp('  3 = tSSS + trans + movecomp');
+disp('  4 = tSSS + movecomp');
 modeID = input('Mode: ');
 
 baselineFile = '';
@@ -48,35 +45,43 @@ switch modeID
     case 1
         bashScript = '/MEG_data/MCW_pipeline/Preprocess/maxfilter_for_reseach_data/neo/neo_preProc_maxfilter.sh';
         tsssDir    = fullfile(sessionDir, 'tsss');
-
+        
     case 2
         bashScript = '/MEG_data/MCW_pipeline/Preprocess/maxfilter_for_reseach_data/neo/neo_preProc_maxfilter_trans.sh';
         tsssDir    = fullfile(sessionDir, 'tsss_tans');
-
+        
         disp('---');
         disp('Enter the baseline FIF file used for transformation (-trans):');
         disp('Example: mcwa117_pSTM_run1_raw.fif');
         baselineFile = strtrim(input('Baseline FIF file: ', 's'));
-
+        
         if isempty(baselineFile)
             error('Baseline FIF file was not provided.');
         end
-
+        
     case 3
         bashScript = '/MEG_data/MCW_pipeline/Preprocess/maxfilter_for_reseach_data/neo/neo_preProc_maxfilter_trans_movecomp.sh';
-        tsssDir    = fullfile(sessionDir, 'tsss_tans_mvcomp');
-
+        tsssDir    = fullfile(sessionDir, 'tsss_trans_mvcomp');
+        
         disp('---');
         disp('Enter the baseline FIF file used for transformation (-trans):');
         disp('Example: mcwa117_pSTM_run1_raw.fif');
         baselineFile = strtrim(input('Baseline FIF file: ', 's'));
-
+        
         if isempty(baselineFile)
             error('Baseline FIF file was not provided.');
         end
-
+        
+    case 4
+        bashScript = ['/MEG_data/MCW_pipeline/Preprocess/' ...
+            'maxfilter_for_reseach_data/neo/' ...
+            'neo_preProc_maxfilter_movecomp.sh'];
+        
+        tsssDir = fullfile(sessionDir, 'tsss_mvcomp');
+        
     otherwise
-        error('Invalid mode. Please choose 1, 2, or 3.');
+        error('Invalid mode. Please choose 1, 2, 3, or 4.');
+        
 end
 
 % -------------------------------------------------------------------------
@@ -119,4 +124,13 @@ Summary = runmaxfilter(sessionDir, baselinePath, bashScript, tsssDir, logDir);
 fprintf('\nPipeline finished.\n');
 disp('Summary output:');
 disp(Summary);
+
+QC = maxfilter_qc(sessionDir, origDir, tsssDir, logDir, modeID);
+
+fprintf('\nQC summary:\n');
+disp(QC.table);
+
+qcFile = fullfile(logDir, 'maxfilter_QC_summary.csv');
+writetable(QC.table, qcFile);
+fprintf('QC table saved: %s\n', qcFile);
 

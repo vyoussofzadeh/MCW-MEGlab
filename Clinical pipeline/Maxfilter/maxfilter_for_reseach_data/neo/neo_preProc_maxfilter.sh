@@ -1,106 +1,53 @@
 #!/usr/bin/env bash
 
-set -u
+set -euo pipefail
 shopt -s nullglob
-
-if [[ $# -lt 1 ]]; then
-    echo "Usage: $0 <baseline_raw_file>"
-    exit 1
-fi
-
-baseline="$1"
 
 base="$PWD"
 orig_dir="${base}/orig"
-tsss_dir="${base}/tsss_tans_mvcomp"
+tsss_dir="${base}/tsss"
 
-mkdir -p "$orig_dir" "$tsss_dir"
-
-# Move raw files into orig/ if they are still in the current folder
-rawfiles=( *raw*fif* )
-if (( ${#rawfiles[@]} > 0 )); then
-    mv "${rawfiles[@]}" "$orig_dir"/
-fi
-
-cd "$orig_dir" || {
-    echo "ERROR: Cannot access $orig_dir"
+cd -- "$orig_dir" || {
+    printf 'ERROR: Cannot access %s\n' "$orig_dir" >&2
     exit 1
 }
 
-baseline_file="${orig_dir}/${baseline}"
-
-if [[ ! -e "$baseline_file" ]]; then
-    echo "ERROR: baseline file not found: $baseline_file"
-    exit 1
-fi
-
-echo "Using baseline for -trans: $baseline_file"
-
-runs=( *raw*fif* )
+runs=()
+for file in *.fif; do
+    if [[ -f "$file" && "$file" =~ _raw(_part[0-9]+)?\.fif$ ]]; then
+        runs+=("$file")
+    fi
+done
 
 if (( ${#runs[@]} == 0 )); then
-    echo "No raw FIF files found in $orig_dir"
+    printf 'ERROR: No raw FIF files found in %s\n' "$orig_dir" >&2
     exit 1
 fi
 
+mkdir -p -- "$tsss_dir"
+
+printf 'Input folder:  %s\n' "$orig_dir"
+printf 'Output folder: %s\n' "$tsss_dir"
+
 for run in "${runs[@]}"; do
-    echo "Running: $run"
-    stem="${run%.fif}"
-    hpfile="${tsss_dir}/${stem}_headpos.txt"
+    output="${tsss_dir}/${run}"
 
- #   /neuro/bin/util/maxfilter \
- #       -f "$run" \
- #       -o "${tsss_dir}/${run}" \
- #       -ctc /neuro/databases/ctc/ct_sparse.fif \
- #       -cal /neuro/databases/sss/sss_cal.dat \
- #       -autobad off \
- #       -st 10 \
- #       -corr .9 \
- #       -trans "$baseline_file" \
- #       -movecomp \
- #       -hpisubt amp \
- #       -hp "$hpfile" \
- #       -force
+    if [[ -f "$output" ]]; then
+        printf 'Skipping existing output: %s\n' "$run"
+        continue
+    fi
 
+    printf 'Running tSSS: %s\n' "$run"
 
- #    /neuro/bin/util/maxfilter \
- #       -f "$run" \
- #       -o "${tsss_dir}/${run}" \
- #       -ctc /neuro/databases/ctc/ct_sparse.fif \
- #       -cal /neuro/databases/sss/sss_cal.dat \
- #       -autobad off \
- #       -st 10 \
- #       -corr .9 \
- #       -movecomp \
- #       -hpisubt amp \
- #       -hp "$hpfile" \
- #       -force
-
-#/neuro/bin/util/maxfilter \
-#    -f "$run" \
-#    -o "${tsss_dir}/${run}" \
-#    -ctc /neuro/databases/ctc/ct_sparse.fif \
-#    -cal /neuro/databases/sss/sss_cal.dat \
-#    -autobad off \
-#    -st 10 \
-#    -corr .9 \
-#    -trans "$baseline_file" \
-#    -movecomp inter \
-#    -hpistep 200 \
-#    -hpicons \
-#    -hpisubt amp \
-#    -hp "$hpfile" \
-#    -force
-
-  
-/neuro/bin/util/maxfilter \
-    -f "$run" \
-    -o "${tsss_dir}/${run}" \
-    -ctc /neuro/databases/ctc/ct_sparse.fif \
-    -cal /neuro/databases/sss/sss_cal.dat \
-    -autobad off \
-    -st 10 \
-    -corr .9 \
-    -force
-    
+    /neuro/bin/util/maxfilter \
+        -f "$run" \
+        -o "$output" \
+        -ctc /neuro/databases/ctc/ct_sparse.fif \
+        -cal /neuro/databases/sss/sss_cal.dat \
+        -autobad off \
+        -st 10 \
+        -corr .9 \
+        -force
 done
+
+printf 'tSSS processing completed.\n'
